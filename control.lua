@@ -62,7 +62,8 @@ function create_waypoints(player_index)
     local waypoints = {
       {
         target = XYZ,
-        
+        transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
+        time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value        
       },
       {},
       {},
@@ -77,6 +78,6 @@ function play_cutscene(created_waypoints, player_index)
     type = defines.controllers.cutscene,
     waypoints = created_waypoints,
     start_position = game.players[player_index].position,
-    final_transition_time = game.players[player_index].mod_settings["cc-transition-time"].value
+    final_transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
   }
 end
