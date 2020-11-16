@@ -4,7 +4,8 @@ local transitionTimeSetting = {
   name = "ts-transition-time",
   setting_type = "runtime-per-user",
   minimum_value = 1,
-  default_value = 120,
+  maximum_value = 1800,
+  default_value = 300,
   order = "ts-1"
 }
 
@@ -12,8 +13,8 @@ local timeWaitSetting = {
   type = "int-setting",
   name = "ts-time-wait",
   setting_type = "runtime-per-user",
-  minimum_value = 1,
-  default_value = 60,
+  minimum_value = 1800,
+  default_value = 1800,
   order = "ts-2"
 }
 
