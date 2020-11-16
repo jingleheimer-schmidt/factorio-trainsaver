@@ -1,0 +1,9 @@
+{
+	"name": "trainsaver",
+	"version": "0.0.1",
+	"title": "trainsaver",
+	"description": "Create a dynamic screensaver which follows active trains.",
+	"author": "asher_sky",
+	"dependencies": ["base >= 1.0.0"],
+	"factorio_version": "1.0"
+}
