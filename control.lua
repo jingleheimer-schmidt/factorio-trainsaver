@@ -101,7 +101,7 @@ end
 function continue_trainsaver()
   for a,b in pairs(game.players) do
     if b.controller_type == defines.controllers.cutscene then
-      current_train = b.surface.find_entities_filtered(
+      local current_train = b.surface.find_entities_filtered(
         {
           position = b.position,
           radius = 3,
@@ -111,8 +111,8 @@ function continue_trainsaver()
       )
       if current_train then
         if not current_train.speed > 0 then
-          waypoints = create_waypoints(b.index)
-          play_cutscene(waypoints, b.index)
+          created_waypoints = create_waypoints(b.index)
+          play_cutscene(created_waypoints, b.index)
         else return
         end
       else return
@@ -121,3 +121,4 @@ function continue_trainsaver()
     end
   end
 end
+
