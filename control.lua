@@ -17,17 +17,18 @@ script.on_load(function()
   commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
 end)
 
+script.on_nth_tick(1800, continue_trainsaver)
+
 function end_trainsaver(command)
   if game.players[command.player_index].controller_type == defines.controllers.cutscene then
     game.players[command.player_index].exit_cutscene()
   else
-    game.print("user error: no trainsaver to end")
+    game.print("no trainsaver to end")
   end
 end
 
 function start_trainsaver(command)
   local player_index = command.player_index
-  local parameter = command.parameter
   local name = command.name
   if game.players[player_index].controller_type == defines.controllers.cutscene then
     game.print("[color=blue]Wait. That's illegal.[/color]")
@@ -59,15 +60,30 @@ function create_waypoints(player_index)
         table.insert(table_of_active_trains, b)
       end
     end
-    local waypoints = {
-      {
-        target = XYZ,
-        transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
-        time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value        
-      },
-      {},
-      {},
-    }
+    if table_of_active_trains[1] then
+      local waypoints = {
+        {
+          target = table_of_active_trains[1],
+          transition_time = game.players[player_index].mod_settings["ts-transition-time"].value,
+          time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value,
+          zoom = game.players[player_index].mod_settings["ts-zoom"].value
+        }
+      }
+      return waypoints
+    else
+      local waypoints = {
+        {
+          target = table_of_trains[1],
+          transition_time = game.players[player_index].mod_settings["ts-transition-time"].value,
+          time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value,
+          zoom = game.players[player_index].mod_settings["ts-zoom"].value
+        }
+      }
+      return waypoints
+    end
+  end
+emd
+    
 
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
@@ -80,4 +96,28 @@ function play_cutscene(created_waypoints, player_index)
     start_position = game.players[player_index].position,
     final_transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
   }
+end
+
+function continue_trainsaver()
+  for a,b in pairs(game.players) do
+    if b.controller_type == defines.controllers.cutscene then
+      current_train = b.surface.find_entities_filtered(
+        {
+          position = b.position,
+          radius = 3,
+          type = "train",
+          limit = 1
+        }
+      )
+      if current_train then
+        if not current_train.speed > 0 then
+          waypoints = create_waypoints(b.index)
+          play_cutscene(waypoints, b.index)
+        else return
+        end
+      else return
+      end
+    else return
+    end
+  end
 end
