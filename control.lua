@@ -43,8 +43,8 @@ function start_trainsaver(command)
           return
         end
       end
-    sync_color(player_index)
-    play_cutscene(created_waypoints, player_index)
+      sync_color(player_index)
+      play_cutscene(created_waypoints, player_index)
     end
   end
 end
@@ -82,7 +82,7 @@ function create_waypoints(player_index)
       return waypoints
     end
   end
-emd
+end
     
 
 function sync_color(player_index)
