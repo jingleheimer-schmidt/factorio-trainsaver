@@ -17,7 +17,7 @@ script.on_load(function()
   commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
 end)
 
-script.on_nth_tick(600, function()
+script.on_nth_tick(60, function()
   -- continue_trainsaver()
   game.print("continuing trainsaver")
   for a,b in pairs(game.connected_players) do
@@ -33,9 +33,10 @@ script.on_nth_tick(600, function()
         }
       )
       if found_locomotive[1] then
-        game.print("found train with speed " .. found_locomotive[1].train.speed)
-        if ( found_locomotive[1].train.speed == 0 ) then
-          game.print("train speed = " .. found_locomotive[1].train.speed .. " finding new train")
+        game.print("found train with state " .. found_locomotive[1].train.state)
+        local trainstate = found_locomotive[1].train.state
+        if ((trainstate == defines.train_state.path_lost) or (trainstate == defines.train_state.no_schedule) or (trainstate == defines.train_state.no_path) or (trainstate == defines.train_state.wait_signal) or (trainstate == defines.train_state.wait_station) or (trainstate == defines.train_state.manual_control_stop) or (trainstate == defines.train_state.manual_control)) then
+          game.print("train state = " .. found_locomotive[1].train.state .. " finding new train")
           local created_waypoints = create_waypoints(b.index)
           if created_waypoints then
             -- game.print("playing new cutscnene")
@@ -94,13 +95,13 @@ function create_waypoints(player_index)
     -- game.print("trains found")
     local table_of_active_trains = {}
     for a,b in pairs(table_of_trains) do
-      if not ( b.speed == 0 ) then
+      if ((b.state == defines.train_state.on_the_path) or (b.state == defines.train_state.arrive_signal) or (b.state == defines.train_state.arrive_station)) then
         table.insert(table_of_active_trains, b)
       end
     end
-    local random_train_index = math.random(table_size(table_of_active_trains))
-    if table_of_active_trains[random_train_index] then
-      game.print("found active train with speed " .. table_of_active_trains[random_train_index].speed)
+    if table_of_active_trains[1] then
+      local random_train_index = math.random(table_size(table_of_active_trains))
+      game.print("found active train with state " .. table_of_active_trains[random_train_index].state)
       local waypoint_target = {}
       if table_of_active_trains[random_train_index].locomotives.front_movers then
         waypoint_target = table_of_active_trains[random_train_index].locomotives.front_movers[1]
