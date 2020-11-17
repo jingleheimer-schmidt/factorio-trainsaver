@@ -1,5 +1,5 @@
 --[[
-on command get all trains. find if train is moving, then make cutscene for various moving trains. 
+on command get all trains. find if train is moving, then make cutscene for various moving trains.
   - still play cutscene if no trains are moving? i think yes, but cut to moving train as soon as one is available
 When does it switch to a new train to follow?
   - maybe check every so often that followed train is still moving. If not then find a moving train and switch cutscene (end, create new) to new train
@@ -17,7 +17,41 @@ script.on_load(function()
   commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
 end)
 
-script.on_nth_tick(1800, continue_trainsaver)
+script.on_nth_tick(600, function()
+  -- continue_trainsaver()
+  game.print("continuing trainsaver")
+  for a,b in pairs(game.connected_players) do
+    --game.print(b.name)
+    if b.controller_type == defines.controllers.cutscene then
+      -- game.print(b.name .. " is in cutscene")
+      local found_locomotive = b.surface.find_entities_filtered(
+        {
+          position = b.position,
+          radius = 5,
+          name = "locomotive",
+          limit = 1
+        }
+      )
+      if found_locomotive[1] then
+        game.print("found train with speed " .. found_locomotive[1].train.speed)
+        if ( found_locomotive[1].train.speed == 0 ) then
+          game.print("train speed = " .. found_locomotive[1].train.speed .. " finding new train")
+          local created_waypoints = create_waypoints(b.index)
+          if created_waypoints then
+            -- game.print("playing new cutscnene")
+            -- sync_color(b.index)
+            play_cutscene(created_waypoints, b.index)
+          else return
+          end
+        else return
+        end
+      else game.print("no current train") return
+      end
+    else game.print("no one in cutscene") return
+    end
+  end
+end
+)
 
 function end_trainsaver(command)
   if game.players[command.player_index].controller_type == defines.controllers.cutscene then
@@ -36,46 +70,65 @@ function start_trainsaver(command)
   end
   if name == "trainsaver" then
     local created_waypoints = create_waypoints(player_index)
-    if created_wayypoints then
+    if created_waypoints then
+      game.print("waypoint created")
       for a,b in pairs(created_waypoints) do
         if not ( b.target or b.position ) then
           game.print("No trains available :(")
           return
         end
       end
+      game.print("syncing color and begining cutscene")
       sync_color(player_index)
       play_cutscene(created_waypoints, player_index)
     end
   end
 end
-  
+
 function create_waypoints(player_index)
   local table_of_trains = game.players[player_index].surface.get_trains()
   if not table_of_trains[1] then
+    game.print("no trains")
     return
-  else 
+  else
+    -- game.print("trains found")
     local table_of_active_trains = {}
     for a,b in pairs(table_of_trains) do
-      if b.speed > 0 then
+      if not ( b.speed == 0 ) then
         table.insert(table_of_active_trains, b)
       end
     end
-    if table_of_active_trains[1] then
+    local random_train_index = math.random(table_size(table_of_active_trains))
+    if table_of_active_trains[random_train_index] then
+      game.print("found active train with speed " .. table_of_active_trains[random_train_index].speed)
+      local waypoint_target = {}
+      if table_of_active_trains[random_train_index].locomotives.front_movers then
+        waypoint_target = table_of_active_trains[random_train_index].locomotives.front_movers[1]
+      elseif table_of_active_trains[random_train_index].locomotives.back_movers then
+        waypoint_target = table_of_active_trains[random_train_index].locomotives.back_movers[1]
+      end
       local waypoints = {
         {
-          target = table_of_active_trains[1],
+          target = waypoint_target,
           transition_time = game.players[player_index].mod_settings["ts-transition-time"].value,
-          time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value,
+          time_to_wait = game.players[player_index].mod_settings["ts-time-wait"].value,
           zoom = game.players[player_index].mod_settings["ts-zoom"].value
         }
       }
+      -- game.print(waypoints[1].transition_time)
       return waypoints
     else
+      game.print("could not find active train")
+      if table_of_trains[1].locomotives.front_movers then
+        waypoint_target = table_of_trains[1].locomotives.front_movers[1]
+      elseif table_of_trains[1].locomotives.back_movers then
+        waypoint_target = table_of_trains[1].locomotives.back_movers[1]
+      end
       local waypoints = {
         {
-          target = table_of_trains[1],
+          target = waypoint_target,
           transition_time = game.players[player_index].mod_settings["ts-transition-time"].value,
-          time_to_wait = game.players[player_index].mod_settings["ts-wait-time"].value,
+          time_to_wait = game.players[player_index].mod_settings["ts-time-wait"].value,
           zoom = game.players[player_index].mod_settings["ts-zoom"].value
         }
       }
@@ -83,46 +136,19 @@ function create_waypoints(player_index)
     end
   end
 end
-    
 
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
-  
+
 function play_cutscene(created_waypoints, player_index)
-  game.players[player_index].set_controller{
-    type = defines.controllers.cutscene,
-    waypoints = created_waypoints,
-    start_position = game.players[player_index].position,
-    final_transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
-  }
+  game.print("playing cutscene")
+  game.players[player_index].set_controller(
+    {
+      type = defines.controllers.cutscene,
+      waypoints = created_waypoints,
+      start_position = game.players[player_index].position,
+      final_transition_time = game.players[player_index].mod_settings["ts-transition-time"].value
+    }
+  )
 end
-
-function continue_trainsaver()
-  for a,b in pairs(game.players) do
-    if b.controller_type == defines.controllers.cutscene then
-      local current_train = b.surface.find_entities_filtered(
-        {
-          position = b.position,
-          radius = 3,
-          type = "train",
-          limit = 1
-        }
-      )
-      if current_train then
-        if not current_train.speed > 0 then
-          local created_waypoints = create_waypoints(b.index)
-          if created_waypoints then
-            sync_color(b.index)
-            play_cutscene(created_waypoints, b.index)
-          else return
-          end
-        else return
-        end
-      else return
-      end
-    else return
-    end
-  end
-end
-
