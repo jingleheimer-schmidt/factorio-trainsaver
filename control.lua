@@ -111,8 +111,12 @@ function continue_trainsaver()
       )
       if current_train then
         if not current_train.speed > 0 then
-          created_waypoints = create_waypoints(b.index)
-          play_cutscene(created_waypoints, b.index)
+          local created_waypoints = create_waypoints(b.index)
+          if created_waypoints then
+            sync_color(b.index)
+            play_cutscene(created_waypoints, b.index)
+          else return
+          end
         else return
         end
       else return
