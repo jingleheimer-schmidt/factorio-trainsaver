@@ -17,29 +17,109 @@ script.on_load(function()
   commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
 end)
 
-script.on_event(on_train_changed_state, function(event)
-  local train = event.train
-  local old_state = event.old_state
-  local new_state = event.train.state
-  if (((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.wait_station) or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control)) and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))) then
-  for a,b in pairs(game.connected_players) do
-    if b.controller_type == defines.controllers.cutscene then
-      local found_locomotive = b.surface.find_entities_filtered({
-        position = b.position,
-        radius = 5,
-        name = "locomotive",
-        limit = 1
-      })
-      if found_locomotive[1] then
-        local found_state = found_locomotive[1].train.state
-        if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
-          game.print("found train has state " .. found_state .. ". No further update)
-          return
+--[[
+defines.train_state.on_the_path           Normal state -- following the path.
+defines.train_state.path_lost             Had path and lost it -- must stop.
+defines.train_state.no_schedule           Doesn't have anywhere to go.
+defines.train_state.no_path               Has no path and is stopped.
+defines.train_state.arrive_signal         Braking before a rail signal.
+defines.train_state.wait_signal           Waiting at a signal.
+defines.train_state.arrive_station        Braking before a station.
+defines.train_state.wait_station          Waiting at a station.
+defines.train_state.manual_control_stop   Switched to manual control and has to stop.
+defines.train_state.manual_control        Can move if user explicitly sits in and rides the train.
+--]]
+
+--[[
+local states = {
+  defines.train_state.on_the_path,
+  defines.train_state.path_lost,
+  defines.train_state.no_schedule,
+  defines.train_state.no_path,
+  defines.train_state.arrive_signal,
+  defines.train_state.wait_signal,
+  defines.train_state.arrive_station,
+  defines.train_state.wait_station,
+  defines.train_state.manual_control_stop,
+  defines.train_state.manual_control
+}
+--]]
+
+script.on_event(on_train_changed_state, function(train_changed_state_event)
+  local train = train_changed_state_event.train
+  local old_state = train_changed_state_event.old_state
+  local new_state = train_changed_state_event.train.state
+  -- if any stopped train starts moving, and the player train is stopped, then switch cutscene to the new moving train
+  if ((
+    (old_state == defines.train_state.path_lost) or 
+    (old_state == defines.train_state.no_schedule) or 
+    (old_state == defines.train_state.no_path) or 
+    (old_state == defines.train_state.arrive_signal) or 
+    (old_state == defines.train_state.wait_signal) or 
+    (old_state == defines.train_state.arrive_station) or
+    (old_state == defines.train_state.wait_station) or 
+    (old_state == defines.train_state.manual_control_stop) or 
+    (old_state == defines.train_state.manual_control)) and
+    (new_state == defines.train_state.on_the_path)) then
+    for a,b in pairs(game.connected_players) do
+      if b.controller_type == defines.controllers.cutscene then
+        local found_locomotive = b.surface.find_entities_filtered({
+          position = b.position,
+          radius = 5,
+          name = "locomotive",
+          limit = 1
+        })
+        if found_locomotive[1] then
+          local found_state = found_locomotive[1].train.state
+          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
+            game.print("found train has state " .. found_state .. ". No new cutscene necessary")
+            return
+          else
+            game.print("found train has state " .. found_state .. ". Creating new cutscene...")
+            local created_waypoints = create_waypoints_from_event(train, b.index)
+            if created_waypoints then
+              play_cutscene(created_waypoints, b.index)
+            end
+          end
         else
-                
-          
+          game.print("no locomotive near player")
         end
-        
+      end
+    end
+  end
+end)
+
+function create_waypoints_from_event(train, player_index)
+  if train.locomotives.front_movers[1] then
+    local waypoint_target = train.locomotives.front_movers[1]
+  else
+    if train.locomotives.back_movers[1] then
+      local waypoint_target = train.locomotives.back_movers[1]
+    end
+  end
+  if game.players[player_index].mod_settings["ts-transition-time"].value == 0 then
+    local tt = 1
+  else
+    local tt = game.players[player_index].mod_settings["ts-transition-time"].value * 60 -- measured in seconds
+  end
+  local tw = game.players[player_index].mod_settings["ts-time-wait"].value * 60 * 60 -- measured in minutes
+  if game.players[player_index].mod_settings["ts-variable-zoom"].value == true then
+    local temp_zoom = game.players[player_index].mod_settings["ts-zoom"].value
+    local z = math.random((temp_zoom - (temp_zoom*.1)),((temp_zoom + (temp_zoom*.1))))
+  else
+    local z = game.players[player_index].mod_settings["variable-zoom"].value
+  end
+  local waypoints = {
+    {
+      target = waypoint_target,
+      transition_time = tt,
+      time_to_wait = tw,
+      zoom = z,
+    }
+  }
+  return waypoints
+end
+
 script.on_nth_tick(60, function()
   -- continue_trainsaver()
   game.print("continuing trainsaver")
