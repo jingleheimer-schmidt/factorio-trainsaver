@@ -17,6 +17,28 @@ script.on_load(function()
   commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
 end)
 
+script.on_event(on_train_changed_state, function(event)
+  local train = event.train
+  local old_state = event.old_state
+  local new_state = event.train.state
+  if (((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.wait_station) or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control)) and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))) then
+  for a,b in pairs(game.connected_players) do
+    if b.controller_type == defines.controllers.cutscene then
+      local found_locomotive = b.surface.find_entities_filtered({
+        position = b.position,
+        radius = 5,
+        name = "locomotive",
+        limit = 1
+      })
+      if found_locomotive[1] then
+        local found_state = found_locomotive[1].train.state
+        if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
+          game.print("found train has state " .. found_state .. ". No further update)
+          return
+        else
+          
+        end
+        
 script.on_nth_tick(60, function()
   -- continue_trainsaver()
   game.print("continuing trainsaver")
