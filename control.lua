@@ -16,27 +16,77 @@ function start_trainsaver(command)
     local table_of_trains = game.players[player_index].surface.get_trains()
     if not table_of_trains[1] then
       game.print("no trains available :(")
+      return
     else
       game.print("syncing color and begining cutscene")
-      local tw = game.players[player_index].mod_settings["ts-time-wait"].value * 60 * 60 -- convert minutes to ticks
-      if game.players[player_index].mod_settings["ts-variable-zoom"].value == true then
-        local temp_zoom = game.players[player_index].mod_settings["ts-zoom"].value
-        local z = math.random((temp_zoom - (temp_zoom*.1)),((temp_zoom + (temp_zoom*.1))))
-      else
-        local z = game.players[player_index].mod_settings["variable-zoom"].value
+      local table_of_active_trains = {}
+      for a,b in pairs(table_of_trains) do
+        if b.state == defines.train_state.on_the_path then
+          table.insert(table_of_active_trains, b)
+        end
       end
-      local created_waypoints = {
-        {
-          target = game.players[player_index],
-          transition_time = 1800,
-          time_to_wait = tw,
-          zoom = z,
-        },
-      }
-      sync_color(player_index)
-      play_cutscene(created_waypoints, player_index)
+      if table_of_active_trains[1] then
+        local waypoint_target = {}
+        local random_train_index = math.random(table_size(table_of_active_trains))
+        game.print("found active train with state " .. table_of_active_trains[random_train_index].state)
+        if table_of_active_trains[random_train_index].locomotives.front_movers[1] then
+          game.print("found front mover [1]")
+          local waypoint_target = table_of_active_trains[random_train_index].locomotives.front_movers[1]
+          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          sync_color(player_index)
+          play_cutscene(created_waypoints, player_index)
+        else
+          game.print("found back mover [1]")
+          local waypoint_target = table_of_active_trains[random_train_index].locomotives.back_movers[1]
+          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          sync_color(player_index)
+          play_cutscene(created_waypoints, player_index)
+        end
+      else
+        game.print("could not find active train")
+        if table_of_trains[1].locomotives.front_movers[1] then
+          local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
+          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          sync_color(player_index)
+          play_cutscene(created_waypoints, player_index)
+        else
+          local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
+          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          sync_color(player_index)
+          play_cutscene(created_waypoints, player_index)
+        end
+      end
     end
   end
+end
+
+function create_starting_waypoint(waypoint_target, player_index)
+  local tt = {}
+  local z = {}
+  if game.players[player_index].mod_settings["ts-transition-time"].value == 0 then
+    tt = 1
+  else
+    tt = game.players[player_index].mod_settings["ts-transition-time"].value * 60 -- convert seconds to ticks
+  end
+  local tw = game.players[player_index].mod_settings["ts-time-wait"].value * 60 * 60 -- convert minutes to ticks
+  if game.players[player_index].mod_settings["ts-variable-zoom"].value == true then
+    local temp_zoom = game.players[player_index].mod_settings["ts-zoom"].value
+    z = (math.random(((temp_zoom - (temp_zoom*.1))*1000),(((temp_zoom + (temp_zoom*.1)))*1000)))/1000
+  else
+    z = game.players[player_index].mod_settings["ts-zoom"].value
+  end
+  game.print("tt= " .. tt)
+  game.print(" tw= " .. tw)
+  game.print(" z= " .. z)
+  local created_waypoints = {
+    {
+      target = waypoint_target,
+      transition_time = tt,
+      time_to_wait = tw,
+      zoom = z
+    }
+  }
+  return created_waypoints
 end
 
 function end_trainsaver(command)
@@ -62,7 +112,7 @@ function play_cutscene(created_waypoints, player_index)
   )
 end
 
-script.on_event(on_train_changed_state, function(train_changed_state_event)
+script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
   local new_state = train_changed_state_event.train.state
@@ -78,7 +128,7 @@ script.on_event(on_train_changed_state, function(train_changed_state_event)
         })
         if found_locomotive[1] then
           local found_state = found_locomotive[1].train.state
-          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
+          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) --[[or (found_state == defines.train_state.arrive_station)--]]) then
             game.print("found train has state " .. found_state .. ". No new cutscene necessary")
             return
           else
@@ -86,6 +136,8 @@ script.on_event(on_train_changed_state, function(train_changed_state_event)
             local created_waypoints = create_waypoints_from_event(train, b.index)
             if created_waypoints then
               play_cutscene(created_waypoints, b.index)
+            else
+              game.print("failed to create waypoints from event")
             end
           end
         else
@@ -97,24 +149,27 @@ script.on_event(on_train_changed_state, function(train_changed_state_event)
 end)
 
 function create_waypoints_from_event(train, player_index)
+  local waypoint_target = {}
+  local tt = {}
+  local z = {}
   if train.locomotives.front_movers[1] then
-    local waypoint_target = train.locomotives.front_movers[1]
+    waypoint_target = train.locomotives.front_movers[1]
   else
     if train.locomotives.back_movers[1] then
-      local waypoint_target = train.locomotives.back_movers[1]
+      waypoint_target = train.locomotives.back_movers[1]
     end
   end
   if game.players[player_index].mod_settings["ts-transition-time"].value == 0 then
-    local tt = 1
+    tt = 1
   else
-    local tt = game.players[player_index].mod_settings["ts-transition-time"].value * 60 -- convert seconds to ticks
+    tt = game.players[player_index].mod_settings["ts-transition-time"].value * 60 -- convert seconds to ticks
   end
   local tw = game.players[player_index].mod_settings["ts-time-wait"].value * 60 * 60 -- convert minutes to ticks
   if game.players[player_index].mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = game.players[player_index].mod_settings["ts-zoom"].value
-    local z = math.random((temp_zoom - (temp_zoom*.1)),((temp_zoom + (temp_zoom*.1))))
+    z = (math.random(((temp_zoom - (temp_zoom*.1))*1000),(((temp_zoom + (temp_zoom*.1)))*1000)))/1000
   else
-    local z = game.players[player_index].mod_settings["variable-zoom"].value
+    z = game.players[player_index].mod_settings["variable-zoom"].value
   end
   local waypoints = {
     {
