@@ -1,11 +1,11 @@
 
 local transitionTimeSetting = {
-  type = "int-setting",
+  type = "double-setting",
   name = "ts-transition-time",
   setting_type = "runtime-per-user",
   minimum_value = 0,
 --   maximum_value = 1800,
-  default_value = 5, -- seconds, will be converted to ticks
+  default_value = 1, -- seconds, will be converted to ticks
   order = "ts-1"
 }
 
@@ -23,7 +23,7 @@ local zoomSetting = {
   name = "ts-zoom",
   setting_type = "runtime-per-user",
   minimum_value = .1,
-  default_value = .4,
+  default_value = .26,
   maximum_value = 5,
   order = "ts-3"
 }
@@ -42,4 +42,3 @@ data:extend({
   zoomSetting,
   variableZoomSetting,
 })
-
