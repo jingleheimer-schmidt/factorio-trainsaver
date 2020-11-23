@@ -25,19 +25,10 @@ function start_trainsaver(command)
         end
       end
       if table_of_active_trains[1] then
-        local waypoint_target = {}
         local random_train_index = math.random(table_size(table_of_active_trains))
-        if table_of_active_trains[random_train_index].locomotives.front_movers[1] then
-          local waypoint_target = table_of_active_trains[random_train_index].locomotives.front_movers[1]
-          local created_waypoints = create_waypoint(waypoint_target, player_index)
-          sync_color(player_index)
-          play_cutscene(created_waypoints, player_index)
-        else
-          local waypoint_target = table_of_active_trains[random_train_index].locomotives.back_movers[1]
-          local created_waypoints = create_waypoint(waypoint_target, player_index)
-          sync_color(player_index)
-          play_cutscene(created_waypoints, player_index)
-        end
+        create_cutscene_next_tick = {}
+        create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+        sync_color(player_index)
       else
         if table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
