@@ -131,13 +131,12 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             if found_train.id == train.id then
               create_cutscene_next_tick = {}
               create_cutscene_next_tick[player_index] = {train, player_index}
-              game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
-
+              -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
             end
           else
             create_cutscene_next_tick = {}
             create_cutscene_next_tick[player_index] = {train, player_index}
-            game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+            -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
           end
         else
           -- game.print("no locomotive near player")
@@ -154,37 +153,37 @@ script.on_event(defines.events.on_tick, function()
       local player_index = b[2]
       if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
         if target_train.speed > 0 then
-          game.print("front and back available: starting new cutscene on front mover")
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
-          created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          -- game.print("front and back available: starting new cutscene on front mover")
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
         end
         if target_train.speed < 0 then
-          game.print("front and back available: starting new cutscene on back mover")
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
-          created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.back_movers[1], player_index)
+          -- game.print("front and back available: starting new cutscene on back mover")
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.back_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
         end
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
-          game.print("only front available: starting new cutscene on front mover")
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
-          create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          -- game.print("only front available: starting new cutscene on front mover")
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
         end
         if target_train.locomotives.back_movers[1] then
-          game.print("only front available: starting new cutscene on front mover")
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
-          create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          -- game.print("only front available: starting new cutscene on front mover")
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
-          game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
+          -- game.print("global: " .. serpent.line(create_cutscene_next_tick[player_index]))
         end
       end
     end
