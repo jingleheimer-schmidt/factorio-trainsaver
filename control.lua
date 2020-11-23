@@ -29,24 +29,24 @@ function start_trainsaver(command)
         local random_train_index = math.random(table_size(table_of_active_trains))
         if table_of_active_trains[random_train_index].locomotives.front_movers[1] then
           local waypoint_target = table_of_active_trains[random_train_index].locomotives.front_movers[1]
-          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
           sync_color(player_index)
           play_cutscene(created_waypoints, player_index)
         else
           local waypoint_target = table_of_active_trains[random_train_index].locomotives.back_movers[1]
-          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
           sync_color(player_index)
           play_cutscene(created_waypoints, player_index)
         end
       else
         if table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
-          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
           sync_color(player_index)
           play_cutscene(created_waypoints, player_index)
         else
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
-          local created_waypoints = create_starting_waypoint(waypoint_target, player_index)
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
           sync_color(player_index)
           play_cutscene(created_waypoints, player_index)
         end
@@ -55,7 +55,7 @@ function start_trainsaver(command)
   end
 end
 
-function create_starting_waypoint(waypoint_target, player_index)
+function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
   local mod_settings = game.players[player_index].mod_settings
@@ -145,23 +145,23 @@ script.on_event(defines.events.on_tick, function()
       local player_index = b[2]
       if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
         if target_train.speed > 0 then
-          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.speed < 0 then
-          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.back_movers[1], player_index)
+          local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
-          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
-          local created_waypoints = create_lead_locomotive_waypoint(target_train.locomotives.front_movers[1], player_index)
+          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
@@ -169,30 +169,3 @@ script.on_event(defines.events.on_tick, function()
     end
   end
 end)
-
-function create_lead_locomotive_waypoint(locomotive, player_index)
-  local tt = {}
-  local z = {}
-  local mod_settings = game.players[player_index].mod_settings
-  if mod_settings["ts-transition-time"].value == 0 then
-    tt = 1
-  else
-    tt = mod_settings["ts-transition-time"].value * 60
-  end
-  local tw = mod_settings["ts-time-wait"].value * 60 * 60
-  if mod_settings["ts-variable-zoom"].value == true then
-    local temp_zoom = mod_settings["ts-zoom"].value
-    z = (math.random(((temp_zoom - (temp_zoom*.2))*1000),(((temp_zoom + (temp_zoom*.2)))*1000)))/1000
-  else
-    z = mod_settings["ts-zoom"].value
-  end
-  local waypoints = {
-    {
-      target = locomotive,
-      transition_time = tt,
-      time_to_wait = tw,
-      zoom = z,
-    }
-  }
-  return waypoints
-end
