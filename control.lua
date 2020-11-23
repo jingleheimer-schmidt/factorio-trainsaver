@@ -1,12 +1,12 @@
 
 script.on_init(function()
-  commands.add_command("trainsaver", "help text", start_trainsaver)
-  commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
+  commands.add_command("trainsaver", "starts a dynamic screensaver that follows active trains.", start_trainsaver)
+  commands.add_command("end-trainsaver","- Ends the screensaver and immediately returns control to the player", end_trainsaver)
 end)
 
 script.on_load(function()
-  commands.add_command("trainsaver", "help text", start_trainsaver)
-  commands.add_command("end-trainsaver","- Ends the currently playing cutscene and immediately returns control to the player", end_trainsaver)
+  commands.add_command("trainsaver", "starts a dynamic screensaver that follows active trains.", start_trainsaver)
+  commands.add_command("end-trainsaver","- Ends the screensaver and immediately returns control to the player", end_trainsaver)
 end)
 
 function start_trainsaver(command)
