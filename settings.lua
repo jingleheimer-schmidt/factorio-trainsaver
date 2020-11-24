@@ -5,16 +5,15 @@ local transitionTimeSetting = {
   setting_type = "runtime-per-user",
   minimum_value = 0,
 --   maximum_value = 1800,
-  default_value = 1, -- seconds, will be converted to ticks
+  default_value = 0, -- seconds, will be converted to ticks
   order = "ts-1"
 }
 
-local timeWaitSetting = {
-  type = "double-setting",
-  name = "ts-time-wait",
+local waitAtSignalSetting = {
+  type = "int-setting",
+  name = "ts-wait-at-signal",
   setting_type = "runtime-per-user",
-  minimum_value = 1/60,
-  default_value = 10, -- minutes, will be converted to ticks
+  default_value = 30, -- seconds, will be converted to ticks
   order = "ts-2"
 }
 
@@ -23,7 +22,7 @@ local zoomSetting = {
   name = "ts-zoom",
   setting_type = "runtime-per-user",
   minimum_value = .1,
-  default_value = .26,
+  default_value = .3,
   maximum_value = 5,
   order = "ts-3"
 }
@@ -36,9 +35,19 @@ local variableZoomSetting = {
   order = "ts-4"
 }
 
+local timeWaitSetting = {
+  type = "double-setting",
+  name = "ts-time-wait",
+  setting_type = "runtime-per-user",
+  minimum_value = 1/60,
+  default_value = 10, -- minutes, will be converted to ticks
+  order = "ts-5"
+}
+
 data:extend({
   transitionTimeSetting,
   timeWaitSetting,
   zoomSetting,
   variableZoomSetting,
+  waitAtSignalSetting,
 })
