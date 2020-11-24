@@ -118,7 +118,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             if found_train.id == train.id then
               if not create_cutscene_next_tick then
                 create_cutscene_next_tick = {}
-                create_cutscene_next_tick[player_index] = {train, player_index}
+                create_cutscene_next_tick[player_index] = {train, player_index} --add third variable telling create_cutscene use table size of train carriages to determine transition time, even if tt=0. maybe bad idea
                 if wait_at_signal then
                   if wait_at_signal[player_index] then
                     wait_at_signal[player_index] = nil
