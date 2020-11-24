@@ -15,7 +15,7 @@ function start_trainsaver(command)
   if (name == "trainsaver") and (game.players[player_index].controller_type == defines.controllers.character) then
     local table_of_trains = game.players[player_index].surface.get_trains()
     if not table_of_trains[1] then
-      game.print("no trains available :(")
+      game.players[player_index].print("no trains available")
       return
     else
       local table_of_active_trains = {}
@@ -58,7 +58,7 @@ function create_waypoint(waypoint_target, player_index)
   local tw = mod_settings["ts-time-wait"].value * 60 * 60
   if mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = mod_settings["ts-zoom"].value
-    z = (math.random(((temp_zoom - (temp_zoom*.2))*1000),(((temp_zoom + (temp_zoom*.2)))*1000)))/1000
+    z = (math.random(((temp_zoom - (temp_zoom*.15))*1000),(((temp_zoom + (temp_zoom*.15)))*1000)))/1000
   else
     z = mod_settings["ts-zoom"].value
   end
@@ -100,12 +100,13 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
   local new_state = train_changed_state_event.train.state
-  if (((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) --[[or (old_state == defines.train_state.arrive_signal)--]] or (old_state == defines.train_state.wait_signal) --[[or (old_state == defines.train_state.arrive_station)--]] or (old_state == defines.train_state.wait_station) or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control)) and (new_state == defines.train_state.on_the_path) or ((new_state == defines.train_state.manual_control) and (train.speed ~= 0))) then
+  if (--[[((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.arrive_signal) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.arrive_station)or --]] (old_state == defines.train_state.wait_station) --[[or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control))--]] and (new_state == defines.train_state.on_the_path) --[[or ((new_state == defines.train_state.manual_control) and (train.speed ~= 0))--]]) then
+    game.print("train " .. train.id .. " dispatched from station")
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
         local found_locomotive = b.surface.find_entities_filtered({
           position = b.position,
-          radius = 2,
+          radius = 1,
           name = "locomotive",
           limit = 1
         })
@@ -113,16 +114,45 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
           local player_index = b.index
           local found_train = found_locomotive[1].train
           local found_state = found_train.state
-          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))) then
+          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)--[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
             if found_train.id == train.id then
-              create_cutscene_next_tick = {}
-              create_cutscene_next_tick[player_index] = {train, player_index}
+              if not create_cutscene_next_tick then
+                create_cutscene_next_tick = {}
+                create_cutscene_next_tick[player_index] = {train, player_index}
+                if wait_at_signal then
+                  if wait_at_signal[player_index] then
+                    wait_at_signal[player_index] = nil
+                  end
+                end
+              else
+                create_cutscene_next_tick[player_index] = {train, player_index}
+                if wait_at_signal then
+                  if wait_at_signal[player_index] then
+                    wait_at_signal[player_index] = nil
+                  end
+                end
+              end
             end
           else
-            create_cutscene_next_tick = {}
-            create_cutscene_next_tick[player_index] = {train, player_index}
+            if (found_state == defines.train_state.wait_signal) then
+              if not wait_at_signal then
+                wait_at_signal = {}
+                local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
+                wait_at_signal[player_index] = until_tick
+              else
+                if not wait_at_signal[player_index] then
+                  local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
+                  wait_at_signal[player_index] = until_tick
+                end
+              end
+            end
+            if not create_cutscene_next_tick then
+              create_cutscene_next_tick = {}
+              create_cutscene_next_tick[player_index] = {train, player_index}
+            else
+              create_cutscene_next_tick[player_index] = {train, player_index}
+            end
           end
-        else
         end
       end
     end
@@ -134,6 +164,15 @@ script.on_event(defines.events.on_tick, function()
     for a,b in pairs(create_cutscene_next_tick) do
       local target_train = b[1]
       local player_index = b[2]
+      if wait_at_signal then
+        if wait_at_signal[player_index] then
+          if wait_at_signal[player_index] > game.tick then
+            create_cutscene_next_tick[player_index] = nil
+            return
+          else wait_at_signal[player_index] = nil
+          end
+        end
+      end
       if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
         if target_train.speed > 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
