@@ -4,6 +4,6 @@
 	"title": "trainsaver",
 	"description": "Adds a command to create a dynamic screensaver which follows active trains. \n Use /trainsaver to start, and /end-trainsaver to end. \n Options are configurable in player mod settings.",
 	"author": "asher_sky",
-	"dependencies": ["base >= 1.0.0"],
-	"factorio_version": "1.0"
+	"dependencies": ["base >= 1.1.0"],
+	"factorio_version": "1.1.0"
 }
