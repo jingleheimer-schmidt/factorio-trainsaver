@@ -159,11 +159,35 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   end
 end)
 
+-- figure out how to filter this for just player character entities, also make one for trains (locomotives) to deal with those too.
+script.on_event(defines.events.on_entity_damaged, function(entity_damaged_event)
+  local damaged_entity = entity_damaged_event.entity
+  for a,b in pairs(game.connected_players) do
+    if b.controller_type == defines.controllers.cutscene then
+      if b.cutscene_character == damaged_entity then
+        if entity_damaged_event.final_health <= 0 then
+          b.exit_cutscene()
+          b.health = 10
+        else 
+          b.exit_cutscene()
+        end
+      end
+    end
+  end
+end,
+{{filter = "type", type = "character"}})
+
 script.on_event(defines.events.on_tick, function()
   if create_cutscene_next_tick then
     for a,b in pairs(create_cutscene_next_tick) do
       local target_train = b[1]
       local player_index = b[2]
+      if not game.players[player_index].connected then
+        return
+      end
+      if not game.players[player_index].controller_type == defines.controllers.cutscene then
+        return
+      end
       if wait_at_signal then
         if wait_at_signal[player_index] then
           if wait_at_signal[player_index] > game.tick then
