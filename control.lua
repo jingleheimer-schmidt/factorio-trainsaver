@@ -192,9 +192,10 @@ script.on_event(defines.events.on_tick, function()
         return
       end
       if not followed_loco[player_index].valid then
-        local command = {}
-        local command.name = "trainsaver"
-        local command.player_index = player_index
+        local command = {
+          name = "trainsaver",
+          player_index = player_index
+          }
         start_trainsaver(command)
       end
       if wait_at_signal then
