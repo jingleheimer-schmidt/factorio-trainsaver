@@ -94,13 +94,19 @@ function play_cutscene(created_waypoints, player_index)
       final_transition_time = player.mod_settings["ts-transition-time"].value
     }
   )
+  if not followed_loco then
+    followed_loco = {}
+    followed_loco[player_index] = created_waypoints[1].target
+  else
+    followed_loco[player_index] = created_waypoints[1].target
+  end
 end
 
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
   local new_state = train_changed_state_event.train.state
-  if (--[[((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.arrive_signal) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.arrive_station)or --]] (old_state == defines.train_state.wait_station) --[[or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control))--]] and (new_state == defines.train_state.on_the_path) --[[or ((new_state == defines.train_state.manual_control) and (train.speed ~= 0))--]]) then
+  if (--[[((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.arrive_signal) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.arrive_station)or --]] (old_state == defines.train_state.wait_station) --[[or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control))--]] and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal)) --[[or ((new_state == defines.train_state.manual_control) and (train.speed ~= 0))--]]) then
     game.print("train " .. train.id .. " dispatched from station")
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
@@ -118,7 +124,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             if found_train.id == train.id then
               if not create_cutscene_next_tick then
                 create_cutscene_next_tick = {}
-                create_cutscene_next_tick[player_index] = {train, player_index, "same train"} 
+                create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
                 if wait_at_signal then
                   if wait_at_signal[player_index] then
                     wait_at_signal[player_index] = nil
@@ -160,22 +166,19 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
 end)
 
 -- figure out how to filter this for just player character entities, also make one for trains (locomotives) to deal with those too.
-script.on_event(defines.events.on_entity_damaged, function(entity_damaged_event)
-  local damaged_entity = entity_damaged_event.entity
+script.on_event(defines.events.on_entity_damaged, function(character_damaged_event)
+  local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       if b.cutscene_character == damaged_entity then
-        if entity_damaged_event.final_health <= 0 then
-          b.exit_cutscene()
-          b.health = 10
-        else 
-          b.exit_cutscene()
-        end
+        b.exit_cutscene()
       end
     end
   end
 end,
 {{filter = "type", type = "character"}})
+
+
 
 script.on_event(defines.events.on_tick, function()
   if create_cutscene_next_tick then
@@ -187,6 +190,12 @@ script.on_event(defines.events.on_tick, function()
       end
       if not game.players[player_index].controller_type == defines.controllers.cutscene then
         return
+      end
+      if not followed_loco[player_index].valid then
+        local command = {}
+        local command.name = "trainsaver"
+        local command.player_index = player_index
+        start_trainsaver(command)
       end
       if wait_at_signal then
         if wait_at_signal[player_index] then
