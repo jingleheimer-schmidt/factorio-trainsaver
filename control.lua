@@ -147,23 +147,6 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
         game.print("train " .. train.id .. " dispatched from station")
-        -- game.print("on_train_changed_state() -- followed_loco = " .. followed_loco[b.index].unit_number)
-        -- if followed_loco then
-        --   game.print("check 1")
-        --   if followed_loco[b.index] then
-        --     game.print("check 2")
-        --     local loco = followed_loco[b.index]
-        --     if not loco.valid then
-        --       game.print("check 3")
-        --       local command = {
-        --         name = "trainsaver",
-        --         player_index = b.index
-        --         }
-        --       start_trainsaver(command)
-        --       return
-        --     end
-        --   end
-        -- end
         local found_locomotive = b.surface.find_entities_filtered({
           position = b.position,
           radius = 1,
