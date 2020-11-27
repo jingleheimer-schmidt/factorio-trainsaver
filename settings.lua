@@ -44,10 +44,20 @@ local timeWaitSetting = {
   order = "ts-5"
 }
 
+local afkAutoStartSetting = {
+  type = "int-setting",
+  name = "ts-afk-auto-start",
+  setting_type = "runtime-per-user",
+  minimum_value = 0,
+  default_value = 5, -- minutes, will be converted to ticks
+  order = "ts-6"
+}
+
 data:extend({
   transitionTimeSetting,
   timeWaitSetting,
   zoomSetting,
   variableZoomSetting,
   waitAtSignalSetting,
+  afkAutoStartSetting,
 })
