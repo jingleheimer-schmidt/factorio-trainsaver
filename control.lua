@@ -318,3 +318,17 @@ script.on_event(defines.events.on_tick, function()
     end
   end
 end)
+
+script.on_event(defines.events.on_nth_tick, 3600, function()
+  for a,b in pairs(game.connected_players) do
+    if b.mod_settings["ts-afk-auto-start"].value == 0 then
+      game.print("trainsaver afk auto start is off")
+      return
+    end
+    if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
+      game.print("trainsaver afk auto start")
+      local command = {name = "trainsaver", player_index = b.index}
+      start_trainsaver(command)
+    end
+  end
+end)
