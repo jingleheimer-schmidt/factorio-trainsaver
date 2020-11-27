@@ -319,7 +319,7 @@ script.on_event(defines.events.on_tick, function()
   end
 end)
 
-script.on_event(defines.events.on_nth_tick, 3600, function()
+script.on_nth_tick(1800, function()
   for a,b in pairs(game.connected_players) do
     if b.mod_settings["ts-afk-auto-start"].value == 0 then
       game.print("trainsaver afk auto start is off")
