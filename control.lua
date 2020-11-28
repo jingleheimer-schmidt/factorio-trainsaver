@@ -129,11 +129,11 @@ function play_cutscene(created_waypoints, player_index)
   )
   if not followed_loco then
     followed_loco = {}
-    followed_loco[player_index] = created_waypoints[1].target
-    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index].unit_number)
+    followed_loco[player_index] = created_waypoints[1].target.unit_number
+    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index])
   else
-    followed_loco[player_index] = created_waypoints[1].target
-    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index].unit_number)
+    followed_loco[player_index] = created_waypoints[1].target.unit_number
+    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index])
   end
 end
 
@@ -229,24 +229,22 @@ function locomotive_gone(event)
         game.print("check 1")
         if followed_loco[player_index] then
           game.print("check 2")
-          if followed_loco[player_index].unit_number == locomotive.unit_number then
-          -- if not loco.valid then
+          if followed_loco[player_index] == locomotive.unit_number then
             game.print("check 3")
             local command = {
               name = "trainsaver",
               player_index = player_index,
               entity_gone_restart = "yes"
               }
-            if not start_trainsaver_next_tick then
-              start_trainsaver_next_tick = {}
-              start_trainsaver_next_tick[player_index] = command
-            else
-              start_trainsaver_next_tick[player_index] = command
-            end
+            -- if not start_trainsaver_next_tick then
+            --   start_trainsaver_next_tick = {}
+            --   start_trainsaver_next_tick[player_index] = command
+            -- else
+            --   start_trainsaver_next_tick[player_index] = command
+            -- end
             game.print("locomotive_gone() --> name = " .. command.name .. ", player_index = " .. command.player_index)
-            -- start_trainsaver(command)
+            start_trainsaver(command)
           end
-          -- game.print("on_tick() -- followed_loco = " .. followed_loco[player_index].unit_number)
         end
       end
     end
