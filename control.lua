@@ -46,8 +46,6 @@ function start_trainsaver(command)
             local created_waypoints = create_waypoint(waypoint_target, player_index)
             if not command.entity_gone_restart == "yes" then
               sync_color(player_index)
-            -- else
-            --   created_waypoints[1].entity_gone_restart = "yes"
             end
             play_cutscene(created_waypoints, player_index)
           else
@@ -158,6 +156,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
           local found_train = found_locomotive[1].train
           local found_state = found_train.state
           if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)--[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
+            -- if camera is on train that changed state, switch to leading locomotive
             if found_train.id == train.id then
               if not create_cutscene_next_tick then
                 create_cutscene_next_tick = {}
@@ -177,6 +176,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
               end
             end
           else
+            -- if camera train is waiting at signal, respect wait-at-signal setting
             if (found_state == defines.train_state.wait_signal) then
               if not wait_at_signal then
                 wait_at_signal = {}
