@@ -252,14 +252,14 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
-  if start_trainsaver_next_tick then
-    for a,b in pairs(start_trainsaver_next_tick) do
-      player_index = b.player_index
-      start_trainsaver(start_trainsaver_next_tick[player_index])
-      start_trainsaver_next_tick[player_index] = nil
-      return
-    end
-  end
+  -- if start_trainsaver_next_tick then
+  --   for a,b in pairs(start_trainsaver_next_tick) do
+  --     player_index = b.player_index
+  --     start_trainsaver(start_trainsaver_next_tick[player_index])
+  --     start_trainsaver_next_tick[player_index] = nil
+  --     return
+  --   end
+  -- end
   if create_cutscene_next_tick then
     for a,b in pairs(create_cutscene_next_tick) do
       local target_train = b[1]
@@ -286,6 +286,7 @@ script.on_event(defines.events.on_tick, function()
         if target_train.speed > 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           if b[3] then
+            game.print("b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
@@ -295,6 +296,7 @@ script.on_event(defines.events.on_tick, function()
         if target_train.speed < 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
+            game.print("b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
@@ -304,11 +306,19 @@ script.on_event(defines.events.on_tick, function()
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+          if b[3] then
+            game.print("b3= " .. b[3])
+            created_waypoints[1].zoom = nil
+          end
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+          if b[3] then
+            game.print("b3= " .. b[3])
+            created_waypoints[1].zoom = nil
+          end
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
