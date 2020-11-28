@@ -32,15 +32,46 @@ function start_trainsaver(command)
           table.insert(table_of_active_trains, b)
         end
       end
+
+      -- if there are any trains on_the_path, pick a random one and pass it through create_cutscene_next_tick global
       if table_of_active_trains[1] then
         local random_train_index = math.random(table_size(table_of_active_trains))
-        create_cutscene_next_tick = {}
-        create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+        if not create_cutscene_next_tick then
+          create_cutscene_next_tick = {}
+          create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+        else
+          create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+        end
         if not command.entity_gone_restart == "yes" then
           sync_color(player_index)
         end
+
+      -- if there are no trains on_the_path then make a table of trains waiting at stations
       else
-        if table_of_trains[1].locomotives.front_movers[1] then
+        local table_of_trains_at_the_station = {}
+        for c,d in pairs(table_of_trains) do
+          if d.state == defines.train_state.wait_station then
+            table.insert(table_of_trains_at_the_station, d)
+          end
+        end
+
+        -- if there are any trains waiting at stations, pick a random one and play a cutscene from a front or back mover loco
+        if table_of_trains_at_the_station[1] then
+          local random_train_index = math.random(table_size(table_of_trains_at_the_station))
+          local waypoint_target = {}
+          if table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1] then
+            waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1]
+          else if table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1] then
+            waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
+          end
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
+          if not command.entity_gone_restart == "yes" then
+            sync_color(player_index)
+          end
+          play_cutscene(created_waypoints, player_index)
+
+        -- if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target
+        elseif table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
           if not command.entity_gone_restart == "yes" then
