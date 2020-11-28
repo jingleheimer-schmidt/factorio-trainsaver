@@ -14,10 +14,17 @@ function start_trainsaver(command)
   local player_index = command.player_index
   local name = command.name
   if (name == "trainsaver") and ((game.players[player_index].controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
+
+    -- create a table of all the trains
     local table_of_trains = game.players[player_index].surface.get_trains()
+
+    -- if there's no trains, end everything
+      -- do we need to end_trainsaver() when entity_gone_restart() is called?
     if not table_of_trains[1] then
       game.players[player_index].print("no trains available")
       return
+
+    -- if there are any trains, make a table of all the active (on_the_path) ones
     else
       local table_of_active_trains = {}
       for a,b in pairs(table_of_trains) do
@@ -48,7 +55,10 @@ function start_trainsaver(command)
               sync_color(player_index)
             end
             play_cutscene(created_waypoints, player_index)
+
+          -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how would this happen?) then end_trainsaver()
           else
+            game.print("no trains on the path or waiting at station and table_of_trains[1] didn't have front or back movers. ending trainsaver.")
             local command = {player_index = player_index}
             end_trainsaver(command)
           end
@@ -202,7 +212,6 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   end
 end)
 
--- figure out how to filter this for just player character entities, also make one for trains (locomotives) to deal with those too.
 script.on_event(defines.events.on_entity_damaged, function(character_damaged_event) character_damaged(character_damaged_event) end, {{filter = "type", type = "character"}})
 
 function character_damaged(character_damaged_event)
@@ -210,7 +219,8 @@ function character_damaged(character_damaged_event)
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       if b.cutscene_character == damaged_entity then
-        b.exit_cutscene()
+        local command = {player_index = b.index}
+        end_trainsaver(command)
       end
     end
   end
