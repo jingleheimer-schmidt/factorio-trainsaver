@@ -216,12 +216,18 @@ function character_damaged(character_damaged_event)
   end
 end
 
-script.on_event(defines.events.on_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
+script.on_event(defines.events.on_post_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 
 function locomotive_gone(event)
-  local locomotive = event.entity
+  local locomotive = {}
+  if event.entity then
+    locomotive = event.entity
+  end
+  if event.unit_number then
+    locomotive = {unit_number = event.unit_number}
+  end
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
