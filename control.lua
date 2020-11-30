@@ -100,7 +100,7 @@ function start_trainsaver(command)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how would this happen?) then end_trainsaver()
         else
-          game.print("something unexpected has happened. please report this event to the mod author.")
+          game.players[player_index].print("trainsaver: something unexpected has happened. please report this event to the mod author. code 909")
           -- local command = {player_index = player_index}
           -- end_trainsaver(command)
         end
