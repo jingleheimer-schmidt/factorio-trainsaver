@@ -15,13 +15,13 @@ function start_trainsaver(command)
   local name = command.name
   if (name == "trainsaver") and ((game.players[player_index].controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
 
-    -- create a table of all the trains
+    -- create a table of all trains
     local table_of_all_trains = game.players[player_index].surface.get_trains()
 
-    -- create a table of all the trains that have any "movers"
+    -- create a table of all trains that have any "movers" and are not in manual mode
     local table_of_trains = {}
     for a,b in pairs(table_of_all_trains) do
-      if (b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) then
+      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop)))) then
         table.insert(table_of_trains, b)
       end
     end
@@ -30,7 +30,10 @@ function start_trainsaver(command)
       -- do we need to end_trainsaver() when entity_gone_restart() is called?
     if not table_of_trains[1] then
       game.players[player_index].print("no trains available")
-      return
+      if game.players[player_index].controller_type == defines.controllers.cutscene then
+        local command = {player_index = player_index}
+        end_trainsaver(command)
+      end
 
     -- if there are any trains, make a table of all the active (on_the_path) ones
     else
@@ -227,7 +230,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             end
           else
 
-            -- if camera train is waiting at signal, update the wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick depending on the value of untill_tick)
+            -- if camera train is waiting at signal, update the wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
             if (found_state == defines.train_state.wait_signal) then
               if not wait_at_signal then
                 wait_at_signal = {}
