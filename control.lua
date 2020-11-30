@@ -196,7 +196,10 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
           local player_index = b.index
           local found_train = found_locomotive[1].train
           local found_state = found_train.state
+
+          -- when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive.
           if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)--[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
+
             -- if camera is on train that changed state, switch to leading locomotive
             if found_train.id == train.id then
               if not create_cutscene_next_tick then
@@ -217,7 +220,8 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
               end
             end
           else
-            -- if camera train is waiting at signal, respect wait-at-signal setting
+
+            -- if camera train is waiting at signal, update the wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick depending on the value of untill_tick)
             if (found_state == defines.train_state.wait_signal) then
               if not wait_at_signal then
                 wait_at_signal = {}
@@ -230,6 +234,8 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
                 end
               end
             end
+
+            -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the change_state event on the next tick
             if not create_cutscene_next_tick then
               create_cutscene_next_tick = {}
               create_cutscene_next_tick[player_index] = {train, player_index}
@@ -311,24 +317,34 @@ script.on_event(defines.events.on_tick, function()
     for a,b in pairs(create_cutscene_next_tick) do
       local target_train = b[1]
       local player_index = b[2]
+
+      -- make sure the player is still connected
       if not game.players[player_index].connected then
         return
       end
-      if not game.players[player_index].controller_type == defines.controllers.cutscene then
-        return
-      end
+      -- if not game.players[player_index].controller_type == defines.controllers.cutscene then
+      --   return
+      -- end
+
+      -- is this one really necessary? not sure
       if not (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
         return
       end
+
+      -- if wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: end everything and wait until next train state update. If we've passed the untill_tick, then set it to nill and continue creating the cutscene
       if wait_at_signal then
         if wait_at_signal[player_index] then
           if wait_at_signal[player_index] > game.tick then
+            game.print("train waiting at signal, no new cutscene")
             create_cutscene_next_tick[player_index] = nil
             return
-          else wait_at_signal[player_index] = nil
+          else
+            wait_at_signal[player_index] = nil
           end
         end
       end
+
+      -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
       if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
         if target_train.speed > 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
@@ -337,6 +353,7 @@ script.on_event(defines.events.on_tick, function()
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
+          game.print("front and back, switched to front")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
@@ -347,6 +364,7 @@ script.on_event(defines.events.on_tick, function()
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
+          game.print("front and back, switched to back")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
@@ -357,15 +375,17 @@ script.on_event(defines.events.on_tick, function()
             game.print("b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
+          game.print("only front, using front")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
-          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+          local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
             game.print("b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
+          game.print("only back, using back")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
