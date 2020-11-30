@@ -18,10 +18,13 @@ function start_trainsaver(command)
     -- create a table of all trains
     local table_of_all_trains = game.players[player_index].surface.get_trains()
 
-    -- create a table of all trains that have any "movers" and are not in manual mode
+    -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
     local table_of_trains = {}
+    if not command.train_to_ignore then
+      command.train_to_ignore = {id = -999999}
+    end
     for a,b in pairs(table_of_all_trains) do
-      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop)))) then
+      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop) or (b.id == command.train_to_ignore.id)))) then
         table.insert(table_of_trains, b)
       end
     end
@@ -149,11 +152,6 @@ function end_trainsaver(command)
         global.create_cutscene_next_tick[player_index]= nil
       end
     end
-    if global.start_trainsaver_next_tick then
-      if global.start_trainsaver_next_tick[player_index] then
-        global.start_trainsaver_next_tick[player_index]= nil
-      end
-    end
     if global.wait_at_signal then
       if global.wait_at_signal[player_index] then
         global.wait_at_signal[player_index]= nil
@@ -272,7 +270,7 @@ function character_damaged(character_damaged_event)
   end
 end
 
-script.on_event(defines.events.on_post_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
+script.on_event(defines.events.on_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 
@@ -281,9 +279,9 @@ function locomotive_gone(event)
   if event.entity then
     locomotive = event.entity
   end
-  if event.unit_number then
-    locomotive = {unit_number = event.unit_number}
-  end
+  -- if event.unit_number then
+  --   locomotive = {unit_number = event.unit_number}
+  -- end
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
@@ -296,19 +294,11 @@ function locomotive_gone(event)
             local command = {
               name = "trainsaver",
               player_index = player_index,
-              entity_gone_restart = "yes"
+              entity_gone_restart = "yes",
+              train_to_ignore = event.entity.train
               }
-            if event.entity then
-              if not global.start_trainsaver_next_tick then
-                global.start_trainsaver_next_tick = {}
-                global.start_trainsaver_next_tick[player_index] = command
-              else
-                global.start_trainsaver_next_tick[player_index] = command
-              end
-            elseif event.unit_number then
-              game.print("locomotive_gone --> start_trainsaver")
-              start_trainsaver(command)
-            end
+            game.print("locomotive_gone --> start_trainsaver")
+            start_trainsaver(command)
           end
         end
       end
@@ -317,14 +307,6 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
-  -- if global.start_trainsaver_next_tick then
-  --   for a,b in pairs(global.start_trainsaver_next_tick) do
-  --     player_index = b.player_index
-  --     start_trainsaver(global.start_trainsaver_next_tick[player_index])
-  --     global.start_trainsaver_next_tick[player_index] = nil
-  --     return
-  --   end
-  -- end
   if global.create_cutscene_next_tick then
     for a,b in pairs(global.create_cutscene_next_tick) do
       local target_train = b[1]
@@ -334,9 +316,6 @@ script.on_event(defines.events.on_tick, function()
       if not game.players[player_index].connected then
         return
       end
-      -- if not game.players[player_index].controller_type == defines.controllers.cutscene then
-      --   return
-      -- end
 
       -- is this one really necessary? not sure
       if not (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
