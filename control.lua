@@ -273,8 +273,6 @@ script.on_event(defines.events.on_post_entity_died, function(event) locomotive_g
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 
--- MAKE SURE U WRITE THE LOGIC FOR WHEN PLAYER OR ROBOT MINES THE LOCOMOTIVE BECAUSE THE LOCO WON'T BE DESTROYED YET WHEN THE EVENT FIRES, ONLY WHEN POST_ENTITY_DIED
-
 function locomotive_gone(event)
   local locomotive = {}
   if event.entity then
@@ -297,14 +295,17 @@ function locomotive_gone(event)
               player_index = player_index,
               entity_gone_restart = "yes"
               }
-            -- if not start_trainsaver_next_tick then
-            --   start_trainsaver_next_tick = {}
-            --   start_trainsaver_next_tick[player_index] = command
-            -- else
-            --   start_trainsaver_next_tick[player_index] = command
-            -- end
-            game.print("locomotive_gone --> start_trainsaver")
-            start_trainsaver(command)
+            if event.entity then
+              if not start_trainsaver_next_tick then
+                start_trainsaver_next_tick = {}
+                start_trainsaver_next_tick[player_index] = command
+              else
+                start_trainsaver_next_tick[player_index] = command
+              end
+            elseif event.unit_number then
+              game.print("locomotive_gone --> start_trainsaver")
+              start_trainsaver(command)
+            end
           end
         end
       end
