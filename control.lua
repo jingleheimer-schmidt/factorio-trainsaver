@@ -191,7 +191,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
         local found_locomotive = b.surface.find_entities_filtered({
           position = b.position,
           radius = 1,
-          name = "locomotive",
+          type = "locomotive",
           limit = 1
         })
         if found_locomotive[1] then
@@ -270,13 +270,7 @@ script.on_event(defines.events.on_player_mined_entity, function(event) locomotiv
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 
 function locomotive_gone(event)
-  local locomotive = {}
-  if event.entity then
-    locomotive = event.entity
-  end
-  -- if event.unit_number then
-  --   locomotive = {unit_number = event.unit_number}
-  -- end
+  local locomotive = event.entity
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
