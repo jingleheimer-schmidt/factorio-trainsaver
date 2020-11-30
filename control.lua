@@ -16,7 +16,15 @@ function start_trainsaver(command)
   if (name == "trainsaver") and ((game.players[player_index].controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
 
     -- create a table of all the trains
-    local table_of_trains = game.players[player_index].surface.get_trains()
+    local table_of_all_trains = game.players[player_index].surface.get_trains()
+
+    -- create a table of all the trains that have any "movers"
+    local table_of_trains = {}
+    for a,b in pairs(table_of_all_trains) do
+      if (b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) then
+        table.insert(table_of_trains, b)
+      end
+    end
 
     -- if there's no trains, end everything
       -- do we need to end_trainsaver() when entity_gone_restart() is called?
