@@ -363,12 +363,14 @@ end)
 
 script.on_nth_tick(1800, function()
   for a,b in pairs(game.connected_players) do
-    if b.mod_settings["ts-afk-auto-start"].value == 0 then
-      return
-    end
-    if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
-      local command = {name = "trainsaver", player_index = b.index}
-      start_trainsaver(command)
+    if b.controller_type == defines.controllers.character then
+      if b.mod_settings["ts-afk-auto-start"].value == 0 then
+        return
+      end
+      if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
+        local command = {name = "trainsaver", player_index = b.index}
+        start_trainsaver(command)
+      end
     end
   end
 end)
