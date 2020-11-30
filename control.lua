@@ -69,7 +69,7 @@ function start_trainsaver(command)
           local waypoint_target = {}
           if table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1] then
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1]
-          else if table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1] then
+          elseif table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1] then
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
           end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
@@ -86,21 +86,19 @@ function start_trainsaver(command)
             sync_color(player_index)
           end
           play_cutscene(created_waypoints, player_index)
-        else
-          if table_of_trains[1].locomotives.back_movers[1] then
-            local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
-            local created_waypoints = create_waypoint(waypoint_target, player_index)
-            if not command.entity_gone_restart == "yes" then
-              sync_color(player_index)
-            end
-            play_cutscene(created_waypoints, player_index)
+        elseif table_of_trains[1].locomotives.back_movers[1] then
+          local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
+          local created_waypoints = create_waypoint(waypoint_target, player_index)
+          if not command.entity_gone_restart == "yes" then
+            sync_color(player_index)
+          end
+          play_cutscene(created_waypoints, player_index)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how would this happen?) then end_trainsaver()
-          else
-            game.print("no trains on the path or waiting at station and table_of_trains[1] didn't have front or back movers. ending trainsaver.")
-            local command = {player_index = player_index}
-            end_trainsaver(command)
-          end
+        else
+          game.print("no trains on the path or waiting at station and table_of_trains[1] didn't have front or back movers. ending trainsaver.")
+          -- local command = {player_index = player_index}
+          -- end_trainsaver(command)
         end
       end
     end
@@ -179,10 +177,10 @@ function play_cutscene(created_waypoints, player_index)
   if not followed_loco then
     followed_loco = {}
     followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index])
+    game.print("play_cutscene --> followed_loco set to = " .. followed_loco[player_index])
   else
     followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene() -- followed_loco = " .. followed_loco[player_index])
+    game.print("play_cutscene --> followed_loco set to = " .. followed_loco[player_index])
   end
 end
 
@@ -275,6 +273,8 @@ script.on_event(defines.events.on_post_entity_died, function(event) locomotive_g
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 
+-- MAKE SURE U WRITE THE LOGIC FOR WHEN PLAYER OR ROBOT MINES THE LOCOMOTIVE BECAUSE THE LOCO WON'T BE DESTROYED YET WHEN THE EVENT FIRES, ONLY WHEN POST_ENTITY_DIED
+
 function locomotive_gone(event)
   local locomotive = {}
   if event.entity then
@@ -287,11 +287,11 @@ function locomotive_gone(event)
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
       if followed_loco then
-        game.print("check 1")
+        game.print("loco_gone: check 1 --> followed loco global exists")
         if followed_loco[player_index] then
-          game.print("check 2")
+          game.print("loco_gone: check 2 --> followed_loco[player_index] exists")
           if followed_loco[player_index] == locomotive.unit_number then
-            game.print("check 3")
+            game.print("loco_gone: check 3 --> followed_loco unit number matches gone loco unit number")
             local command = {
               name = "trainsaver",
               player_index = player_index,
@@ -303,7 +303,7 @@ function locomotive_gone(event)
             -- else
             --   start_trainsaver_next_tick[player_index] = command
             -- end
-            game.print("locomotive_gone() --> name = " .. command.name .. ", player_index = " .. command.player_index)
+            game.print("locomotive_gone --> start_trainsaver")
             start_trainsaver(command)
           end
         end
@@ -343,7 +343,7 @@ script.on_event(defines.events.on_tick, function()
       if wait_at_signal then
         if wait_at_signal[player_index] then
           if wait_at_signal[player_index] > game.tick then
-            game.print("train waiting at signal, no new cutscene")
+            game.print("on_tick: train waiting at signal, no new cutscene")
             create_cutscene_next_tick[player_index] = nil
             return
           else
@@ -357,22 +357,22 @@ script.on_event(defines.events.on_tick, function()
         if target_train.speed > 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           if b[3] then
-            game.print("b3= " .. b[3])
+            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
-          game.print("front and back, switched to front")
+          game.print("on_tick: front and back, switched to front")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.speed < 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
-            game.print("b3= " .. b[3])
+            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
-          game.print("front and back, switched to back")
+          game.print("on_tick: front and back, switched to back")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
@@ -380,20 +380,20 @@ script.on_event(defines.events.on_tick, function()
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           if b[3] then
-            game.print("b3= " .. b[3])
+            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
-          game.print("only front, using front")
+          game.print("on_tick: only front, using front")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
-            game.print("b3= " .. b[3])
+            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
-          game.print("only back, using back")
+          game.print("on_tick: only back, using back")
           play_cutscene(created_waypoints, player_index)
           create_cutscene_next_tick[player_index] = nil
         end
