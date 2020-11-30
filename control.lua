@@ -44,14 +44,14 @@ function start_trainsaver(command)
         end
       end
 
-      -- if there are any trains on_the_path, pick a random one and pass it through create_cutscene_next_tick global
+      -- if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global
       if table_of_active_trains[1] then
         local random_train_index = math.random(table_size(table_of_active_trains))
-        if not create_cutscene_next_tick then
-          create_cutscene_next_tick = {}
-          create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+        if not global.create_cutscene_next_tick then
+          global.create_cutscene_next_tick = {}
+          global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
         else
-          create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
+          global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
         end
         if not command.entity_gone_restart == "yes" then
           sync_color(player_index)
@@ -139,24 +139,24 @@ function end_trainsaver(command)
   local player_index = command.player_index
   if game.players[player_index].controller_type == defines.controllers.cutscene then
     game.players[player_index].exit_cutscene()
-    if followed_loco then
-      if followed_loco[player_index] then
-        followed_loco[player_index] = nil
+    if global.followed_loco then
+      if global.followed_loco[player_index] then
+        global.followed_loco[player_index] = nil
       end
     end
-    if create_cutscene_next_tick then
-      if create_cutscene_next_tick[player_index] then
-        create_cutscene_next_tick[player_index]= nil
+    if global.create_cutscene_next_tick then
+      if global.create_cutscene_next_tick[player_index] then
+        global.create_cutscene_next_tick[player_index]= nil
       end
     end
-    if start_trainsaver_next_tick then
-      if start_trainsaver_next_tick[player_index] then
-        start_trainsaver_next_tick[player_index]= nil
+    if global.start_trainsaver_next_tick then
+      if global.start_trainsaver_next_tick[player_index] then
+        global.start_trainsaver_next_tick[player_index]= nil
       end
     end
-    if wait_at_signal then
-      if wait_at_signal[player_index] then
-        wait_at_signal[player_index]= nil
+    if global.wait_at_signal then
+      if global.wait_at_signal[player_index] then
+        global.wait_at_signal[player_index]= nil
       end
     end
   else
@@ -177,13 +177,13 @@ function play_cutscene(created_waypoints, player_index)
       final_transition_time = player.mod_settings["ts-transition-time"].value
     }
   )
-  if not followed_loco then
-    followed_loco = {}
-    followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene --> followed_loco set to = " .. followed_loco[player_index])
+  if not global.followed_loco then
+    global.followed_loco = {}
+    global.followed_loco[player_index] = created_waypoints[1].target.unit_number
+    game.print("play_cutscene --> followed_loco set to = " .. global.followed_loco[player_index])
   else
-    followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene --> followed_loco set to = " .. followed_loco[player_index])
+    global.followed_loco[player_index] = created_waypoints[1].target.unit_number
+    game.print("play_cutscene --> followed_loco set to = " .. global.followed_loco[player_index])
   end
 end
 
@@ -211,45 +211,45 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
 
             -- if camera is on train that changed state, switch to leading locomotive
             if found_train.id == train.id then
-              if not create_cutscene_next_tick then
-                create_cutscene_next_tick = {}
-                create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-                if wait_at_signal then
-                  if wait_at_signal[player_index] then
-                    wait_at_signal[player_index] = nil
+              if not global.create_cutscene_next_tick then
+                global.create_cutscene_next_tick = {}
+                global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
+                if global.wait_at_signal then
+                  if global.wait_at_signal[player_index] then
+                    global.wait_at_signal[player_index] = nil
                   end
                 end
               else
-                create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-                if wait_at_signal then
-                  if wait_at_signal[player_index] then
-                    wait_at_signal[player_index] = nil
+                global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
+                if global.wait_at_signal then
+                  if global.wait_at_signal[player_index] then
+                    global.wait_at_signal[player_index] = nil
                   end
                 end
               end
             end
           else
 
-            -- if camera train is waiting at signal, update the wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
+            -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
             if (found_state == defines.train_state.wait_signal) then
-              if not wait_at_signal then
-                wait_at_signal = {}
+              if not global.wait_at_signal then
+                global.wait_at_signal = {}
                 local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                wait_at_signal[player_index] = until_tick
+                global.wait_at_signal[player_index] = until_tick
               else
-                if not wait_at_signal[player_index] then
+                if not global.wait_at_signal[player_index] then
                   local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                  wait_at_signal[player_index] = until_tick
+                  global.wait_at_signal[player_index] = until_tick
                 end
               end
             end
 
             -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the change_state event on the next tick
-            if not create_cutscene_next_tick then
-              create_cutscene_next_tick = {}
-              create_cutscene_next_tick[player_index] = {train, player_index}
+            if not global.create_cutscene_next_tick then
+              global.create_cutscene_next_tick = {}
+              global.create_cutscene_next_tick[player_index] = {train, player_index}
             else
-              create_cutscene_next_tick[player_index] = {train, player_index}
+              global.create_cutscene_next_tick[player_index] = {train, player_index}
             end
           end
         end
@@ -287,11 +287,11 @@ function locomotive_gone(event)
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
-      if followed_loco then
+      if global.followed_loco then
         game.print("loco_gone: check 1 --> followed loco global exists")
-        if followed_loco[player_index] then
+        if global.followed_loco[player_index] then
           game.print("loco_gone: check 2 --> followed_loco[player_index] exists")
-          if followed_loco[player_index] == locomotive.unit_number then
+          if global.followed_loco[player_index] == locomotive.unit_number then
             game.print("loco_gone: check 3 --> followed_loco unit number matches gone loco unit number")
             local command = {
               name = "trainsaver",
@@ -299,11 +299,11 @@ function locomotive_gone(event)
               entity_gone_restart = "yes"
               }
             if event.entity then
-              if not start_trainsaver_next_tick then
-                start_trainsaver_next_tick = {}
-                start_trainsaver_next_tick[player_index] = command
+              if not global.start_trainsaver_next_tick then
+                global.start_trainsaver_next_tick = {}
+                global.start_trainsaver_next_tick[player_index] = command
               else
-                start_trainsaver_next_tick[player_index] = command
+                global.start_trainsaver_next_tick[player_index] = command
               end
             elseif event.unit_number then
               game.print("locomotive_gone --> start_trainsaver")
@@ -317,16 +317,16 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
-  -- if start_trainsaver_next_tick then
-  --   for a,b in pairs(start_trainsaver_next_tick) do
+  -- if global.start_trainsaver_next_tick then
+  --   for a,b in pairs(global.start_trainsaver_next_tick) do
   --     player_index = b.player_index
-  --     start_trainsaver(start_trainsaver_next_tick[player_index])
-  --     start_trainsaver_next_tick[player_index] = nil
+  --     start_trainsaver(global.start_trainsaver_next_tick[player_index])
+  --     global.start_trainsaver_next_tick[player_index] = nil
   --     return
   --   end
   -- end
-  if create_cutscene_next_tick then
-    for a,b in pairs(create_cutscene_next_tick) do
+  if global.create_cutscene_next_tick then
+    for a,b in pairs(global.create_cutscene_next_tick) do
       local target_train = b[1]
       local player_index = b[2]
 
@@ -343,15 +343,15 @@ script.on_event(defines.events.on_tick, function()
         return
       end
 
-      -- if wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: end everything and wait until next train state update. If we've passed the untill_tick, then set it to nill and continue creating the cutscene
-      if wait_at_signal then
-        if wait_at_signal[player_index] then
-          if wait_at_signal[player_index] > game.tick then
+      -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: end everything and wait until next train state update. If we've passed the untill_tick, then set it to nill and continue creating the cutscene
+      if global.wait_at_signal then
+        if global.wait_at_signal[player_index] then
+          if global.wait_at_signal[player_index] > game.tick then
             game.print("on_tick: train waiting at signal, no new cutscene")
-            create_cutscene_next_tick[player_index] = nil
+            global.create_cutscene_next_tick[player_index] = nil
             return
           else
-            wait_at_signal[player_index] = nil
+            global.wait_at_signal[player_index] = nil
           end
         end
       end
@@ -367,7 +367,7 @@ script.on_event(defines.events.on_tick, function()
           end
           game.print("on_tick: front and back, switched to front")
           play_cutscene(created_waypoints, player_index)
-          create_cutscene_next_tick[player_index] = nil
+          global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.speed < 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
@@ -378,7 +378,7 @@ script.on_event(defines.events.on_tick, function()
           end
           game.print("on_tick: front and back, switched to back")
           play_cutscene(created_waypoints, player_index)
-          create_cutscene_next_tick[player_index] = nil
+          global.create_cutscene_next_tick[player_index] = nil
         end
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
@@ -389,7 +389,7 @@ script.on_event(defines.events.on_tick, function()
           end
           game.print("on_tick: only front, using front")
           play_cutscene(created_waypoints, player_index)
-          create_cutscene_next_tick[player_index] = nil
+          global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
@@ -399,7 +399,7 @@ script.on_event(defines.events.on_tick, function()
           end
           game.print("on_tick: only back, using back")
           play_cutscene(created_waypoints, player_index)
-          create_cutscene_next_tick[player_index] = nil
+          global.create_cutscene_next_tick[player_index] = nil
         end
       end
     end
