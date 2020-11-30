@@ -10,7 +10,6 @@ script.on_load(function()
 end)
 
 function start_trainsaver(command)
-  game.print("start_trainsaver() --> name = " .. command.name .. ", player_index = " .. command.player_index)
   local player_index = command.player_index
   local name = command.name
   if (name == "trainsaver") and ((game.players[player_index].controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
@@ -32,7 +31,6 @@ function start_trainsaver(command)
     -- if there's no trains, end everything
       -- do we need to end_trainsaver() when entity_gone_restart() is called?
     if not table_of_trains[1] then
-      game.players[player_index].print("no trains available")
       if game.players[player_index].controller_type == defines.controllers.cutscene then
         local command = {player_index = player_index}
         end_trainsaver(command)
@@ -102,7 +100,7 @@ function start_trainsaver(command)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how would this happen?) then end_trainsaver()
         else
-          game.print("no trains on the path or waiting at station and table_of_trains[1] didn't have front or back movers. ending trainsaver.")
+          game.print("something unexpected has happened. please report this event to the mod author.")
           -- local command = {player_index = player_index}
           -- end_trainsaver(command)
         end
@@ -178,10 +176,8 @@ function play_cutscene(created_waypoints, player_index)
   if not global.followed_loco then
     global.followed_loco = {}
     global.followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene --> followed_loco set to = " .. global.followed_loco[player_index])
   else
     global.followed_loco[player_index] = created_waypoints[1].target.unit_number
-    game.print("play_cutscene --> followed_loco set to = " .. global.followed_loco[player_index])
   end
 end
 
@@ -192,7 +188,6 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   if (--[[((old_state == defines.train_state.path_lost) or (old_state == defines.train_state.no_schedule) or (old_state == defines.train_state.no_path) or (old_state == defines.train_state.arrive_signal) or (old_state == defines.train_state.wait_signal) or (old_state == defines.train_state.arrive_station)or --]] (old_state == defines.train_state.wait_station) --[[or (old_state == defines.train_state.manual_control_stop) or (old_state == defines.train_state.manual_control))--]] and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal)) --[[or ((new_state == defines.train_state.manual_control) and (train.speed ~= 0))--]]) then
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
-        game.print("train " .. train.id .. " dispatched from station")
         local found_locomotive = b.surface.find_entities_filtered({
           position = b.position,
           radius = 1,
@@ -286,18 +281,14 @@ function locomotive_gone(event)
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
       if global.followed_loco then
-        game.print("loco_gone: check 1 --> followed loco global exists")
         if global.followed_loco[player_index] then
-          game.print("loco_gone: check 2 --> followed_loco[player_index] exists")
           if global.followed_loco[player_index] == locomotive.unit_number then
-            game.print("loco_gone: check 3 --> followed_loco unit number matches gone loco unit number")
             local command = {
               name = "trainsaver",
               player_index = player_index,
               entity_gone_restart = "yes",
               train_to_ignore = event.entity.train
               }
-            game.print("locomotive_gone --> start_trainsaver")
             start_trainsaver(command)
           end
         end
@@ -326,7 +317,6 @@ script.on_event(defines.events.on_tick, function()
       if global.wait_at_signal then
         if global.wait_at_signal[player_index] then
           if global.wait_at_signal[player_index] > game.tick then
-            game.print("on_tick: train waiting at signal, no new cutscene")
             global.create_cutscene_next_tick[player_index] = nil
             return
           else
@@ -340,22 +330,18 @@ script.on_event(defines.events.on_tick, function()
         if target_train.speed > 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           if b[3] then
-            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
-          game.print("on_tick: front and back, switched to front")
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.speed < 0 then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
-            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
           end
-          game.print("on_tick: front and back, switched to back")
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
@@ -363,20 +349,16 @@ script.on_event(defines.events.on_tick, function()
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
           if b[3] then
-            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
-          game.print("on_tick: only front, using front")
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
           if b[3] then
-            game.print("on_tick: b3= " .. b[3])
             created_waypoints[1].zoom = nil
           end
-          game.print("on_tick: only back, using back")
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
@@ -388,11 +370,9 @@ end)
 script.on_nth_tick(1800, function()
   for a,b in pairs(game.connected_players) do
     if b.mod_settings["ts-afk-auto-start"].value == 0 then
-      game.print("trainsaver afk auto start is off")
       return
     end
     if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
-      game.print("trainsaver afk auto start")
       local command = {name = "trainsaver", player_index = b.index}
       start_trainsaver(command)
     end
