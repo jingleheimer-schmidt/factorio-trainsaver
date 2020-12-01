@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.3
-Date: 2020-11-31
+Date: 2020-11-30
   Changes:
     - minor change to afk auto-start logic
     - revised changelog entry for version 0.0.2
