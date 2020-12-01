@@ -1,8 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2020-11-30
+  Changes:
+    - minor change to afk auto-start logic
+    - revised changelog entry for version 0.0.2
+---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2020-11-30
   Changes:
-    - should now work for trains with modded locomotives
+    - added support for modded trains
+    - added changelog
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.1
 Date: 2020-11-30

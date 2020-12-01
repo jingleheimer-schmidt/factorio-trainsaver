@@ -98,9 +98,9 @@ function start_trainsaver(command)
           end
           play_cutscene(created_waypoints, player_index)
 
-          -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how would this happen?) then end_trainsaver()
+          -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
         else
-          game.print("something unexpected has happened. please report this event to the mod author.")
+          game.players[player_index].print("trainsaver: something unexpected has happened. please report this event to the mod author. code 909")
           -- local command = {player_index = player_index}
           -- end_trainsaver(command)
         end
@@ -109,6 +109,7 @@ function start_trainsaver(command)
   end
 end
 
+-- create a waypoint for given waypoint_target locomotive using player mod settings
 function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
@@ -136,6 +137,7 @@ function create_waypoint(waypoint_target, player_index)
   return created_waypoints
 end
 
+-- end the screensaver and nil out any globals saved for given player
 function end_trainsaver(command)
   local player_index = command.player_index
   if game.players[player_index].controller_type == defines.controllers.cutscene then
@@ -159,10 +161,12 @@ function end_trainsaver(command)
   end
 end
 
+-- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
 
+-- play cutscene from given waypoints, save target to followed_loco global
 function play_cutscene(created_waypoints, player_index)
   local player = game.players[player_index]
   player.set_controller(
@@ -251,6 +255,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   end
 end)
 
+-- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message
 script.on_event(defines.events.on_entity_damaged, function(character_damaged_event) character_damaged(character_damaged_event) end, {{filter = "type", type = "character"}})
 
 function character_damaged(character_damaged_event)
@@ -265,6 +270,7 @@ function character_damaged(character_damaged_event)
   end
 end
 
+-- start a new cutscene if the followed locomotive dies or is mined
 script.on_event(defines.events.on_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
@@ -292,6 +298,8 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
+    
+  -- every tick check if we need to create a new cutscene
   if global.create_cutscene_next_tick then
     for a,b in pairs(global.create_cutscene_next_tick) do
       local target_train = b[1]
@@ -302,12 +310,12 @@ script.on_event(defines.events.on_tick, function()
         return
       end
 
-      -- is this one really necessary? not sure
+      -- is this one really necessary? not sure. probably doesn't hurt too much tho?
       if not (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
         return
       end
 
-      -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: end everything and wait until next train state update. If we've passed the untill_tick, then set it to nill and continue creating the cutscene
+      -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
       if global.wait_at_signal then
         if global.wait_at_signal[player_index] then
           if global.wait_at_signal[player_index] > game.tick then
@@ -339,6 +347,9 @@ script.on_event(defines.events.on_tick, function()
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
+        
+      -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
+      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN? 
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
@@ -361,14 +372,17 @@ script.on_event(defines.events.on_tick, function()
   end
 end)
 
+-- auto-start the screensaver if player AFK time is greater than what is specified in mod settings
 script.on_nth_tick(1800, function()
   for a,b in pairs(game.connected_players) do
-    if b.mod_settings["ts-afk-auto-start"].value == 0 then
-      return
-    end
-    if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
-      local command = {name = "trainsaver", player_index = b.index}
-      start_trainsaver(command)
+    if b.controller_type == defines.controllers.character then
+      if b.mod_settings["ts-afk-auto-start"].value == 0 then
+        return
+      end
+      if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
+        local command = {name = "trainsaver", player_index = b.index}
+        start_trainsaver(command)
+      end
     end
   end
 end)
