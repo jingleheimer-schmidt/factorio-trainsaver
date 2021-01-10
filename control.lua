@@ -237,26 +237,40 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             end
           else
 
-            -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
-            if (found_state == defines.train_state.wait_signal) then
-              if not global.wait_at_signal then
-                global.wait_at_signal = {}
-                local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                global.wait_at_signal[player_index] = until_tick
-              else
-                if not global.wait_at_signal[player_index] then
-                  local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                  global.wait_at_signal[player_index] = until_tick
-                end
-              end
-            end
-
             -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the change_state event on the next tick
             if not global.create_cutscene_next_tick then
               global.create_cutscene_next_tick = {}
               global.create_cutscene_next_tick[player_index] = {train, player_index}
             else
               global.create_cutscene_next_tick[player_index] = {train, player_index}
+            end
+          end
+        end
+      end
+    end
+  end
+
+  -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
+  if (old_state == defines.train_state.arrive_signal) and (new_state == defines.train_state.wait_signal) then
+    for a,b in pairs(game.connected_players) do
+      if b.controller_type == defines.controllers.cutscene then
+        local found_locomotive = b.surface.find_entities_filtered({
+          position = b.position,
+          radius = 1,
+          type = "locomotive",
+          limit = 1
+        })
+        if found_locomotive[1] then
+          if found_locomotive[1].train.id == train.id then
+            if not global.wait_at_signal then
+              global.wait_at_signal = {}
+              local until_tick = game.tick + (b.mod_settings["ts-wait-at-signal"].value * 60)
+              global.wait_at_signal[b.index] = until_tick
+            else
+              if not global.wait_at_signal[b.index] then
+                local until_tick = game.tick + (b.mod_settings["ts-wait-at-signal"].value * 60)
+                global.wait_at_signal[b.index] = until_tick
+              end
             end
           end
         end
