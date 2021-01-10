@@ -141,6 +141,11 @@ end
 function end_trainsaver(command)
   local player_index = command.player_index
   if game.players[player_index].controller_type == defines.controllers.cutscene then
+    if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+      if remote.call("cc_check", "cc_status", player_index) == "active" then
+        return
+      end
+    end
     game.players[player_index].exit_cutscene()
     if global.followed_loco then
       if global.followed_loco[player_index] then
@@ -168,7 +173,12 @@ end
 
 -- play cutscene from given waypoints, save target to followed_loco global
 function play_cutscene(created_waypoints, player_index)
-  local player = game.players[player_index]
+  local player = game.get_player(player_index)
+  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+    if remote.call("cc_check", "cc_status", player_index) == "active" then
+      return
+    end
+  end
   player.set_controller(
     {
       type = defines.controllers.cutscene,
@@ -298,7 +308,7 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
-    
+
   -- every tick check if we need to create a new cutscene
   if global.create_cutscene_next_tick then
     for a,b in pairs(global.create_cutscene_next_tick) do
@@ -347,9 +357,9 @@ script.on_event(defines.events.on_tick, function()
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
-        
+
       -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
-      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN? 
+      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN?
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
