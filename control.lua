@@ -54,9 +54,9 @@ function start_trainsaver(command)
         else
           global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
         end
-        if not command.entity_gone_restart == "yes" then
-          sync_color(player_index)
-        end
+        -- if not command.entity_gone_restart == "yes" then
+        --   sync_color(player_index)
+        -- end
 
       -- if there are no trains on_the_path then make a table of trains waiting at stations
       else
@@ -77,25 +77,25 @@ function start_trainsaver(command)
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
           end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
 
         -- if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target
         elseif table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
         elseif table_of_trains[1].locomotives.back_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
@@ -161,10 +161,10 @@ function end_trainsaver(command)
   end
 end
 
--- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
-function sync_color(player_index)
-  game.players[player_index].character.color = game.players[player_index].color
-end
+-- -- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
+-- function sync_color(player_index)
+--   game.players[player_index].character.color = game.players[player_index].color
+-- end
 
 -- play cutscene from given waypoints, save target to followed_loco global
 function play_cutscene(created_waypoints, player_index)
