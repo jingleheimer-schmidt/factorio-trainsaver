@@ -54,9 +54,9 @@ function start_trainsaver(command)
         else
           global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
         end
-        if not command.entity_gone_restart == "yes" then
-          sync_color(player_index)
-        end
+        -- if not command.entity_gone_restart == "yes" then
+        --   sync_color(player_index)
+        -- end
 
       -- if there are no trains on_the_path then make a table of trains waiting at stations
       else
@@ -77,25 +77,25 @@ function start_trainsaver(command)
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
           end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
 
         -- if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target
         elseif table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
         elseif table_of_trains[1].locomotives.back_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
+          -- if not command.entity_gone_restart == "yes" then
+          --   sync_color(player_index)
+          -- end
           play_cutscene(created_waypoints, player_index)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
@@ -141,6 +141,11 @@ end
 function end_trainsaver(command)
   local player_index = command.player_index
   if game.players[player_index].controller_type == defines.controllers.cutscene then
+    if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+      if remote.call("cc_check", "cc_status", player_index) == "active" then
+        return
+      end
+    end
     game.players[player_index].exit_cutscene()
     if global.followed_loco then
       if global.followed_loco[player_index] then
@@ -161,14 +166,19 @@ function end_trainsaver(command)
   end
 end
 
--- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
-function sync_color(player_index)
-  game.players[player_index].character.color = game.players[player_index].color
-end
+-- -- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
+-- function sync_color(player_index)
+--   game.players[player_index].character.color = game.players[player_index].color
+-- end
 
 -- play cutscene from given waypoints, save target to followed_loco global
 function play_cutscene(created_waypoints, player_index)
-  local player = game.players[player_index]
+  local player = game.get_player(player_index)
+  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+    if remote.call("cc_check", "cc_status", player_index) == "active" then
+      return
+    end
+  end
   player.set_controller(
     {
       type = defines.controllers.cutscene,
@@ -227,26 +237,40 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
             end
           else
 
-            -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
-            if (found_state == defines.train_state.wait_signal) then
-              if not global.wait_at_signal then
-                global.wait_at_signal = {}
-                local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                global.wait_at_signal[player_index] = until_tick
-              else
-                if not global.wait_at_signal[player_index] then
-                  local until_tick = game.tick + (game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60)
-                  global.wait_at_signal[player_index] = until_tick
-                end
-              end
-            end
-
             -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the change_state event on the next tick
             if not global.create_cutscene_next_tick then
               global.create_cutscene_next_tick = {}
               global.create_cutscene_next_tick[player_index] = {train, player_index}
             else
               global.create_cutscene_next_tick[player_index] = {train, player_index}
+            end
+          end
+        end
+      end
+    end
+  end
+
+  -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
+  if (old_state == defines.train_state.arrive_signal) and (new_state == defines.train_state.wait_signal) then
+    for a,b in pairs(game.connected_players) do
+      if b.controller_type == defines.controllers.cutscene then
+        local found_locomotive = b.surface.find_entities_filtered({
+          position = b.position,
+          radius = 1,
+          type = "locomotive",
+          limit = 1
+        })
+        if found_locomotive[1] then
+          if found_locomotive[1].train.id == train.id then
+            if not global.wait_at_signal then
+              global.wait_at_signal = {}
+              local until_tick = game.tick + (b.mod_settings["ts-wait-at-signal"].value * 60)
+              global.wait_at_signal[b.index] = until_tick
+            else
+              if not global.wait_at_signal[b.index] then
+                local until_tick = game.tick + (b.mod_settings["ts-wait-at-signal"].value * 60)
+                global.wait_at_signal[b.index] = until_tick
+              end
             end
           end
         end
@@ -298,7 +322,7 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
-    
+
   -- every tick check if we need to create a new cutscene
   if global.create_cutscene_next_tick then
     for a,b in pairs(global.create_cutscene_next_tick) do
@@ -347,9 +371,9 @@ script.on_event(defines.events.on_tick, function()
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
         end
-        
+
       -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
-      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN? 
+      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN?
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)

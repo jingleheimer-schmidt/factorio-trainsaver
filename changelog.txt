@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 2021-01-09
+  Changes:
+    - removed function to sync player and character color since cutscene_character now exists
+    - trainsaver will no longer perform a hostile takeover of cutscenes following trains which were created using the cutscene creator mod
+    - the wait_at_signal setting is now more precise
+    - added optional dependency for cutscene_creator
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 2020-11-30
   Changes:
