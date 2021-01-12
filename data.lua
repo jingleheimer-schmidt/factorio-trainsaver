@@ -2,6 +2,7 @@ local escapeTrainsaverKey = {
   type = "custom-input",
   name = "escape-trainsaver",
   key_sequence = "ESCAPE",
+  alternative_key_sequence = "E",
   enabled_while_in_cutscene = true,
   action = "lua",
 }
