@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2021-01-11
+  Changes:
+    - resolved an issue with the wait_at_signal setting not being respected when the camera switches from the back to the leading locomotive on a train that is immediately stopped at a signal after leaving a station
+    - the wait_at_signal setting is now tick-precise
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 2021-01-09
   Changes:
