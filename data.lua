@@ -2,7 +2,15 @@ local escapeTrainsaverKey = {
   type = "custom-input",
   name = "escape-trainsaver",
   key_sequence = "ESCAPE",
-  alternative_key_sequence = "E",
+  alternative_key_sequence = "RETURN",
+  enabled_while_in_cutscene = true,
+  action = "lua",
+}
+
+local openGuiTrainsaverKey = {
+  type = "custom-input",
+  name = "open-inventory-trainsaver",
+  linked_game_control = "open-gui"
   enabled_while_in_cutscene = true,
   action = "lua",
 }
@@ -18,5 +26,6 @@ local toggleTrainsaverKey = {
 
 data:extend({
   escapeTrainsaverKey,
+  openGuiTrainsaverKey,
   toggleTrainsaverKey,
 })
