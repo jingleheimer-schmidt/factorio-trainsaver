@@ -266,6 +266,19 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
       end
     end
   end
+  if (old_state == defines.train_state.wait_signal) and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station)) then
+    for a,b in pairs(game.connected_players) do
+      if b.controller_type == defines.controllers.cutscene then
+        if global.followed_loco and global.followed_loco[b.index] then
+          if train.id == global.followed_loco[b.index].train_id then
+            if global.wait_at_signal and global.wait_at_signal[b.index] then
+              global.wait_at_signal[b.index] = nil
+            end
+          end
+        end
+      end
+    end
+  end
 end)
 
 -- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message
