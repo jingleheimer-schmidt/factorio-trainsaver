@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2021-01-12
+  Changes:
+    - added cmd/ctrl + t hotkey to toggle trainsaver
+    - added esc hotkey to escape trainsaver
+    - updated mod description
+---------------------------------------------------------------------------------------------------
 Version: 0.0.5
 Date: 2021-01-11
   Changes:
