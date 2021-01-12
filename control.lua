@@ -140,13 +140,14 @@ end
 -- end the screensaver and nil out any globals saved for given player
 function end_trainsaver(command)
   local player_index = command.player_index
-  if game.get_player(player_index).controller_type == defines.controllers.cutscene then
+  local player = game.get_player(player_index)
+  if player.controller_type == defines.controllers.cutscene then
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
       end
     end
-    game.get_player(player_index).exit_cutscene()
+    player.exit_cutscene()
     if global.followed_loco and global.followed_loco[player_index] then
       global.followed_loco[player_index] = nil
     end
@@ -404,5 +405,23 @@ script.on_nth_tick(1800, function()
         start_trainsaver(command)
       end
     end
+  end
+end)
+
+script.on_event("toggle-trainsaver", function(event)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.character then
+    local command = {name = "trainsaver", player_index = event.player_index}
+    start_trainsaver(command)
+  elseif player.controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
+  end
+end)
+
+script.on_event("escape-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
   end
 end)
