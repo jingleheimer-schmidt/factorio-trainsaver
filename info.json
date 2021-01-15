@@ -1,6 +1,6 @@
 {
 	"name": "trainsaver",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"title": "trainsaver",
 	"description": "Creates a dynamic screensaver which follows trains from station to station \n It will start automatically if player is afk, and can be toggled on/off with a hotkey (default cmd/ctrl + t)  \n The commands /trainsaver and /end-trainsaver are also available \n Options are configurable in player mod settings",
 	"author": "asher_sky",
