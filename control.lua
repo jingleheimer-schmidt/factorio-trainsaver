@@ -419,7 +419,14 @@ script.on_event("toggle-trainsaver", function(event)
   end
 end)
 
-script.on_event("escape-trainsaver", function(event)
+script.on_event("start-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {name = "trainsaver", player_index = event.player_index}
+    start_trainsaver(command)
+  end
+end)
+
+script.on_event("end-trainsaver", function(event)
   if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
     local command = {player_index = event.player_index}
     end_trainsaver(command)
@@ -430,5 +437,36 @@ script.on_event("open-inventory-trainsaver", function(event)
   if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
     local command = {player_index = event.player_index}
     end_trainsaver(command)
+  end
+end)
+
+script.on_event("open-research-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
+  end
+end)
+
+script.on_event("open-production-stats-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
+  end
+end)
+
+script.on_event("open-logistic-netowrk-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
+  end
+end)
+
+script.on_event("toggle-menu-trainsaver", function(event)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-menu-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
