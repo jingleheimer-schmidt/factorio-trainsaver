@@ -53,6 +53,14 @@ local afkAutoStartSetting = {
   order = "ts-6"
 }
 
+local menuEndsTrainsaverSetting = {
+  type = "bool-setting",
+  name = "ts-menu-hotkey",
+  setting_type = "runtime-per-user",
+  default_value = true,
+  order = "ts-7"
+}
+
 data:extend({
   transitionTimeSetting,
   timeWaitSetting,
@@ -60,4 +68,5 @@ data:extend({
   variableZoomSetting,
   waitAtSignalSetting,
   afkAutoStartSetting,
+  menuEndsTrainsaverSetting,
 })
