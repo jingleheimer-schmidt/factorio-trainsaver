@@ -2,7 +2,7 @@
 Version: 0.0.8
 Date: 2021-01-16
   Changes:
-  - fixed that trainsaver would crash when attempting to focus on a train who just left a station on a different surface than the player
+    - fixed that trainsaver would crash when attempting to focus on a train who just left a station on a different surface than the player
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.7
 Date: 2021-01-15
