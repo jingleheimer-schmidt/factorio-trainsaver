@@ -1,9 +1,9 @@
 {
 	"name": "trainsaver",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"title": "trainsaver",
 	"description": "Creates a dynamic screensaver which follows trains from station to station \n It will start automatically if player is afk, and can be toggled on/off with a hotkey (default cmd/ctrl + t)  \n The commands /trainsaver and /end-trainsaver are also available \n Options are configurable in player mod settings",
 	"author": "asher_sky",
-	"dependencies": ["base >= 1.1.0", "? cutscene-creator >= 0.0.2"],
+	"dependencies": ["base >= 1.1.0", "? cutscene-creator >= 0.0.3"],
 	"factorio_version": "1.1"
 }
