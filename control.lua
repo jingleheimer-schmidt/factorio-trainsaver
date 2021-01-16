@@ -100,7 +100,7 @@ function start_trainsaver(command)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
         else
-          game.players[player_index].print("trainsaver: something unexpected has happened. please report this event to the mod author. code 909")
+          game.get_player(player_index).print("trainsaver: something unexpected has occured. please report this event to the mod author. code 909")
           -- local command = {player_index = player_index}
           -- end_trainsaver(command)
         end
@@ -173,6 +173,9 @@ function play_cutscene(created_waypoints, player_index)
     if remote.call("cc_check", "cc_status", player_index) == "active" then
       return
     end
+  end
+  if player.surface.index ~= created_waypoints[1].target.surface.index then
+    return
   end
   player.set_controller(
     {
