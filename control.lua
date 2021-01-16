@@ -157,6 +157,9 @@ function end_trainsaver(command)
     if global.wait_at_signal and global.wait_at_signal[player_index] then
       global.wait_at_signal[player_index]= nil
     end
+    if global.entity_destroyed_registration_numbers and global.entity_destroyed_registration_numbers[player_index] then
+      global.entity_destroyed_registration_numbers[player_index] = nil
+    end
   else
   end
 end
@@ -190,6 +193,12 @@ function play_cutscene(created_waypoints, player_index)
     global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
   else
     global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
+  end
+  if not global.entity_destroyed_registration_numbers then
+    global.entity_destroyed_registration_numbers = {}
+    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
+  else
+    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
   end
 end
 
@@ -298,10 +307,27 @@ function character_damaged(character_damaged_event)
   end
 end
 
--- start a new cutscene if the followed locomotive dies or is mined
+-- start a new cutscene if the followed locomotive dies or is mined or is destoryed
 script.on_event(defines.events.on_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
 script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
+script.on_event(defines.events.on_entity_destroyed, function(event)
+  local registration_number = event.registration_number
+  if global.entity_destroyed_registration_numbers then
+    for a,b in pairs(global.entity_destroyed_registration_numbers) do
+      if b == registration_number then
+        local simulated_event = {
+          entity = {
+            unit_number = event.unit_number,
+            train = {
+              id = -999999
+            },
+          },
+        }
+        locomotive_gone(simulated_event)
+    end
+  end
+end)
 
 function locomotive_gone(event)
   local locomotive = event.entity
