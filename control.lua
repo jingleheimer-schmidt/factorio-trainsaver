@@ -1,4 +1,6 @@
 
+require "util"
+
 script.on_init(function()
   add_commands()
 end)
@@ -329,16 +331,25 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
               },
             },
           }
+          -- game.get_player(a).print("train destoryed restart")
           locomotive_gone(simulated_event)
         else
           -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
           local player_index = a
-          if game.get_player(player_index).controller_type == defines.controllers.cutscene then
+          local player = game.get_player(player_index)
+          if player.controller_type == defines.controllers.cutscene then
             local command = {
               name = "trainsaver",
               player_index = player_index,
               entity_gone_restart = "yes",
-              }
+            }
+            local rocket_destroyed_location_index = game.tick - 1
+            -- player.print("current location 1: "..player.position.x ..", "..player.position.y)
+            -- player.print(global.rocket_positions[player_index][rocket_destroyed_location_index].x ..", ".. global.rocket_positions[player_index][rocket_destroyed_location_index].y)
+            player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
+            -- player.print("current location 2: "..player.position.x ..", "..player.position.y)
+            -- global.rocket_positions[player_index] = nil
+            -- player.print("rocket destoryed restart")
             start_trainsaver(command)
           end
         end
@@ -437,6 +448,11 @@ script.on_event(defines.events.on_tick, function()
       end
     end
   end
+  if global.rocket_positions then
+    for a,b in pairs(global.rocket_positions) do
+      table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
+    end
+  end
 end)
 
 -- auto-start the screensaver if player AFK time is greater than what is specified in mod settings
@@ -517,7 +533,12 @@ script.on_event("toggle-menu-trainsaver", function(event)
   end
 end)
 
+script.on_event(defines.events.on_rocket_launched, function(event)
+  game.print(game.tick ..": rocket launched")
+end)
+
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
+  game.print(game.tick ..": rocket launch ordered")
   local rocket = event.rocket
   local silo = event.rocket_silo
   for a,b in pairs(game.connected_players) do
@@ -525,6 +546,9 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
       local player_index = b.index
       local player = b
       local found_locomotive = {}
+      if player.mod_settings["ts-secrets"].value == false then
+        return
+      end
       if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
         found_locomotive[1] = global.followed_loco[player_index].loco
       else
@@ -549,9 +573,16 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               return
             end
           end
-          local created_waypoints = create_waypoint(silo, player_index)
+          local created_waypoints = create_waypoint(rocket, player_index)
           if player.surface.index ~= created_waypoints[1].target.surface.index then
             return
+          end
+          created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
+          created_waypoints[1].time_to_wait = 1
+          -- created_waypoints[2].zoom = created_waypoints[2].zoom * 0.7
+          created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value))
+          if created_waypoints[2].transition_time < 1 then
+            created_waypoints[2].transition_time = 1
           end
           player.set_controller(
             {
@@ -561,6 +592,12 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               final_transition_time = player.mod_settings["ts-transition-time"].value
             }
           )
+          if not global.rocket_positions then
+            global.rocket_positions = {}
+            global.rocket_positions[player_index] = {}
+          else
+            global.rocket_positions[player_index] = {}
+          end
           if global.followed_loco and global.followed_loco[player_index] then
             global.followed_loco[player_index] = nil
           end
