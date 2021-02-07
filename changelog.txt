@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 2021-02-06
+  Changes:
+    - added option to enable a secret alternate focus for trainsaver that triggers under certain conditions
+    - added linked game control to end trainsaver when player opens the train overview gui
+---------------------------------------------------------------------------------------------------
 Version: 0.0.8
 Date: 2021-01-16
   Changes:
