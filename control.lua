@@ -166,6 +166,9 @@ function end_trainsaver(command)
     if global.entity_destroyed_registration_numbers and global.entity_destroyed_registration_numbers[player_index] then
       global.entity_destroyed_registration_numbers[player_index] = nil
     end
+    if global.rocket_positions and global.rocket_positions[player_index] then
+      global.rocket_positions[player_index] = nil
+    end
   else
   end
 end
@@ -331,7 +334,6 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
               },
             },
           }
-          -- game.get_player(a).print("train destoryed restart")
           locomotive_gone(simulated_event)
         else
           -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
@@ -344,12 +346,8 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
               entity_gone_restart = "yes",
             }
             local rocket_destroyed_location_index = game.tick - 1
-            -- player.print("current location 1: "..player.position.x ..", "..player.position.y)
-            -- player.print(global.rocket_positions[player_index][rocket_destroyed_location_index].x ..", ".. global.rocket_positions[player_index][rocket_destroyed_location_index].y)
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
-            -- player.print("current location 2: "..player.position.x ..", "..player.position.y)
-            -- global.rocket_positions[player_index] = nil
-            -- player.print("rocket destoryed restart")
+            global.rocket_positions[player_index] = nil
             start_trainsaver(command)
           end
         end
@@ -523,6 +521,13 @@ script.on_event("open-logistic-netowrk-trainsaver", function(event)
   end
 end)
 
+script.on_event("open-train-gui-trainsaver", function(event)
+  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+    local command = {player_index = event.player_index}
+    end_trainsaver(command)
+  end
+end)
+
 script.on_event("toggle-menu-trainsaver", function(event)
   local player = game.get_player(event.player_index)
   if player.controller_type == defines.controllers.cutscene then
@@ -533,22 +538,17 @@ script.on_event("toggle-menu-trainsaver", function(event)
   end
 end)
 
-script.on_event(defines.events.on_rocket_launched, function(event)
-  game.print(game.tick ..": rocket launched")
-end)
-
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
-  game.print(game.tick ..": rocket launch ordered")
   local rocket = event.rocket
   local silo = event.rocket_silo
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.cutscene then
       local player_index = b.index
       local player = b
-      local found_locomotive = {}
       if player.mod_settings["ts-secrets"].value == false then
         return
       end
+      local found_locomotive = {}
       if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
         found_locomotive[1] = global.followed_loco[player_index].loco
       else
@@ -579,7 +579,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           end
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
           created_waypoints[1].time_to_wait = 1
-          -- created_waypoints[2].zoom = created_waypoints[2].zoom * 0.7
+          created_waypoints[1].zoom = 0.5
+          created_waypoints[2].zoom = 0.18
           created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value))
           if created_waypoints[2].transition_time < 1 then
             created_waypoints[2].transition_time = 1
