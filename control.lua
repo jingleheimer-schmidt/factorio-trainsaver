@@ -1,21 +1,27 @@
 
+require "util"
+
 script.on_init(function()
-  commands.add_command("trainsaver", "- starts a dynamic screensaver that follows active trains.", start_trainsaver)
-  commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
+  add_commands()
 end)
 
 script.on_load(function()
+  add_commands()
+end)
+
+function add_commands()
   commands.add_command("trainsaver", "- starts a dynamic screensaver that follows active trains.", start_trainsaver)
   commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
-end)
+end
 
 function start_trainsaver(command)
   local player_index = command.player_index
+  local player = game.get_player(player_index)
   local name = command.name
-  if (name == "trainsaver") and ((game.players[player_index].controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
+  if (name == "trainsaver") and ((player.controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
 
     -- create a table of all trains
-    local table_of_all_trains = game.players[player_index].surface.get_trains()
+    local table_of_all_trains = player.surface.get_trains()
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
     local table_of_trains = {}
@@ -100,7 +106,7 @@ function start_trainsaver(command)
 
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
         else
-          game.get_player(player_index).print("trainsaver: something unexpected has occured. please report this event to the mod author. code 909")
+          player.print("trainsaver: something unexpected has occured. please report this event to the mod author. code: 909")
           -- local command = {player_index = player_index}
           -- end_trainsaver(command)
         end
@@ -113,13 +119,13 @@ end
 function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
-  local mod_settings = game.players[player_index].mod_settings
+  local mod_settings = game.get_player(player_index).mod_settings
   if mod_settings["ts-transition-time"].value == 0 then
     tt = 1
   else
     tt = mod_settings["ts-transition-time"].value * 60
   end
-  local tw = mod_settings["ts-time-wait"].value * 60 * 60
+  local wt = mod_settings["ts-time-wait"].value * 60 * 60
   if mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = mod_settings["ts-zoom"].value
     z = (math.random(((temp_zoom - (temp_zoom*.15))*1000),(((temp_zoom + (temp_zoom*.15)))*1000)))/1000
@@ -130,7 +136,7 @@ function create_waypoint(waypoint_target, player_index)
     {
       target = waypoint_target,
       transition_time = tt,
-      time_to_wait = tw,
+      time_to_wait = wt,
       zoom = z
     }
   }
@@ -316,15 +322,38 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
   if global.entity_destroyed_registration_numbers then
     for a,b in pairs(global.entity_destroyed_registration_numbers) do
       if b == registration_number then
-        local simulated_event = {
-          entity = {
-            unit_number = event.unit_number,
-            train = {
-              id = -999999
+        if event.unit_number then
+          local simulated_event = {
+            entity = {
+              unit_number = event.unit_number,
+              train = {
+                id = -999999
+              },
             },
-          },
-        }
-        locomotive_gone(simulated_event)
+          }
+          -- game.get_player(a).print("train destoryed restart")
+          locomotive_gone(simulated_event)
+        else
+          -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
+          local player_index = a
+          local player = game.get_player(player_index)
+          if player.controller_type == defines.controllers.cutscene then
+            local command = {
+              name = "trainsaver",
+              player_index = player_index,
+              entity_gone_restart = "yes",
+            }
+            local rocket_destroyed_location_index = game.tick - 1
+            -- player.print("current location 1: "..player.position.x ..", "..player.position.y)
+            -- player.print(global.rocket_positions[player_index][rocket_destroyed_location_index].x ..", ".. global.rocket_positions[player_index][rocket_destroyed_location_index].y)
+            player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
+            -- player.print("current location 2: "..player.position.x ..", "..player.position.y)
+            -- global.rocket_positions[player_index] = nil
+            -- player.print("rocket destoryed restart")
+            start_trainsaver(command)
+          end
+        end
+      end
     end
   end
 end)
@@ -399,7 +428,6 @@ script.on_event(defines.events.on_tick, function()
         end
 
       -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
-      -- DO THESE NEED TRANSITION TIME = 0 SO THE CAMERA DOESN'T LAG BEHIND IF IT UPDATES TO THE SAME TRAIN?
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
@@ -418,6 +446,11 @@ script.on_event(defines.events.on_tick, function()
           global.create_cutscene_next_tick[player_index] = nil
         end
       end
+    end
+  end
+  if global.rocket_positions then
+    for a,b in pairs(global.rocket_positions) do
+      table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
     end
   end
 end)
@@ -496,6 +529,86 @@ script.on_event("toggle-menu-trainsaver", function(event)
     if player.mod_settings["ts-menu-hotkey"].value == true then
       local command = {player_index = event.player_index}
       end_trainsaver(command)
+    end
+  end
+end)
+
+script.on_event(defines.events.on_rocket_launched, function(event)
+  game.print(game.tick ..": rocket launched")
+end)
+
+script.on_event(defines.events.on_rocket_launch_ordered, function(event)
+  game.print(game.tick ..": rocket launch ordered")
+  local rocket = event.rocket
+  local silo = event.rocket_silo
+  for a,b in pairs(game.connected_players) do
+    if b.controller_type == defines.controllers.cutscene then
+      local player_index = b.index
+      local player = b
+      local found_locomotive = {}
+      if player.mod_settings["ts-secrets"].value == false then
+        return
+      end
+      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
+        found_locomotive[1] = global.followed_loco[player_index].loco
+      else
+        found_locomotive = b.surface.find_entities_filtered({
+          position = b.position,
+          radius = 1,
+          type = "locomotive",
+          limit = 1
+        })
+      end
+      if found_locomotive[1] then
+        local found_train = found_locomotive[1].train
+        local found_state = found_train.state
+        if ((found_state == defines.train_state.wait_signal) or (found_state == defines.train_state.wait_station)) then
+          if global.wait_at_signal and global.wait_at_signal[player_index] then
+            if global.wait_at_signal[player_index] > game.tick then
+              return
+            end
+          end
+          if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+            if remote.call("cc_check", "cc_status", player_index) == "active" then
+              return
+            end
+          end
+          local created_waypoints = create_waypoint(rocket, player_index)
+          if player.surface.index ~= created_waypoints[1].target.surface.index then
+            return
+          end
+          created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
+          created_waypoints[1].time_to_wait = 1
+          -- created_waypoints[2].zoom = created_waypoints[2].zoom * 0.7
+          created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value))
+          if created_waypoints[2].transition_time < 1 then
+            created_waypoints[2].transition_time = 1
+          end
+          player.set_controller(
+            {
+              type = defines.controllers.cutscene,
+              waypoints = created_waypoints,
+              start_position = player.position,
+              final_transition_time = player.mod_settings["ts-transition-time"].value
+            }
+          )
+          if not global.rocket_positions then
+            global.rocket_positions = {}
+            global.rocket_positions[player_index] = {}
+          else
+            global.rocket_positions[player_index] = {}
+          end
+          if global.followed_loco and global.followed_loco[player_index] then
+            global.followed_loco[player_index] = nil
+          end
+          if not global.entity_destroyed_registration_numbers then
+            global.entity_destroyed_registration_numbers = {}
+            global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
+          else
+            global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
+          end
+        end
+      end
     end
   end
 end)

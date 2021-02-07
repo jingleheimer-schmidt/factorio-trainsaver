@@ -61,6 +61,14 @@ local menuEndsTrainsaverSetting = {
   order = "ts-7"
 }
 
+local hiddenSecretsSetting = {
+  type = "bool-setting",
+  name = "ts-secrets",
+  setting_type = "runtime-per-user",
+  default_value = false,
+  order = "ts-8"
+}
+
 data:extend({
   transitionTimeSetting,
   timeWaitSetting,
@@ -69,4 +77,5 @@ data:extend({
   waitAtSignalSetting,
   afkAutoStartSetting,
   menuEndsTrainsaverSetting,
+  hiddenSecretsSetting,
 })
