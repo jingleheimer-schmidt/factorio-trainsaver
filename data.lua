@@ -70,6 +70,15 @@ local toggleMenuTrainsaverKey = {
   action = "lua",
 }
 
+local openTrainGuiTrainsaverKey = {
+  type = "custom-input",
+  name = "open-train-gui-trainsaver",
+  key_sequence = "",
+  linked_game_control = "open-trains-gui",
+  enabled_while_in_cutscene = true,
+  action = "lua",
+}
+
 data:extend({
   toggleTrainsaverKey,
   startTrainsaverKey,
@@ -79,4 +88,5 @@ data:extend({
   openProductionStatsGuiTrainsaverKey,
   openLogisticNetworkGuiTrainsaverKey,
   toggleMenuTrainsaverKey,
+  openTrainGuiTrainsaverKey,
 })
