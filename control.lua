@@ -499,37 +499,52 @@ script.on_event("end-trainsaver", function(event)
 end)
 
 script.on_event("open-inventory-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
-    end_trainsaver(command)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
 
 script.on_event("open-research-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
-    end_trainsaver(command)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
 
 script.on_event("open-production-stats-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
-    end_trainsaver(command)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
 
 script.on_event("open-logistic-netowrk-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
-    end_trainsaver(command)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
 
 script.on_event("open-train-gui-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
-    end_trainsaver(command)
+  local player = game.get_player(event.player_index)
+  if player.controller_type == defines.controllers.cutscene then
+    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
+      local command = {player_index = event.player_index}
+      end_trainsaver(command)
+    end
   end
 end)
 
