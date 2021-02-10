@@ -188,6 +188,7 @@ function play_cutscene(created_waypoints, player_index)
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
   end
+  local transfer_alt_mode = player.game_view_settings.show_entity_info
   player.set_controller(
     {
       type = defines.controllers.cutscene,
@@ -196,6 +197,7 @@ function play_cutscene(created_waypoints, player_index)
       final_transition_time = player.mod_settings["ts-transition-time"].value
     }
   )
+  player.game_view_settings.show_entity_info = transfer_alt_mode
   if not global.followed_loco then
     global.followed_loco = {}
     global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
@@ -605,6 +607,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           if created_waypoints[2].transition_time < 1 then
             created_waypoints[2].transition_time = 1
           end
+          local transfer_alt_mode = player.game_view_settings.show_entity_info
           player.set_controller(
             {
               type = defines.controllers.cutscene,
@@ -613,6 +616,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               final_transition_time = player.mod_settings["ts-transition-time"].value
             }
           )
+          player.game_view_settings.show_entity_info = transfer_alt_mode
           if not global.rocket_positions then
             global.rocket_positions = {}
             global.rocket_positions[player_index] = {}
