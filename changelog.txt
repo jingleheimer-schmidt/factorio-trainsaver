@@ -3,8 +3,8 @@ Version: 0.0.10
 Date: 2021-02-06
   Changes:
     - added setting to toggle if game controls end trainsaver
-    - added setting to toggle if trainsaver will start when player has a gui open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
-    - added setting to toggle if trainsaver will start when player has the map open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
+    - added setting to toggle if trainsaver will autostart when player has a gui open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
+    - added setting to toggle if trainsaver will autostart when player has the map open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
     - fixed that trainsaver would turn alt-mode off when focusing on a new target    https://mods.factorio.com/mod/trainsaver/discussion/6022de223a41256e636fc3a9
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
