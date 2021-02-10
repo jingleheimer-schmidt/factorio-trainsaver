@@ -1,4 +1,49 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.10
+Date: 2021-02-09
+  Changes:
+    - added setting to toggle if game controls end trainsaver
+    - added setting to toggle if trainsaver will autostart when player has a gui open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
+    - added setting to toggle if trainsaver will autostart when player has the map open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
+    - fixed that trainsaver would turn alt-mode off when focusing on a new target    https://mods.factorio.com/mod/trainsaver/discussion/6022de223a41256e636fc3a9
+---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 2021-02-06
+  Changes:
+    - added setting to enable a secret alternate focus for trainsaver that triggers under certain conditions
+    - added linked game control to end trainsaver when player opens the train overview gui
+---------------------------------------------------------------------------------------------------
+Version: 0.0.8
+Date: 2021-01-16
+  Changes:
+    - fixed that trainsaver would crash when attempting to focus on a train who just left a station on a different surface than the player
+---------------------------------------------------------------------------------------------------
+Version: 0.0.7
+Date: 2021-01-15
+  Changes:
+    - removed escape hotkey to end trainsaver
+    - added unassigned hotkey to start trainsaver
+    - added unassigned hotkey to end trainsaver
+    - added mod setting toggle to end trainsaver when player opens the game menu
+    - added linked game control to end trainsaver when player opens their inventory
+    - added linked game control to end trainsaver when player opens the research gui
+    - added linked game control to end trainsaver when player opens production statistics
+    - added linked game control to end trainsaver when player opens the logistic network gui
+    - fixed that under certain conditions trainsaver would not start after a cutscene created by the cutscene creator mod finished
+---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2021-01-12
+  Changes:
+    - added cmd/ctrl + t hotkey to toggle trainsaver    https://mods.factorio.com/mod/trainsaver/discussion/5ffd3cc4fa36e2a1bbff479c
+    - added esc hotkey to escape trainsaver    https://mods.factorio.com/mod/trainsaver/discussion/5ffd3cc4fa36e2a1bbff479c
+    - updated mod description
+---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2021-01-11
+  Changes:
+    - resolved an issue with the wait_at_signal setting not being respected when the camera switches from the back to the leading locomotive on a train that is immediately stopped at a signal after leaving a station
+    - the wait_at_signal setting is now tick-precise
+---------------------------------------------------------------------------------------------------
 Version: 0.0.4
 Date: 2021-01-09
   Changes:
@@ -11,7 +56,6 @@ Version: 0.0.3
 Date: 2020-11-30
   Changes:
     - minor change to afk auto-start logic
-    - revised changelog entry for version 0.0.2
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.2
 Date: 2020-11-30
