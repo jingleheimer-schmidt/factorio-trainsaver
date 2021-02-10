@@ -35,7 +35,6 @@ function start_trainsaver(command)
     end
 
     -- if there's no trains, end everything
-      -- do we need to end_trainsaver() when entity_gone_restart() is called?
     if not table_of_trains[1] then
       if game.players[player_index].controller_type == defines.controllers.cutscene then
         local command = {player_index = player_index}
@@ -454,10 +453,16 @@ script.on_event(defines.events.on_tick, function()
 end)
 
 -- auto-start the screensaver if player AFK time is greater than what is specified in mod settings
-script.on_nth_tick(1800, function()
+script.on_nth_tick(600, function()
   for a,b in pairs(game.connected_players) do
     if b.controller_type == defines.controllers.character then
       if b.mod_settings["ts-afk-auto-start"].value == 0 then
+        return
+      end
+      if ((b.render_mode ~= defines.render_mode.game) and (b.mod_settings["ts-autostart-while-viewing-map"].value == false)) then
+        return
+      end
+      if (b.opened_gui_type and (b.opened_gui_type ~= defines.gui_type.none) and (b.mod_settings["ts-autostart-while-gui-is-open"].value == false)) then
         return
       end
       if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
