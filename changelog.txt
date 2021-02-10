@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
-Date: 2021-02-06
+Date: 2021-02-09
   Changes:
     - added setting to toggle if game controls end trainsaver
     - added setting to toggle if trainsaver will autostart when player has a gui open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
