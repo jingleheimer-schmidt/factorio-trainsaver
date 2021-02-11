@@ -79,6 +79,51 @@ local openTrainGuiTrainsaverKey = {
   action = "lua",
 }
 
+local selfReflectionAchievement = {
+  type = "achievement",
+  name = "trainsaver-self-reflection",
+  order = "t[secret]-a[self-reflection]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local findAFriendAchievement = {
+  type = "achievement",
+  name = "trainsaver-find-a-friend",
+  order = "t[secret]-a[find-a-friend]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local continuousTenMinuteschievement = {
+  type = "achievement",
+  name = "trainsaver-continuous-10-minutes",
+  order = "t[secret]-b[1][continuous-10-minutes]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local continuousThirtyMinuteschievement = {
+  type = "achievement",
+  name = "trainsaver-continuous-30-minutes",
+  order = "t[secret]-b[2][continuous-30-minutes]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local continuousOneHourchievement = {
+  type = "achievement",
+  name = "trainsaver-continuous-1-hour",
+  order = "t[secret]-b[3][continuous-1-hour]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
 data:extend({
   toggleTrainsaverKey,
   startTrainsaverKey,
@@ -89,4 +134,9 @@ data:extend({
   openLogisticNetworkGuiTrainsaverKey,
   toggleMenuTrainsaverKey,
   openTrainGuiTrainsaverKey,
+  selfReflectionAchievement,
+  findAFriendAchievement,
+  continuousTenMinuteschievement,
+  continuousThirtyMinuteschievement,
+  continuousOneHourchievement,
 })

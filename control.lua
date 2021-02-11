@@ -198,6 +198,16 @@ function play_cutscene(created_waypoints, player_index)
     }
   )
   player.game_view_settings.show_entity_info = transfer_alt_mode
+  if created_waypoints[1].target.train.passengers then
+    for a,b in pairs(created_waypoints[1].target.train.passengers) do
+      if b.index == player.index then
+        player.unlock_achievement("trainsaver-self-reflection")
+      end
+      if b.index ~= player.index then
+        player.unlock_achievement("trainsaver-find-a-friend")
+      end
+    end
+  end
   if not global.followed_loco then
     global.followed_loco = {}
     global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
