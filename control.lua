@@ -106,8 +106,10 @@ function start_trainsaver(command)
           -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (this should never happen) then end_trainsaver()
         else
           player.print("trainsaver: something unexpected has occured. please report this event to the mod author. code: 909")
-          -- local command = {player_index = player_index}
-          -- end_trainsaver(command)
+          local command = {
+            player_index = player_index,
+          }
+          end_trainsaver(command)
         end
       end
     end
@@ -157,7 +159,7 @@ function end_trainsaver(command)
       global.followed_loco[player_index] = nil
     end
     if global.create_cutscene_next_tick and global.create_cutscene_next_tick[player_index] then
-      global.create_cutscene_next_tick[player_index]= nil
+      global.create_cutscene_next_tick[player_index] = nil
     end
     if global.wait_at_signal and global.wait_at_signal[player_index] then
       global.wait_at_signal[player_index]= nil
@@ -167,6 +169,12 @@ function end_trainsaver(command)
     end
     if global.rocket_positions and global.rocket_positions[player_index] then
       global.rocket_positions[player_index] = nil
+    end
+    if global.trainsaver_status and global.trainsaver_status[player_index] then
+      global.trainsaver_status[player_index] = nil
+    end
+    if global.current_continuous_duration and global.current_continuous_duration[player_index] then
+      global.current_continuous_duration[player_index] = nil
     end
   else
   end
@@ -208,11 +216,25 @@ function play_cutscene(created_waypoints, player_index)
       end
     end
   end
+  if not global.trainsaver_status then
+    global.trainsaver_status = {}
+    global.trainsaver_status[player_index] = "active"
+  else
+    global.trainsaver_status[player_index] = "active"
+  end
   if not global.followed_loco then
     global.followed_loco = {}
-    global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
+    global.followed_loco[player_index] = {
+      unit_number = created_waypoints[1].target.unit_number,
+      train_id = created_waypoints[1].target.train.id,
+      loco = created_waypoints[1].target,
+    }
   else
-    global.followed_loco[player_index] = {unit_number = created_waypoints[1].target.unit_number, train_id = created_waypoints[1].target.train.id, loco = created_waypoints[1].target}
+    global.followed_loco[player_index] = {
+      unit_number = created_waypoints[1].target.unit_number,
+      train_id = created_waypoints[1].target.train.id,
+      loco = created_waypoints[1].target,
+    }
   end
   if not global.entity_destroyed_registration_numbers then
     global.entity_destroyed_registration_numbers = {}
@@ -320,9 +342,13 @@ script.on_event(defines.events.on_entity_damaged, function(character_damaged_eve
 function character_damaged(character_damaged_event)
   local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
-    if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity)) then
+    if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and (global.trainsaver_status[b.index] == "active")) then
       local command = {player_index = b.index}
       end_trainsaver(command)
+      b.unlock_achievement("trainsaver-character-damaged")
+      if character_damaged_event.cause and character_damaged_event.cause.train and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
+        b.unlock_achievement("trainsaver-damaged-by-followed-train")
+      end
     end
   end
 end
@@ -359,6 +385,7 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             local rocket_destroyed_location_index = game.tick - 1
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
             global.rocket_positions[player_index] = nil
+            player.unlock_achievement("trainsaver-a-spectacular-view")
             start_trainsaver(command)
           end
         end
@@ -388,6 +415,12 @@ function locomotive_gone(event)
 end
 
 script.on_event(defines.events.on_tick, function()
+  cutscene_next_tick_function()
+  save_rocket_positions()
+  check_achievements()
+end)
+
+function cutscene_next_tick_function()
 
   -- every tick check if we need to create a new cutscene
   if global.create_cutscene_next_tick then
@@ -457,12 +490,68 @@ script.on_event(defines.events.on_tick, function()
       end
     end
   end
+end
+
+function save_rocket_positions()
   if global.rocket_positions then
     for a,b in pairs(global.rocket_positions) do
+      if not game.get_player(a).connected then
+        return
+      end
       table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
     end
   end
-end)
+end
+
+function check_achievements()
+  if global.trainsaver_status then
+    for a,b in pairs(global.trainsaver_status) do
+      if b == "active" then
+        if not game.get_player(a).connected then
+          return
+        end
+        if not global.current_continuous_duration then
+          global.current_continuous_duration = {}
+          global.current_continuous_duration[a] = 1
+        else
+          if not global.current_continuous_duration[a] then
+            global.current_continuous_duration[a] = 1
+          else
+            global.current_continuous_duration[a] = global.current_continuous_duration[a] + 1
+            if global.current_continuous_duration[a] == (60 * 60 * 10) then
+              game.get_player(a).unlock_achievement("trainsaver-continuous-10-minutes")
+            end
+            if global.current_continuous_duration[a] == (60 * 60 * 30) then
+              game.get_player(a).unlock_achievement("trainsaver-continuous-30-minutes")
+            end
+            if global.current_continuous_duration[a] == (60 * 60 * 60) then
+              game.get_player(a).unlock_achievement("trainsaver-continuous-60-minutes")
+            end
+          end
+        end
+        if not global.total_duration then
+          global.total_duration = {}
+          global.total_duration[a] = 1
+        else
+          if not global.total_duration[a] then
+            global.total_duration[a] = 1
+          else
+            global.total_duration[a] = global.total_duration[a] + 1
+            if global.total_duration[a] == (60 * 60 * 60) then
+              game.get_player(a).unlock_achievement("trainsaver-1-hours-total")
+            end
+            if global.total_duration[a] == (60 * 60 * 60 * 2) then
+              game.get_player(a).unlock_achievement("trainsaver-2-hours-total")
+            end
+            if global.total_duration[a] == (60 * 60 * 60 * 5) then
+              game.get_player(a).unlock_achievement("trainsaver-5-hours-total")
+            end
+          end
+        end
+      end
+    end
+  end
+end
 
 -- auto-start the screensaver if player AFK time is greater than what is specified in mod settings
 script.on_nth_tick(600, function()
@@ -627,6 +716,12 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             }
           )
           player.game_view_settings.show_entity_info = transfer_alt_mode
+          if not global.trainsaver_status then
+            global.trainsaver_status = {}
+            global.trainsaver_status[player_index] = "active"
+          else
+            global.trainsaver_status[player_index] = "active"
+          end
           if not global.rocket_positions then
             global.rocket_positions = {}
             global.rocket_positions[player_index] = {}

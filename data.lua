@@ -82,7 +82,7 @@ local openTrainGuiTrainsaverKey = {
 local selfReflectionAchievement = {
   type = "achievement",
   name = "trainsaver-self-reflection",
-  order = "t[secret]-a[self-reflection]",
+  order = "t[secret]-a[1][self-reflection]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
   hidden = false,
@@ -91,13 +91,13 @@ local selfReflectionAchievement = {
 local findAFriendAchievement = {
   type = "achievement",
   name = "trainsaver-find-a-friend",
-  order = "t[secret]-a[find-a-friend]",
+  order = "t[secret]-a[2][find-a-friend]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
   hidden = false,
 }
 
-local continuousTenMinuteschievement = {
+local continuousTenMinutesAchievement = {
   type = "achievement",
   name = "trainsaver-continuous-10-minutes",
   order = "t[secret]-b[1][continuous-10-minutes]",
@@ -106,7 +106,7 @@ local continuousTenMinuteschievement = {
   hidden = false,
 }
 
-local continuousThirtyMinuteschievement = {
+local continuousThirtyMinutesAchievement = {
   type = "achievement",
   name = "trainsaver-continuous-30-minutes",
   order = "t[secret]-b[2][continuous-30-minutes]",
@@ -115,10 +115,64 @@ local continuousThirtyMinuteschievement = {
   hidden = false,
 }
 
-local continuousOneHourchievement = {
+local continuousOneHourAchievement = {
   type = "achievement",
-  name = "trainsaver-continuous-1-hour",
-  order = "t[secret]-b[3][continuous-1-hour]",
+  name = "trainsaver-continuous-60-minutes",
+  order = "t[secret]-b[3][continuous-60-minutes]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local totalOneHoursAchievement = {
+  type = "achievement",
+  name = "trainsaver-1-hours-total",
+  order = "t[secret]-c[1][1-hours-total]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local totalTwoHoursAchievement = {
+  type = "achievement",
+  name = "trainsaver-2-hours-total",
+  order = "t[secret]-c[2][2-hours-total]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local totalFiveHoursAchievement = {
+  type = "achievement",
+  name = "trainsaver-5-hours-total",
+  order = "t[secret]-c[3][5-hours-total]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local rocketLaunchedAchievement = {
+  type = "achievement",
+  name = "trainsaver-a-spectacular-view",
+  order = "t[secret]-d[1][a-spectacular-view]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local characterDamagedAchievement = {
+  type = "achievement",
+  name = "trainsaver-character-damaged",
+  order = "t[secret]-d[2][character-damaged]",
+  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon_size = 128,
+  hidden = false,
+}
+
+local damagedByFollowedTrainAchievement = {
+  type = "achievement",
+  name = "trainsaver-damaged-by-followed-train",
+  order = "t[secret]-d[3][damaged-by-followed-train]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
   hidden = false,
@@ -136,7 +190,13 @@ data:extend({
   openTrainGuiTrainsaverKey,
   selfReflectionAchievement,
   findAFriendAchievement,
-  continuousTenMinuteschievement,
-  continuousThirtyMinuteschievement,
-  continuousOneHourchievement,
+  continuousTenMinutesAchievement,
+  continuousThirtyMinutesAchievement,
+  continuousOneHourAchievement,
+  totalOneHoursAchievement,
+  totalTwoHoursAchievement,
+  totalFiveHoursAchievement,
+  rocketLaunchedAchievement,
+  characterDamagedAchievement,
+  damagedByFollowedTrainAchievement,
 })
