@@ -197,7 +197,7 @@ function sync_color(player_index)
 end
 --]]
 
---[[ play cutscene from given waypoints, save target to followed_loco global --]]
+--[[ play cutscene from given waypoints --]]
 function play_cutscene(created_waypoints, player_index)
   local player = game.get_player(player_index)
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
@@ -205,10 +205,13 @@ function play_cutscene(created_waypoints, player_index)
       return
     end
   end
+  --[[ abort if the waypoint is on a different surface than the player --]]
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
   end
+  --[[ save alt-mode so we can preserve it after cutscene controller resets it --]]
   local transfer_alt_mode = player.game_view_settings.show_entity_info
+  --[[ set the player controller to cutscene camera --]]
   player.set_controller(
     {
       type = defines.controllers.cutscene,
@@ -217,7 +220,9 @@ function play_cutscene(created_waypoints, player_index)
       final_transition_time = player.mod_settings["ts-transition-time"].value
     }
   )
+  --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
+  --[[ unlock any achievements if possible --]]
   if created_waypoints[1].target.train.passengers then
     for a,b in pairs(created_waypoints[1].target.train.passengers) do
       if b.index == player.index then
@@ -228,12 +233,14 @@ function play_cutscene(created_waypoints, player_index)
       end
     end
   end
+  --[[ update trainsaver status global --]]
   if not global.trainsaver_status then
     global.trainsaver_status = {}
     global.trainsaver_status[player_index] = "active"
   else
     global.trainsaver_status[player_index] = "active"
   end
+  --[[ update the followed_loco global --]]
   if not global.followed_loco then
     global.followed_loco = {}
     global.followed_loco[player_index] = {
@@ -248,6 +255,7 @@ function play_cutscene(created_waypoints, player_index)
       loco = created_waypoints[1].target,
     }
   end
+  --[[ register the followed target so we get an event if it's destroyed, save the registration number in global so we can know if the destroyed event is for our target or not --]]
   if not global.entity_destroyed_registration_numbers then
     global.entity_destroyed_registration_numbers = {}
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
@@ -256,6 +264,7 @@ function play_cutscene(created_waypoints, player_index)
   end
 end
 
+--[[ when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met --]]
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
@@ -333,6 +342,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
       end
     end
   end
+  --[[ if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing --]]
   if (old_state == defines.train_state.wait_signal) and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station)) then
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
@@ -426,6 +436,7 @@ function locomotive_gone(event)
   end
 end
 
+--[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
 script.on_event(defines.events.on_tick, function()
   cutscene_next_tick_function()
   save_rocket_positions()
@@ -524,6 +535,7 @@ function check_achievements()
         if not game.get_player(a).connected then
           return
         end
+        --[[ update continuous duration timer global data --]]
         if not global.current_continuous_duration then
           global.current_continuous_duration = {}
           global.current_continuous_duration[a] = 1
@@ -543,6 +555,7 @@ function check_achievements()
             end
           end
         end
+        --[[ update total duration timer global data --]]
         if not global.total_duration then
           global.total_duration = {}
           global.total_duration[a] = 1
