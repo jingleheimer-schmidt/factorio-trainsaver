@@ -709,9 +709,17 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           end
           local display_height = player.display_resolution.height
           --[[
-          assume display is 1440 x 900
-          say the window is resized, now it's 1300 x 500 (wiiide)
-            that means we need to follow the rocket more tightly
+          - assume display is 1440 x 900
+          - say the window is resized, now it's 1300 x 500 (wiiide)
+            - that means we need to follow the rocket more tightly
+          - OK, so we need to know how far the rocket travels before it is destroyed
+          - Then we take that amount and do some math to factor in the player display resolution height
+            - but display resolution height is not measured in the same unit as tile positions, so now we also need to account for the zoom? but we know the zoom will always be the same every time. idk
+            - lets assume the rocket flies up 100 tiles
+            - if zoom is constant, is a tile always the same amount of pixels regardless of display resolution?
+              - i think we can assume yes, but could be worth checking
+            - let's assume a tile has 50 pixels at zoom=1
+            - if player1 has 1440x900 monitor, and player2 has 2880x1800 monitor, at zoom=1 do they both see the same amount of the world or does player2 see 2x more? maybe I can check this by changing the window size...
           ]]
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
           created_waypoints[1].time_to_wait = 1
