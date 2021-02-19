@@ -1,11 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.11
+Date: TBD
+  Changes:
+    - added a couple achievements
+    - minor improvements to various functions
+---------------------------------------------------------------------------------------------------
 Version: 0.0.10
 Date: 2021-02-09
   Changes:
     - added setting to toggle if game controls end trainsaver
-    - added setting to toggle if trainsaver will autostart when player has a gui open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
-    - added setting to toggle if trainsaver will autostart when player has the map open    https://mods.factorio.com/mod/trainsaver/discussion/6020030ffd6b223ade6dcb86
-    - fixed that trainsaver would turn alt-mode off when focusing on a new target    https://mods.factorio.com/mod/trainsaver/discussion/6022de223a41256e636fc3a9
+    - added setting to toggle if trainsaver will autostart when player has a gui open
+    - added setting to toggle if trainsaver will autostart when player has the map open
+    - afk autostart is now more precise
+    - fixed that factorio would turn alt-mode off every time trainsaver focused on a new target
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 2021-02-06
@@ -34,8 +41,8 @@ Date: 2021-01-15
 Version: 0.0.6
 Date: 2021-01-12
   Changes:
-    - added cmd/ctrl + t hotkey to toggle trainsaver    https://mods.factorio.com/mod/trainsaver/discussion/5ffd3cc4fa36e2a1bbff479c
-    - added esc hotkey to escape trainsaver    https://mods.factorio.com/mod/trainsaver/discussion/5ffd3cc4fa36e2a1bbff479c
+    - added cmd/ctrl + t hotkey to toggle trainsaver
+    - added esc hotkey to escape trainsaver
     - updated mod description
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.5
