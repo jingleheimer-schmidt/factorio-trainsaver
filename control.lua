@@ -209,6 +209,7 @@ function play_cutscene(created_waypoints, player_index)
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
   end
+
   --[[ save alt-mode so we can preserve it after cutscene controller resets it --]]
   local transfer_alt_mode = player.game_view_settings.show_entity_info
   --[[ set the player controller to cutscene camera --]]
@@ -523,6 +524,7 @@ function save_rocket_positions()
         return
       end
       table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
+      -- game.print(game.get_player(a).position)
     end
   end
 end
@@ -708,25 +710,19 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           if player.surface.index ~= created_waypoints[1].target.surface.index then
             return
           end
-          local display_height = player.display_resolution.height
-          --[[
-          - assume display is 1440 x 900
-          - say the window is resized, now it's 1300 x 500 (wiiide)
-            - that means we need to follow the rocket more tightly
-          - OK, so we need to know how far the rocket travels before it is destroyed
-          - Then we take that amount and do some math to factor in the player display resolution height
-            - but display resolution height is not measured in the same unit as tile positions, so now we also need to account for the zoom? but we know the zoom will always be the same every time. idk
-            - lets assume the rocket flies up 100 tiles
-            - if zoom is constant, is a tile always the same amount of pixels regardless of display resolution?
-              - i think we can assume yes, but could be worth checking
-            - let's assume a tile has 50 pixels at zoom=1
-            - if player1 has 1440x900 monitor, and player2 has 2880x1800 monitor, at zoom=1 do they both see the same amount of the world or does player2 see 2x more? maybe I can check this by changing the window size...
-          ]]
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
           created_waypoints[1].time_to_wait = 1
           created_waypoints[1].zoom = 0.5
-          created_waypoints[2].zoom = 0.18
-          created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value))
+          created_waypoints[2].zoom = 0.2
+          if created_waypoints[1].transition_time > (7 * 60) then
+            created_waypoints[1].transition_time = 7 * 60
+          end
+          --[[ 1162 ticks is how long the rocket takes between launch_ordered and being destroyed, times it by 1.3 so the camera can't quite keep up, minus tt to account for how long it takes to get to the rocket silo from previous waypoint in the first place --]]
+          local display_height = player.display_resolution.height
+          local temp_tt = (((1162 * 1.4) - (800/4)) + (display_height / 4))
+          --[[ 1510.6 transition time looks ok at 800 display height but not quite right at smaller heights, and also not quite right at different transition times (why?) --]]
+          -- [[created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value)) --]]
+          created_waypoints[2].transition_time = (temp_tt - created_waypoints[1].transition_time)
           if created_waypoints[2].transition_time < 1 then
             created_waypoints[2].transition_time = 1
           end
