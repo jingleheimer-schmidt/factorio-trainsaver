@@ -20,7 +20,7 @@ function start_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   local name = command.name
-  if (name == "trainsaver") and ((player.controller_type == defines.controllers.character) or (command.entity_gone_restart == "yes")) then
+  if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or (command.entity_gone_restart == "yes")) then
 
     --[[ create a table of all trains --]]
     local table_of_all_trains = player.surface.get_trains()
@@ -583,7 +583,7 @@ end
 --[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
 script.on_nth_tick(600, function()
   for a,b in pairs(game.connected_players) do
-    if b.controller_type == defines.controllers.character then
+    if ((b.controller_type == defines.controllers.character) or (b.controller_type == defines.controllers.god)) then
       if b.mod_settings["ts-afk-auto-start"].value == 0 then
         return
       end
@@ -604,7 +604,7 @@ end)
 --[[ start or end trainsaver based on various hotkeys and settings --]]
 script.on_event("toggle-trainsaver", function(event)
   local player = game.get_player(event.player_index)
-  if player.controller_type == defines.controllers.character then
+  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
     local command = {name = "trainsaver", player_index = event.player_index}
     start_trainsaver(command)
   elseif player.controller_type == defines.controllers.cutscene then
@@ -614,7 +614,8 @@ script.on_event("toggle-trainsaver", function(event)
 end)
 
 script.on_event("start-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+  local player = game.get_player(event.player_index)
+  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
     local command = {name = "trainsaver", player_index = event.player_index}
     start_trainsaver(command)
   end
