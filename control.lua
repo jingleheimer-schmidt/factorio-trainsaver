@@ -410,6 +410,7 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             global.rocket_positions[player_index] = nil
             player.unlock_achievement("trainsaver-a-spectacular-view")
             start_trainsaver(command)
+            global.test = nil
           end
         end
       end
@@ -526,6 +527,9 @@ function save_rocket_positions()
       table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
       -- game.print(game.get_player(a).position)
     end
+  end
+  if global.test then
+    game.print(game.tick .. ": y= " .. global.test.position.y)
   end
 end
 
@@ -706,26 +710,44 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               return
             end
           end
+          --[[ create the waypoints --]]
           local created_waypoints = create_waypoint(rocket, player_index)
           if player.surface.index ~= created_waypoints[1].target.surface.index then
             return
           end
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
+          created_waypoints[3] = util.table.deepcopy(created_waypoints[1])
+
+          --[[
+          start event at tick 35555980
+          rocket destroyed at tick 35557141
+           = 1161 total between the two, 19.35 seconds
+           rocket starts moving out of silo at tick 35556760
+           = 780 ticks of not moving, 13 seconds
+           =========================
+           starting position = 199.5
+           ending position = -49.39453125
+           = 168.89453125 total distance traveled by rocket
+          --]]
+
+          --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
+          if created_waypoints[1].transition_time > (780) then
+            created_waypoints[1].transition_time = 780
+          end
           created_waypoints[1].time_to_wait = 1
           created_waypoints[1].zoom = 0.5
-          created_waypoints[2].zoom = 0.2
-          if created_waypoints[1].transition_time > (7 * 60) then
-            created_waypoints[1].transition_time = 7 * 60
-          end
-          --[[ 1162 ticks is how long the rocket takes between launch_ordered and being destroyed, times it by 1.3 so the camera can't quite keep up, minus tt to account for how long it takes to get to the rocket silo from previous waypoint in the first place --]]
-          local display_height = player.display_resolution.height
-          local temp_tt = (((1162 * 1.4) - (800/4)) + (display_height / 4))
-          --[[ 1510.6 transition time looks ok at 800 display height but not quite right at smaller heights, and also not quite right at different transition times (why?) --]]
-          -- [[created_waypoints[2].transition_time = ((1162*1.3) - (60 * player.mod_settings["ts-transition-time"].value)) --]]
-          created_waypoints[2].transition_time = (temp_tt - created_waypoints[1].transition_time)
+
+          --[[ set waypoint 2 to proper settings (goal: act as midpoint)--]]
+          created_waypoints[2].transition_time = (780 - created_waypoints[1].transition_time)
           if created_waypoints[2].transition_time < 1 then
             created_waypoints[2].transition_time = 1
           end
+          created_waypoints[2].zoom = 0.5
+
+          --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
+          created_waypoints[3].target = nil
+          created_waypoints[3].position.y = (rocket.position.y + 168.89453125 - (player.display_resolution.height / 2))
+
           local transfer_alt_mode = player.game_view_settings.show_entity_info
           player.set_controller(
             {
@@ -736,6 +758,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             }
           )
           player.game_view_settings.show_entity_info = transfer_alt_mode
+          global.test = rocket
           if not global.trainsaver_status then
             global.trainsaver_status = {}
             global.trainsaver_status[player_index] = "active"
