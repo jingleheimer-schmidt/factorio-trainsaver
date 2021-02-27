@@ -218,7 +218,7 @@ function play_cutscene(created_waypoints, player_index)
       type = defines.controllers.cutscene,
       waypoints = created_waypoints,
       start_position = player.position,
-      final_transition_time = player.mod_settings["ts-transition-time"].value
+      final_transition_time = player.mod_settings["ts-transition-time"].value * 60
     }
   )
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
@@ -754,7 +754,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               type = defines.controllers.cutscene,
               waypoints = created_waypoints,
               start_position = player.position,
-              final_transition_time = player.mod_settings["ts-transition-time"].value
+              final_transition_time = player.mod_settings["ts-transition-time"].value * 60
             }
           )
           player.game_view_settings.show_entity_info = transfer_alt_mode
