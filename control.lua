@@ -746,8 +746,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
 
           --[[ set waypoint 2 to proper settings (goal: act as midpoint until rocket begins visually moving upwards)--]]
           created_waypoints[2].transition_time = (440 - created_waypoints[1].transition_time)
-          if created_waypoints[2].transition_time < 0 then --[[ does 0 work here?? what's it do? --]]
-            created_waypoints[2].transition_time = 0 --[[ does 0 work here?? what's it do? --]]
+          if created_waypoints[2].transition_time < 0 then
+            created_waypoints[2].transition_time = 0 
           end
           created_waypoints[2].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
           created_waypoints[2].zoom = 0.5
