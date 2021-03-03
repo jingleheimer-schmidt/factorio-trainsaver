@@ -234,6 +234,13 @@ function play_cutscene(created_waypoints, player_index)
       end
     end
   end
+  if created_waypoints[1].target.train.path then
+    local path = created_waypoints[1].target.train.path
+    local remaining_path_distance = path.total_distance - path.travelled_distance
+    if remaining_path_distance > 1000000 then
+      --[[ player.unlock_achievement("trainsaver-long-haul") --]]
+    end
+  end
   --[[ update trainsaver status global --]]
   if not global.trainsaver_status then
     global.trainsaver_status = {}
@@ -747,7 +754,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
 
           --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
           --[[
-          we need to add some additional time to transition_time in order for the camera to follow the rocket. That additional time should be determined by player.display_resolution somehow.
+          we need to add some additional time to transition_time in order for the camera to follow behind the rocket. That additional time should be determined by player.display_resolution somehow.
           maybe let's just start by literally adding the value of player.display_resolution to our transition_time? I think we've tried that before but.. idk
           if that doesn't work great, try multiplying display_resolution by zoom to get more accurate(?) pixel count?
           and if that is also wonky, then i think we gotta figure out how to convert from display_resolution to time
