@@ -3,6 +3,7 @@ Version: 0.0.11
 Date: TBD
   Changes:
     - added a couple achievements
+    - fixed that the camera would move 60x faster than intended when trainsaver was ending due to train inactivity 
     - minor improvements to various functions
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
