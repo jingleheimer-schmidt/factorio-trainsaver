@@ -565,7 +565,7 @@ function check_achievements()
             global.total_duration[a] = 1
           else
             global.total_duration[a] = global.total_duration[a] + 1
-            if global.total_duration[a] == (60 * 60 * 60) then
+            if global.total_duration[a] == (60 * 60 * 60 * 1) then
               game.get_player(a).unlock_achievement("trainsaver-1-hours-total")
             end
             if global.total_duration[a] == (60 * 60 * 60 * 2) then
@@ -706,7 +706,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             end
           end
           --[[ create the waypoints --]]
-          local created_waypoints = create_waypoint(silo, player_index)
+          local created_waypoints = create_waypoint(rocket, player_index)
           if player.surface.index ~= created_waypoints[1].target.surface.index then
             return
           end
@@ -721,6 +721,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
            rocket starts visually moving out of silo at tick 35556420
            = 780 ticks of not moving in y coords, 13 seconds
            = 440 ticks of not visually moving, 7.333 seconds
+           = 721 ticks of visually moving, 12.016 seconds
            =========================
            starting position = 199.5
            ending position = -49.39453125
@@ -731,24 +732,27 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           if created_waypoints[1].transition_time > (440) then
             created_waypoints[1].transition_time = 440
           end
-          created_waypoints[1].time_to_wait = 1
+          created_waypoints[1].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
           created_waypoints[1].zoom = 0.5
 
-          --[[ set waypoint 2 to proper settings (goal: act as midpoint)--]]
+          --[[ set waypoint 2 to proper settings (goal: act as midpoint until rocket begins visually moving upwards)--]]
           created_waypoints[2].transition_time = (440 - created_waypoints[1].transition_time)
-          if created_waypoints[2].transition_time < 1 then
-            created_waypoints[2].transition_time = 1
+          if created_waypoints[2].transition_time < 0 then --[[ does 0 work here?? what's it do? --]]
+            created_waypoints[2].transition_time = 0 --[[ does 0 work here?? what's it do? --]]
           end
-          created_waypoints[2].time_to_wait = 1
-          created_waypoints[2].zoom = 0.4
+          created_waypoints[2].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
+          created_waypoints[2].zoom = 0.5
 
           --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
-          created_waypoints[3].target = nil
-          created_waypoints[3].position = {
-            x = (silo.position.x),
-            y = (silo.position.y + 168.89453125 - ((player.display_resolution.height / 2) * player.display_scale )),
-          }
-          created_waypoints[3].transition_time = (1161 - created_waypoints[1].transition_time - created_waypoints[2].transition_time)
+          --[[
+          we need to add some additional time to transition_time in order for the camera to follow the rocket. That additional time should be determined by player.display_resolution somehow.
+          maybe let's just start by literally adding the value of player.display_resolution to our transition_time? I think we've tried that before but.. idk
+          if that doesn't work great, try multiplying display_resolution by zoom to get more accurate(?) pixel count?
+          and if that is also wonky, then i think we gotta figure out how to convert from display_resolution to time
+            so
+          --]]
+          local tt = 1161 - created_waypoints[1].transition_time - created_waypoints[2].transition_time + (player.display_resolution.height / 2)
+          created_waypoints[3].transition_time = tt
           created_waypoints[3].zoom = .2
           game.print(serpent.block(created_waypoints))
 
