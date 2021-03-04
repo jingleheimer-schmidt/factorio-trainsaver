@@ -132,7 +132,7 @@ function create_waypoint(waypoint_target, player_index)
   local z = {}
   local mod_settings = game.get_player(player_index).mod_settings
   if mod_settings["ts-transition-time"].value == 0 then
-    tt = 1
+    tt = 0
   else
     tt = mod_settings["ts-transition-time"].value * 60
   end
@@ -715,54 +715,74 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             end
           end
           --[[ create the waypoints --]]
-          local created_waypoints = create_waypoint(rocket, player_index)
+          local created_waypoints = create_waypoint(silo, player_index)
           if player.surface.index ~= created_waypoints[1].target.surface.index then
             return
           end
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
           created_waypoints[3] = util.table.deepcopy(created_waypoints[1])
 
-          --[[
-          start event at tick 35555980
-          rocket destroyed at tick 35557141
-           = 1161 total between the two, 19.35 seconds
-           rockey y position begins changing at tick 35556760
-           rocket starts visually moving out of silo at tick 35556420
-           = 780 ticks of not moving in y coords, 13 seconds
-           = 440 ticks of not visually moving, 7.333 seconds
-           = 721 ticks of visually moving, 12.016 seconds
-           =========================
-           starting position = 199.5
-           ending position = -49.39453125
-           = 168.89453125 total distance traveled by rocket
-          --]]
-
           --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
-          if created_waypoints[1].transition_time > (440) then
+          if created_waypoints[1].transition_time > 440 then
             created_waypoints[1].transition_time = 440
           end
-          created_waypoints[1].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
+          created_waypoints[1].time_to_wait = 1
           created_waypoints[1].zoom = 0.5
 
-          --[[ set waypoint 2 to proper settings (goal: act as midpoint until rocket begins visually moving upwards)--]]
-          created_waypoints[2].transition_time = (440 - created_waypoints[1].transition_time)
+          --[[ set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.) --]]
+          created_waypoints[2].transition_time = 440 - created_waypoints[1].transition_time
           if created_waypoints[2].transition_time < 0 then
-            created_waypoints[2].transition_time = 0 
+            created_waypoints[2].transition_time = 0
           end
           created_waypoints[2].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
           created_waypoints[2].zoom = 0.5
 
-          --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
-          --[[
-          we need to add some additional time to transition_time in order for the camera to follow behind the rocket. That additional time should be determined by player.display_resolution somehow.
-          maybe let's just start by literally adding the value of player.display_resolution to our transition_time? I think we've tried that before but.. idk
-          if that doesn't work great, try multiplying display_resolution by zoom to get more accurate(?) pixel count?
-          and if that is also wonky, then i think we gotta figure out how to convert from display_resolution to time
-            so
-          --]]
-          local tt = 1161 - created_waypoints[1].transition_time - created_waypoints[2].transition_time + (player.display_resolution.height / 2)
-          created_waypoints[3].transition_time = tt
-          created_waypoints[3].zoom = .2
+          created_waypoints[3] = nil
+          -- --[[
+          -- start event at tick 35555980
+          -- rocket destroyed at tick 35557141
+          --  = 1161 total between the two, 19.35 seconds
+          --  rockey y position begins changing at tick 35556760
+          --  rocket starts visually moving out of silo at tick 35556420
+          --  = 780 ticks of not moving in y coords, 13 seconds
+          --  = 440 ticks of not visually moving, 7.333 seconds
+          --  = 721 ticks of visually moving, 12.016 seconds
+          --  =========================
+          --  starting position = 199.5
+          --  ending position = -49.39453125
+          --  = 168.89453125 total distance traveled by rocket
+          --  =========================
+          --  168.89453125 / 721 = 0.2342503901 tiles/tick
+          -- --]]
+          --
+          -- --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
+          -- if created_waypoints[1].transition_time > (440) then
+          --   created_waypoints[1].transition_time = 440
+          -- end
+          -- created_waypoints[1].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
+          -- created_waypoints[1].zoom = 0.5
+          --
+          -- --[[ set waypoint 2 to proper settings (goal: act as midpoint until rocket begins visually moving upwards)--]]
+          -- created_waypoints[2].transition_time = (440 - created_waypoints[1].transition_time)
+          -- if created_waypoints[2].transition_time < 0 then
+          --   created_waypoints[2].transition_time = 0
+          -- end
+          -- created_waypoints[2].time_to_wait = 0 --[[ does 0 work here?? what's it do? --]]
+          -- created_waypoints[2].zoom = 0.5
+          --
+          -- --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
+          -- --[[
+          -- we need to add some additional time to transition_time in order for the camera to follow behind the rocket. That additional time should be determined by player.display_resolution somehow.
+          -- maybe let's just start by literally adding the value of player.display_resolution to our transition_time? I think we've tried that before but.. idk
+          -- if that doesn't work great, try multiplying display_resolution by zoom to get more accurate(?) pixel count?
+          -- and if that is also wonky, then i think we gotta figure out how to convert from display_resolution to time
+          --
+          -- at screen resolution 800 and zoom = .75 it's basically perfect, but at 474 the rocket is still in view
+          -- --]]
+          --
+          -- local tt = 1161 - created_waypoints[1].transition_time - created_waypoints[2].transition_time + (player.display_resolution.height / 2 * .45)
+          -- created_waypoints[3].transition_time = tt
+          -- created_waypoints[3].zoom = .45
           game.print(serpent.block(created_waypoints))
 
           local transfer_alt_mode = player.game_view_settings.show_entity_info
