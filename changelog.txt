@@ -2,8 +2,11 @@
 Version: 0.0.11
 Date: TBD
   Changes:
+    - added support for Space Exploration's Satellite Navigation view
     - added a couple achievements
-    - fixed that the camera would move 60x faster than intended when trainsaver was ending due to train inactivity 
+    - adjusted startup function so trainsaver will follow the train with the longest remaining path instead of just choosing a random one
+    - fixed that the camera would move 60x faster than intended when trainsaver was ending due to train inactivity
+    - adjusted secret focus to be more visually consistent with different display resolutions
     - minor improvements to various functions
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.10
