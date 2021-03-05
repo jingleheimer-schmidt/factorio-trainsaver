@@ -36,9 +36,9 @@ function start_trainsaver(command)
       end
     end
 
-    --[[ if there's no trains, end everything --]]
+    --[[ if there's no trains, end everything CHECK THAT THIS WORKS EVEN WHEN THERE AREN'T ANY TRAINS AT ALL - DO WE NEED EXTRA LOGIC HERE TO HANDLE THAT????? WHAT IF THEIR CONTROLLER IS CHARACTER? WHAT HAPPENS THEN?? --]]
     if not table_of_trains[1] then
-      if game.players[player_index].controller_type == defines.controllers.cutscene then
+      if player.controller_type == defines.controllers.cutscene then
         local command = {player_index = player_index}
         end_trainsaver(command)
       end
