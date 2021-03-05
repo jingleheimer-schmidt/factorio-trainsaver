@@ -52,7 +52,20 @@ function start_trainsaver(command)
         end
       end
 
+      --[[ sort the table of trains by how much of their path is remaining so we can focus on the one with the longest remaining path --]]
+      if table_of_active_trains[1] then
+        local table_of_trains_sorted_by_remaining_path_length = util.table.deepcopy(table_of_active_trains)
+        table.sort(table_of_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
+
+        if not global.create_cutscene_next_tick then
+          global.create_cutscene_next_tick = {}
+          global.create_cutscene_next_tick[player_index] = {table_of_trains_sorted_by_remaining_path_length[1], player_index}
+        else
+          global.create_cutscene_next_tick[player_index] = {table_of_trains_sorted_by_remaining_path_length[1], player_index}
+        end
+
       --[[ if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global --]]
+      --[[
       if table_of_active_trains[1] then
         local random_train_index = math.random(table_size(table_of_active_trains))
         if not global.create_cutscene_next_tick then
@@ -61,6 +74,7 @@ function start_trainsaver(command)
         else
           global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
         end
+        --]]
         --[[
         if not command.entity_gone_restart == "yes" then
           sync_color(player_index)
