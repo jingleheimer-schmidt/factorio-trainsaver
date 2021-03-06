@@ -36,7 +36,7 @@ function start_trainsaver(command)
       end
     end
 
-    --[[ if there's no trains, end everything CHECK THAT THIS WORKS EVEN WHEN THERE AREN'T ANY TRAINS AT ALL - DO WE NEED EXTRA LOGIC HERE TO HANDLE THAT????? WHAT IF THEIR CONTROLLER IS CHARACTER? WHAT HAPPENS THEN?? --]]
+    --[[ if there's no trains, end everything --]]
     if not table_of_trains[1] then
       if player.controller_type == defines.controllers.cutscene then
         local command = {player_index = player_index}
@@ -388,7 +388,7 @@ script.on_event(defines.events.on_entity_damaged, function(character_damaged_eve
 function character_damaged(character_damaged_event)
   local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
-    if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and (global.trainsaver_status[b.index] == "active")) then
+    if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[b.index] and (global.trainsaver_status[b.index] == "active")) then
       local command = {player_index = b.index}
       end_trainsaver(command)
       --[[
@@ -469,7 +469,8 @@ end
 --[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
 script.on_event(defines.events.on_tick, function()
   cutscene_next_tick_function()
-  --[[ save_rocket_positions()
+  --[[
+  save_rocket_positions()
   check_achievements()
   --]]
 end)
@@ -550,10 +551,11 @@ end
 function save_rocket_positions()
   if global.rocket_positions then
     for a,b in pairs(global.rocket_positions) do
-      if not game.get_player(a).connected then
+      local player = game.get_player(a)
+      if not player.connected then
         return
       end
-      table.insert(global.rocket_positions[a], game.tick, game.get_player(a).position)
+      table.insert(global.rocket_positions[a], game.tick, player.position)
     end
   end
 end
