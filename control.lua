@@ -390,7 +390,7 @@ function character_damaged(character_damaged_event)
       local command = {player_index = b.index}
       end_trainsaver(command)
       b.unlock_achievement("trainsaver-character-damaged")
-      if character_damaged_event.cause and character_damaged_event.cause.train and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
+      if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
         b.unlock_achievement("trainsaver-damaged-by-followed-train")
       end
     end
