@@ -1,5 +1,5 @@
 
---[[ factorio mod "trainsaver" control script created by asher_sky --]]
+--[[ factorio mod trainsaver control script created by asher_sky --]]
 
 require "util"
 
@@ -238,6 +238,7 @@ function play_cutscene(created_waypoints, player_index)
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
   --[[ unlock any achievements if possible --]]
+  --[[
   if created_waypoints[1].target.train.passengers then
     for a,b in pairs(created_waypoints[1].target.train.passengers) do
       if b.index == player.index then
@@ -252,9 +253,10 @@ function play_cutscene(created_waypoints, player_index)
     local path = created_waypoints[1].target.train.path
     local remaining_path_distance = path.total_distance - path.travelled_distance
     if remaining_path_distance > 1000000 then
-      --[[ player.unlock_achievement("trainsaver-long-haul") --]]
+      player.unlock_achievement("trainsaver-long-haul")
     end
   end
+  --]]
   --[[ update trainsaver status global --]]
   if not global.trainsaver_status then
     global.trainsaver_status = {}
@@ -389,10 +391,12 @@ function character_damaged(character_damaged_event)
     if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and (global.trainsaver_status[b.index] == "active")) then
       local command = {player_index = b.index}
       end_trainsaver(command)
+      --[[
       b.unlock_achievement("trainsaver-character-damaged")
       if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
         b.unlock_achievement("trainsaver-damaged-by-followed-train")
       end
+      --]]
     end
   end
 end
@@ -431,7 +435,9 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
             global.rocket_positions[player_index] = nil
             --]]
+            --[[
             player.unlock_achievement("trainsaver-a-spectacular-view")
+            --]]
             start_trainsaver(command)
           end
         end
@@ -463,8 +469,9 @@ end
 --[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
 script.on_event(defines.events.on_tick, function()
   cutscene_next_tick_function()
-  --[[ save_rocket_positions() --]]
+  --[[ save_rocket_positions()
   check_achievements()
+  --]]
 end)
 
 function cutscene_next_tick_function()
