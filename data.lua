@@ -85,7 +85,7 @@ local selfReflectionAchievement = {
   order = "t[secret]-a[1][self-reflection]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local findAFriendAchievement = {
@@ -94,7 +94,7 @@ local findAFriendAchievement = {
   order = "t[secret]-a[2][find-a-friend]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local continuousTenMinutesAchievement = {
@@ -103,7 +103,7 @@ local continuousTenMinutesAchievement = {
   order = "t[secret]-b[1][continuous-10-minutes]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local continuousThirtyMinutesAchievement = {
@@ -112,7 +112,7 @@ local continuousThirtyMinutesAchievement = {
   order = "t[secret]-b[2][continuous-30-minutes]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local continuousOneHourAchievement = {
@@ -121,7 +121,7 @@ local continuousOneHourAchievement = {
   order = "t[secret]-b[3][continuous-60-minutes]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local totalOneHoursAchievement = {
@@ -130,7 +130,7 @@ local totalOneHoursAchievement = {
   order = "t[secret]-c[1][1-hours-total]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local totalTwoHoursAchievement = {
@@ -139,7 +139,7 @@ local totalTwoHoursAchievement = {
   order = "t[secret]-c[2][2-hours-total]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local totalFiveHoursAchievement = {
@@ -148,7 +148,7 @@ local totalFiveHoursAchievement = {
   order = "t[secret]-c[3][5-hours-total]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local rocketLaunchedAchievement = {
@@ -157,7 +157,7 @@ local rocketLaunchedAchievement = {
   order = "t[secret]-d[1][a-spectacular-view]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local characterDamagedAchievement = {
@@ -166,7 +166,7 @@ local characterDamagedAchievement = {
   order = "t[secret]-d[2][character-damaged]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 local damagedByFollowedTrainAchievement = {
@@ -175,7 +175,7 @@ local damagedByFollowedTrainAchievement = {
   order = "t[secret]-d[3][damaged-by-followed-train]",
   icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
   icon_size = 128,
-  hidden = false,
+  hidden = true,
 }
 
 data:extend({
