@@ -3,8 +3,9 @@ Version: 0.0.11
 Date: 2121-03-06
   Changes:
     - added support for Space Exploration's Satellite Navigation view
+    - added support for the Brave New World mod
     - adjusted startup function so trainsaver will follow the train with the longest remaining path instead of just choosing a random one
-    - fixed that the camera would move 60x faster than intended when trainsaver was ending due to train inactivity
+    - fixed that the camera would move back to the player character 60x faster than intended when trainsaver was ending due to train inactivity
     - adjusted secret focus to be more visually consistent across different display resolutions
     - minor performance improvements
 ---------------------------------------------------------------------------------------------------
