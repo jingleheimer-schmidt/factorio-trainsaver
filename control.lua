@@ -144,12 +144,38 @@ end
 function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
-  local mod_settings = game.get_player(player_index).mod_settings
+  local player = game.get_player(player_index)
+  local mod_settings = player.mod_settings
+
+  --[[
+  transition time is now transition speed, so let's do some calculations to convert speed back into transition time
+  speed needs to be tiles (meters) per tick, but user input is km/h
+  --]]
+  local speed = {}
+  local distance = {}
+  local time = {}
+  if mod_settings["ts-transition-time"].value ~= 0 then
+    local speed_kmph = mod_settings["ts-transition-time"].value
+    local distance_in_meters = math.floor(((player.position.x - waypoint_target.position.x) ^ 2 + (player.position.y - waypoint_target.position.y) ^ 2) ^ 0.5)
+    speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
+    distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
+    if speed ~= 0 then
+      time = distance / speed
+      tt = time
+    else
+      tt = 0
+    end
+  else
+    tt = 0 --[[ maybe set to 1 if 0 causes weird problems --]]
+  end
+
+  --[[
   if mod_settings["ts-transition-time"].value == 0 then
     tt = 0
   else
     tt = mod_settings["ts-transition-time"].value * 60
   end
+  --]]
   local wt = mod_settings["ts-time-wait"].value * 60 * 60
   if mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = mod_settings["ts-zoom"].value

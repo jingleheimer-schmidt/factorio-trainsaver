@@ -5,7 +5,7 @@ local transitionTimeSetting = {
   setting_type = "runtime-per-user",
   minimum_value = 0,
 --   maximum_value = 1800,
-  default_value = 0, -- seconds, will be converted to ticks
+  default_value = 0, -- kmph, will be converted to time (ticks)
   order = "ts-a"
 }
 
