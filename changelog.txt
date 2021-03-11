@@ -3,6 +3,7 @@ Version: 0.0.12
 Date: TBD
   Changes:
     - changed transition time (seconds) setting to transition speed (kmph)
+    - added remote interface for other mods to check if trainsaver is active for a given player
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.11
 Date: 2121-03-06

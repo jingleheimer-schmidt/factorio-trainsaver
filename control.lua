@@ -872,3 +872,24 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     end
   end
 end)
+
+local interface_functions = {}
+interface_functions.trainsaver_status = function(player_index)
+  if global.trainsaver_status and global.trainsaver_status[player_index] then
+    return global.trainsaver_status[player_index]
+  end
+end
+
+remote.add_interface("trainsaver",interface_functions)
+
+--[[
+EXAMPLE INTERFACE USAGE:
+call the interface with a player_index to check if trainsaver is active for them. Will return either "active" or nil
+
+if remote.interfaces["trainsaver"] and remote.interfaces["trainsaver"]["trainsaver_status"] then
+  if remote.call("trainsaver", "trainsaver_status", player_index) == "active" then
+  -- do stuff
+  end
+end
+
+--]]
