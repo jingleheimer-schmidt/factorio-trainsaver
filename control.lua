@@ -11,12 +11,12 @@ script.on_load(function()
   add_commands()
 end)
 
-function add_commands()
+local function add_commands()
   commands.add_command("trainsaver", "- starts a dynamic screensaver that follows active trains.", start_trainsaver)
   commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
 end
 
-function start_trainsaver(command)
+local function start_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   local name = command.name
@@ -141,7 +141,7 @@ function start_trainsaver(command)
 end
 
 --[[ create a waypoint for given waypoint_target locomotive using player mod settings --]]
-function create_waypoint(waypoint_target, player_index)
+local function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
   local player = game.get_player(player_index)
@@ -195,7 +195,7 @@ function create_waypoint(waypoint_target, player_index)
 end
 
 --[[ end the screensaver and nil out any globals saved for given player --]]
-function end_trainsaver(command)
+local function end_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   if player.controller_type == defines.controllers.cutscene then
@@ -238,7 +238,7 @@ end
 --]]
 
 --[[ play cutscene from given waypoints --]]
-function play_cutscene(created_waypoints, player_index)
+local function play_cutscene(created_waypoints, player_index)
   local player = game.get_player(player_index)
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
     if remote.call("cc_check", "cc_status", player_index) == "active" then
@@ -291,19 +291,21 @@ function play_cutscene(created_waypoints, player_index)
     global.trainsaver_status[player_index] = "active"
   end
   --[[ update the followed_loco global --]]
-  if not global.followed_loco then
-    global.followed_loco = {}
-    global.followed_loco[player_index] = {
-      unit_number = created_waypoints[1].target.unit_number,
-      train_id = created_waypoints[1].target.train.id,
-      loco = created_waypoints[1].target,
-    }
-  else
-    global.followed_loco[player_index] = {
-      unit_number = created_waypoints[1].target.unit_number,
-      train_id = created_waypoints[1].target.train.id,
-      loco = created_waypoints[1].target,
-    }
+  if created_waypoints[1].target.train then
+    if not global.followed_loco then
+      global.followed_loco = {}
+      global.followed_loco[player_index] = {
+        unit_number = created_waypoints[1].target.unit_number,
+        train_id = created_waypoints[1].target.train.id,
+        loco = created_waypoints[1].target,
+      }
+    else
+      global.followed_loco[player_index] = {
+        unit_number = created_waypoints[1].target.unit_number,
+        train_id = created_waypoints[1].target.train.id,
+        loco = created_waypoints[1].target,
+      }
+    end
   end
   --[[ register the followed target so we get an event if it's destroyed, save the registration number in global so we can know if the destroyed event is for our target or not --]]
   if not global.entity_destroyed_registration_numbers then
@@ -311,6 +313,12 @@ function play_cutscene(created_waypoints, player_index)
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
   else
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
+  end
+  if not global.current_target then
+    global.current_target = {}
+    global.current_target[player_index] = created_waypoints[1].target
+  else
+    global.current_target[player_index] = created_waypoints[1].target
   end
 end
 
@@ -725,6 +733,28 @@ function game_control_pressed(event)
     if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
       local command = {player_index = event.player_index}
       end_trainsaver(command)
+    end
+  end
+end
+
+--[[ if trainsaver extended movie making mod is installed, create cutscenes following biters about to attack and stuff --]]
+script.on_event(defines.events.on_unit_group_finished_gathering, function(event)
+  on_unit_group_gathered(event)
+end)
+
+local function on_unit_group_gathered(event)
+  local mods = script.active_mods
+  if mods["trainsaver-extended"] then
+    for a,b in pairs(global.trainsaver_status) do
+      if b == "active" then
+        if global.current_target[a].train and global.current_target[a].valid then
+          local player_index = a
+          local unit_group = event.group
+          if ((unit_group.command == defines.command.attack) or (unit_group.command == defines.command.attack_area)) then
+            local created_waypoints = create_waypoint(unit_group, player_index)
+          end
+        end
+      end
     end
   end
 end
