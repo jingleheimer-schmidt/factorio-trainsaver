@@ -264,17 +264,19 @@ function play_cutscene(created_waypoints, player_index)
 
   --[[ save alt-mode so we can preserve it after cutscene controller resets it --]]
   local transfer_alt_mode = player.game_view_settings.show_entity_info
+
   --[[ set the player controller to cutscene camera --]]
   player.set_controller(
     {
       type = defines.controllers.cutscene,
       waypoints = created_waypoints,
-      start_position = player.position,
-      final_transition_time = player.mod_settings["ts-transition-time"].value * 60
+      --[[ start_position = start_end_entity.position, --]]
+      --[[ final_transition_time = tt --]]
     }
   )
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
+
   --[[ unlock any achievements if possible --]]
   --[[
   if created_waypoints[1].target.train.passengers then
@@ -881,8 +883,10 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             {
               type = defines.controllers.cutscene,
               waypoints = created_waypoints,
+              --[[
               start_position = player.position,
               final_transition_time = player.mod_settings["ts-transition-time"].value * 60
+              --]]
             }
           )
           player.game_view_settings.show_entity_info = transfer_alt_mode
