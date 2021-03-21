@@ -530,9 +530,10 @@ function cutscene_next_tick_function()
     for a,b in pairs(global.create_cutscene_next_tick) do
       local target_train = b[1]
       local player_index = b[2]
+      local player = game.get_player(player_index)
 
       --[[ make sure the player is still connected --]]
-      if not game.get_player(player_index).connected then
+      if not player.connected then
         return
       end
 
