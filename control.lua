@@ -11,12 +11,12 @@ script.on_load(function()
   add_commands()
 end)
 
-local function add_commands()
+function add_commands()
   commands.add_command("trainsaver", "- starts a dynamic screensaver that follows active trains.", start_trainsaver)
   commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
 end
 
-local function start_trainsaver(command)
+function start_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   local name = command.name
@@ -141,7 +141,7 @@ local function start_trainsaver(command)
 end
 
 --[[ create a waypoint for given waypoint_target locomotive using player mod settings --]]
-local function create_waypoint(waypoint_target, player_index)
+function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
   local player = game.get_player(player_index)
@@ -195,7 +195,7 @@ local function create_waypoint(waypoint_target, player_index)
 end
 
 --[[ end the screensaver and nil out any globals saved for given player --]]
-local function end_trainsaver(command)
+function end_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   if player.controller_type == defines.controllers.cutscene then
@@ -238,7 +238,7 @@ end
 --]]
 
 --[[ play cutscene from given waypoints --]]
-local function play_cutscene(created_waypoints, player_index)
+function play_cutscene(created_waypoints, player_index)
   local player = game.get_player(player_index)
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
     if remote.call("cc_check", "cc_status", player_index) == "active" then
@@ -742,7 +742,7 @@ script.on_event(defines.events.on_unit_group_finished_gathering, function(event)
   on_unit_group_gathered(event)
 end)
 
-local function on_unit_group_gathered(event)
+function on_unit_group_gathered(event)
   local mods = script.active_mods
   if mods["trainsaver-extended"] then
     for a,b in pairs(global.trainsaver_status) do
