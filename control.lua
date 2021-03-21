@@ -160,15 +160,14 @@ function create_waypoint(waypoint_target, player_index)
   local mod_settings = player.mod_settings
 
   --[[
-  transition time is now transition speed, so let's do some calculations to convert speed back into transition time
-  speed needs to be tiles (meters) per tick, but user input is km/h
+  transition time is now transition speed, so let's do some calculations to convert speed back into transition time (ticks)
   --]]
   local speed = {}
   local distance = {}
   local time = {}
   if mod_settings["ts-transition-time"].value ~= 0 then
     local speed_kmph = mod_settings["ts-transition-time"].value
-    local distance_in_meters = math.floor(((player.position.x - waypoint_target.position.x) ^ 2 + (player.position.y - waypoint_target.position.y) ^ 2) ^ 0.5)
+    local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
     speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
     distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
     if speed ~= 0 then
