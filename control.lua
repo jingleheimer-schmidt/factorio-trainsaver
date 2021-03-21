@@ -238,6 +238,9 @@ function end_trainsaver(command)
     if global.current_continuous_duration and global.current_continuous_duration[player_index] then
       global.current_continuous_duration[player_index] = nil
     end
+    if global.current_target and global.current_target[player_index] then
+      global.current_target[player_index] = nil
+    end
   else
   end
 end
