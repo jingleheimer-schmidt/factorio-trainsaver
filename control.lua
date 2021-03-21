@@ -147,6 +147,11 @@ function start_trainsaver(command)
   end
 end
 
+function calculate_distance(position_1, position_2)
+  local distance = math.floor(((position_1.x - position_2.x) ^ 2 + (position_1.y - position_2.y) ^ 2) ^ 0.5)
+  return distance
+end
+
 --[[ create a waypoint for given waypoint_target locomotive using player mod settings --]]
 function create_waypoint(waypoint_target, player_index)
   local tt = {}
