@@ -22,13 +22,6 @@ function start_trainsaver(command)
   local name = command.name
   if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or (command.entity_gone_restart == "yes")) then
 
-    --[[ return if cutscene creator is active --]]
-    if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-      if remote.call("cc_check", "cc_status", player_index) == "active" then
-        return
-      end
-    end
-
     --[[ create a table of all trains --]]
     local table_of_all_trains = player.surface.get_trains()
 
