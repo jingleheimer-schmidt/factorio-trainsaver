@@ -26,6 +26,15 @@ local timeWaitSetting = {
   order = "ts-c"
 }
 
+local afkAutoStartSetting = {
+  type = "double-setting",
+  name = "ts-afk-auto-start",
+  setting_type = "runtime-per-user",
+  minimum_value = 0,
+  default_value = 5, -- minutes, will be converted to ticks
+  order = "ts-d"
+}
+
 local zoomSetting = {
   type = "double-setting",
   name = "ts-zoom",
@@ -33,7 +42,7 @@ local zoomSetting = {
   minimum_value = .1,
   default_value = .3,
   maximum_value = 5,
-  order = "ts-d"
+  order = "ts-e"
 }
 
 local variableZoomSetting = {
@@ -41,15 +50,6 @@ local variableZoomSetting = {
   name = "ts-variable-zoom",
   setting_type = "runtime-per-user",
   default_value = true,
-  order = "ts-e"
-}
-
-local afkAutoStartSetting = {
-  type = "double-setting",
-  name = "ts-afk-auto-start",
-  setting_type = "runtime-per-user",
-  minimum_value = 0,
-  default_value = 5, -- minutes, will be converted to ticks
   order = "ts-f"
 }
 
