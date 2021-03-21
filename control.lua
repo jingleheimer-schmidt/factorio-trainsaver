@@ -191,7 +191,7 @@ function create_waypoint(waypoint_target, player_index)
   local wt = mod_settings["ts-time-wait"].value * 60 * 60
   if mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = mod_settings["ts-zoom"].value
-    z = (math.random(((temp_zoom - (temp_zoom*.15))*1000),(((temp_zoom + (temp_zoom*.15)))*1000)))/1000
+    z = (math.random(((temp_zoom - (temp_zoom*.20))*1000),(((temp_zoom + (temp_zoom*.20)))*1000)))/1000
   else
     z = mod_settings["ts-zoom"].value
   end
