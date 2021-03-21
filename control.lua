@@ -124,6 +124,7 @@ function start_trainsaver(command)
           end
           --]]
           play_cutscene(created_waypoints, player_index)
+
         elseif table_of_trains[1].locomotives.back_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
           local created_waypoints = create_waypoint(waypoint_target, player_index)
