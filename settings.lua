@@ -1,12 +1,21 @@
 
+local transitionSpeedSetting = {
+  type = "double-setting",
+  name = "ts-transition-speed",
+  setting_type = "runtime-per-user",
+  minimum_value = 0,
+  default_value = 0, -- km/h, will be converted to time (ticks)
+  order = "ts-a-a"
+}
+
 local transitionTimeSetting = {
   type = "double-setting",
   name = "ts-transition-time",
   setting_type = "runtime-per-user",
   minimum_value = 0,
 --   maximum_value = 1800,
-  default_value = 0, -- kmph, will be converted to time (ticks)
-  order = "ts-a"
+  default_value = 0, -- km/h, will be converted to time (ticks)
+  order = "ts-a-b"
 }
 
 local waitAtSignalSetting = {
@@ -21,8 +30,8 @@ local timeWaitSetting = {
   type = "double-setting",
   name = "ts-time-wait",
   setting_type = "runtime-per-user",
-  minimum_value = 1/60,
-  default_value = 10, -- minutes, will be converted to ticks
+  minimum_value = 1, -- need to have at least 1 minute of "inactivity", because it's not actually inactivity, it's how long the cutscene lasts before returning to player.
+  default_value = 15, -- minutes, will be converted to ticks
   order = "ts-c"
 }
 
@@ -94,6 +103,7 @@ local hiddenSecretsSetting = {
 }
 
 data:extend({
+  transitionSpeedSetting,
   transitionTimeSetting,
   timeWaitSetting,
   zoomSetting,

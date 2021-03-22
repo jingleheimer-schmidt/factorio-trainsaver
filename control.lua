@@ -159,8 +159,8 @@ function create_waypoint(waypoint_target, player_index)
   local speed = {}
   local distance = {}
   local time = {}
-  if mod_settings["ts-transition-time"].value ~= 0 then
-    local speed_kmph = mod_settings["ts-transition-time"].value
+  if mod_settings["ts-transition-speed"].value > 0 then
+    local speed_kmph = mod_settings["ts-transition-speed"].value
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
     speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
     distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
@@ -171,7 +171,7 @@ function create_waypoint(waypoint_target, player_index)
       tt = 0
     end
   else
-    tt = 0 --[[ maybe set to 1 if 0 causes weird problems --]]
+    tt = mod_settings["ts-transition-time"] * 60 --[[ convert seconds to ticks --]]
   end
 
   --[[
@@ -815,7 +815,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
 
           --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
           if created_waypoints[1].transition_time > 440 then
-            created_waypoints[1].transition_time = 440
+            --[[ created_waypoints[1].transition_time = 440 --]]
+            created_waypoints[1].transition_time = 0
           end
           created_waypoints[1].time_to_wait = 1
           created_waypoints[1].zoom = 0.5
