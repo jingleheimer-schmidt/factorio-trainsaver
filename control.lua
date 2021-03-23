@@ -188,13 +188,31 @@ function create_waypoint(waypoint_target, player_index)
   else
     z = mod_settings["ts-zoom"].value
   end
+
+  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there --]]
+  local ending_entity = player.character
+  if player.cutscene_character then
+    ending_entity = player.cutscene_character
+  end
+  local tt_2 = tt
+  if waypoint_target.train and waypoint_target.train.path_end_stop then
+    local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.cutscene_character.position)
+    -- make sure to do tt and stuff too!
+
+
   local created_waypoints = {
     {
       target = waypoint_target,
       transition_time = tt,
       time_to_wait = wt,
       zoom = z
-    }
+    },
+    {
+      target = ending_entity,
+      transition_time = tt,
+      time_to_wait = wt,
+      zoom = z
+    },
   }
   return created_waypoints
 end
