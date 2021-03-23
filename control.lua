@@ -268,12 +268,10 @@ function end_trainsaver(command)
   end
 end
 
---[[
--- set character color to player color so it's the same when controller switches from character to cutscene. Might not be necessary anymore since introduction of cutscene character, could be worth investigating further
+--[[ set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :) --]]
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
---]]
 
 --[[ play cutscene from given waypoints --]]
 function play_cutscene(created_waypoints, player_index)
@@ -347,7 +345,7 @@ function play_cutscene(created_waypoints, player_index)
       }
     end
   end
-  --[[ register the followed target so we get an event if it's destroyed, save the registration number in global so we can know if the destroyed event is for our target or not --]]
+  --[[ register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not --]]
   if not global.entity_destroyed_registration_numbers then
     global.entity_destroyed_registration_numbers = {}
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
