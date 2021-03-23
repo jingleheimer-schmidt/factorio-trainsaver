@@ -178,34 +178,16 @@ function create_waypoint(waypoint_target, player_index)
   local player = game.get_player(player_index)
   local mod_settings = player.mod_settings
 
-  --[[
-  transition time is now transition speed, so let's do some calculations to convert speed back into transition time (ticks)
-  --]]
-  local speed = {}
-  local distance = {}
-  local time = {}
+  --[[ we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time --]]
   if mod_settings["ts-transition-speed"].value > 0 then
     local speed_kmph = mod_settings["ts-transition-speed"].value
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-    speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
-    distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
-    if speed ~= 0 then
-      time = distance / speed
-      tt = time
-    else
-      tt = 0
-    end
+    tt = convert_speed_into_time(speed_kmph, distance_in_meters)
   else
     tt = mod_settings["ts-transition-time"] * 60 --[[ convert seconds to ticks --]]
   end
 
-  --[[
-  if mod_settings["ts-transition-time"].value == 0 then
-    tt = 0
-  else
-    tt = mod_settings["ts-transition-time"].value * 60
-  end
-  --]]
+  --[[ set the waiting time and zoom variables to use later when creating the waypoint table --]]
   local wt = mod_settings["ts-time-wait"].value * 60 * 60
   if mod_settings["ts-variable-zoom"].value == true then
     local temp_zoom = mod_settings["ts-zoom"].value
@@ -214,17 +196,54 @@ function create_waypoint(waypoint_target, player_index)
     z = mod_settings["ts-zoom"].value
   end
 
-  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there --]]
-  local ending_entity = player.character
-  if player.cutscene_character then
-    ending_entity = player.cutscene_character
-  end
+  --[[ set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over --]]
   local tt_2 = tt
-  if waypoint_target.train and waypoint_target.train.path_end_stop then
-    local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.cutscene_character.position)
-    -- make sure to do tt and stuff too!
+  if mod_settings["ts-transition-speed"].value > 0 then
+    local speed_kmph = mod_settings["ts-transition-speed"].value
+    --[[ if train has a station at the end of the path, use the station location --]]
+    if waypoint_target.train and waypoint_target.train.path_end_stop then
+      if player.cutscene_character then
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.cutscene_character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      elseif player.character then
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      else
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      end
+    --[[ if train doesn't have a station at the end of the path but does have a rail, use the rail location instead --]]
+    elseif waypoint_target.train and waypoint_target.train.path_end_rail then
+      if player.cutscene_character then
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.cutscene_character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      elseif player.character then
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      else
+        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      end
+    --[[ if waypoint target doesn't have a path or isn't a train at all, just use its current position to calculate the final transition time instead--]]
+    elseif waypoint_target.position then
+      if player.cutscene_character then
+        local distance_in_meters = calculate_distance(waypoint_target.position, player.cutscene_character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      elseif player.character then
+        local distance_in_meters = calculate_distance(waypoint_target.position, player.character.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      else
+        local distance_in_meters = calculate_distance(waypoint_target.position, player.position)
+        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
+      end
+    else
+      tt_2 = 0
+    end
+  else
+    tt_2 = mod_settings["ts-transition-time"] * 60 --[[ convert seconds to ticks --]]
+  end
 
-
+  --[[ finally let's assemble our waypints table! --]]
   local created_waypoints = {
     {
       target = waypoint_target,
@@ -232,13 +251,28 @@ function create_waypoint(waypoint_target, player_index)
       time_to_wait = wt,
       zoom = z
     },
-    {
-      target = ending_entity,
-      transition_time = tt,
-      time_to_wait = wt,
-      zoom = z
-    },
   }
+
+  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode so trainsaver will just end at the current location anyway --]]
+  if player.cutscene_character then
+    local waypoint_2 = {
+      target = player.cutscene_character,
+      transition_time = tt_2,
+      time_to_wait = 30,
+      zoom = z
+    }
+    table.insert(created_waypoints, waypoint_2)
+  elseif player.character then
+    local waypoint_2 = {
+      target = player.character,
+      transition_time = tt_2,
+      time_to_wait = 30,
+      zoom = z
+    }
+    table.insert(created_waypoints, waypoint_2)
+  else
+  end
+
   return created_waypoints
 end
 
@@ -871,7 +905,10 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           if player.surface.index ~= silo.surface.index then
             return
           end
-          created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
+          --[[ create the waypoints --]]
+          local created_waypoints = create_waypoint(silo, player_index)
+          silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
+          table.insert(created_waypoints, 2, silo_rocket_waypoint_2)
 
           --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
           if created_waypoints[1].transition_time > 440 then
