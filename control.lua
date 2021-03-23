@@ -158,7 +158,20 @@ function calculate_distance(position_1, position_2)
   return distance
 end
 
---[[ create a waypoint for given waypoint_target locomotive using player mod settings --]]
+function convert_speed_into_time(speed_kmph, distance_in_meters)
+  local speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
+  local distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
+  local time = {}
+  if speed ~= 0 then
+    time = distance / speed
+    return time
+  else
+    time = 0
+    return time
+  end
+end
+
+--[[ create a waypoint for given waypoint_target using player mod settings --]]
 function create_waypoint(waypoint_target, player_index)
   local tt = {}
   local z = {}
