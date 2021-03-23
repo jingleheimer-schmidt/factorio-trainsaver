@@ -99,6 +99,10 @@ function start_trainsaver(command)
           elseif table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1] then
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
           end
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= waypoint_target.surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
           --[[
           if not command.entity_gone_restart == "yes" then
@@ -110,6 +114,10 @@ function start_trainsaver(command)
         --[[ if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target --]]
         elseif table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= waypoint_target.surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
           --[[
           if not command.entity_gone_restart == "yes" then
@@ -120,6 +128,10 @@ function start_trainsaver(command)
 
         elseif table_of_trains[1].locomotives.back_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= waypoint_target.surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(waypoint_target, player_index)
           --[[
           if not command.entity_gone_restart == "yes" then
@@ -271,7 +283,7 @@ function play_cutscene(created_waypoints, player_index)
       return
     end
   end
-  --[[ abort if the waypoint is on a different surface than the player --]]
+  --[[ abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case --]]
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
   end
@@ -569,7 +581,12 @@ function cutscene_next_tick_function()
       --[[ if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or - --]]
       if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
         if target_train.speed > 0 then
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
           if b[3] then
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
@@ -578,7 +595,12 @@ function cutscene_next_tick_function()
           global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.speed < 0 then
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
+          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
           if b[3] then
             created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
             created_waypoints[1].zoom = nil
@@ -590,7 +612,12 @@ function cutscene_next_tick_function()
       --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
       elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
         if target_train.locomotives.front_movers[1] then
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
           if b[3] then
             created_waypoints[1].zoom = nil
           end
@@ -598,7 +625,12 @@ function cutscene_next_tick_function()
           global.create_cutscene_next_tick[player_index] = nil
         end
         if target_train.locomotives.back_movers[1] then
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
+            return
+          end
           local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
+          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
           if b[3] then
             created_waypoints[1].zoom = nil
           end
@@ -824,9 +856,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               return
             end
           end
-          --[[ create the waypoints --]]
-          local created_waypoints = create_waypoint(silo, player_index)
-          if player.surface.index ~= created_waypoints[1].target.surface.index then
+          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          if player.surface.index ~= silo.surface.index then
             return
           end
           created_waypoints[2] = util.table.deepcopy(created_waypoints[1])
