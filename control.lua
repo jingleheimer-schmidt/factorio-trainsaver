@@ -416,7 +416,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
     for a,b in pairs(game.connected_players) do
       if b.controller_type == defines.controllers.cutscene then
         local found_locomotive = {}
-        if global.followed_loco and global.followed_loco[b.index] and global.followed_loco[b.index].loco.valid then
+        if global.followed_loco and global.followed_loco[b.index] and global.followed_loco[b.index].loco and global.followed_loco[b.index].loco.valid then
           found_locomotive[1] = global.followed_loco[b.index].loco
         else
           found_locomotive = b.surface.find_entities_filtered({
