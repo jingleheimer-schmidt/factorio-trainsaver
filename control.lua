@@ -409,6 +409,13 @@ end
 
 --[[ when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met --]]
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
+  if not remote.interfaces["logistic-train-network"] then
+    train_changed_state(train_changed_state_event)
+  end
+  update_wait_at_signal(train_changed_state_event)
+end)
+
+function train_changed_state(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
   local new_state = train_changed_state_event.train.state
@@ -463,7 +470,12 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
       end
     end
   end
+end
 
+function update_wait_at_signal(train_changed_state_event)
+  local train = train_changed_state_event.train
+  local old_state = train_changed_state_event.old_state
+  local new_state = train_changed_state_event.train.state
   --[[ if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick) --]]
   if (old_state == defines.train_state.arrive_signal) and (new_state == defines.train_state.wait_signal) then
     for a,b in pairs(game.connected_players) do
@@ -499,7 +511,7 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
       end
     end
   end
-end)
+end
 
 --[[ if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available --]]
 script.on_event(defines.events.on_entity_damaged, function(character_damaged_event) character_damaged(character_damaged_event) end, {{filter = "type", type = "character"}})
@@ -638,6 +650,9 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
+          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
+            update_ts_ltn_status(player_index, "following")
+          end
         end
         if target_train.speed < 0 then
           --[[ abort if the potential waypoint is on a different surface than the player --]]
@@ -652,6 +667,9 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
+          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
+            update_ts_ltn_status(player_index, "following")
+          end
         end
 
       --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
@@ -668,6 +686,9 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
+          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
+            update_ts_ltn_status(player_index, "following")
+          end
         end
         if target_train.locomotives.back_movers[1] then
           --[[ abort if the potential waypoint is on a different surface than the player --]]
@@ -681,6 +702,9 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
+          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
+            update_ts_ltn_status(player_index, "following")
+          end
         end
       end
     end
@@ -1013,6 +1037,141 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     end
   end
 end)
+
+if remote.interfaces["logistic-train-network"] then
+  script.on_event(remote.call("logistic-train-network", "on_delivery_pickup_complete"), ltn_pickup_complete(event))
+  script.on_event(remote.call("logistic-train-network", "on_delivery_completed"), ltn_delivery_complete(event))
+  script.on_event(remote.call("logistic-train-network", "on_delivery_failed"), ltn_delivery_failed(event))
+end
+
+function ltn_pickup_complete(event)
+  local train_id = event.train_id
+  local planned_shipment = event.planned_shipment --[[{ [item], count } } --]]
+  local actual_shipment = event.actual_shipment --[[ { [item], count } } shipment updated to train inventory --]]
+  for a,b in pairs(global.trainsaver_status) do
+    if b == "active" then
+      local player_index = a
+      local player = game.get_player(player_index)
+      if global.ts_ltn_status and global.ts_ltn_status[player_index] and ((global.ts_ltn_status[player_index] == "following") or (global.ts_ltn_status[player_index] == "pending")) then
+        return
+      end
+      local found_locomotive = {}
+      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
+        found_locomotive[1] = global.followed_loco[player_index].loco
+      else
+        found_locomotive = player.surface.find_entities_filtered({
+          position = player.position,
+          radius = 1,
+          type = "locomotive",
+          limit = 1
+        })
+      end
+      if found_locomotive[1] then
+        local found_train = found_locomotive[1].train
+        local found_state = found_train.state
+        local train = {}
+        for c,d in pairs(player.surface.get_trains()) do
+          if d.id == train_id then
+            train = d
+            break
+          end
+        end
+
+        --[[ make sure we actually found the train, so if it's on a different surface or somehow vanished since we got the event or whatever then we don't crash and burn --]]
+        if not train.valid then
+          return
+        end
+
+        --[[ if the train we're currently following is on the path or arriving at signal or station, and player controller is cutscene, then if the train that generated the LTN event is the same train under the player, make sure we're following the leading locomotive. --]]
+        if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
+
+          --[[ if camera is on train that generated LTN event, switch to leading locomotive --]]
+          if found_train.id == train_id then
+            if not global.create_cutscene_next_tick then
+              global.create_cutscene_next_tick = {}
+              global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
+              if global.wait_at_signal and global.wait_at_signal[player_index] then
+                global.wait_at_signal[player_index] = nil
+              end
+              update_ts_ltn_status(player_index, "pending")
+            else
+              global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
+              if global.wait_at_signal and global.wait_at_signal[player_index] then
+                global.wait_at_signal[player_index] = nil
+              end
+              update_ts_ltn_status(player_index, "pending")
+            end
+          end
+        else
+
+          --[[ if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the LTN event on the next tick --]]
+          if not global.create_cutscene_next_tick then
+            global.create_cutscene_next_tick = {}
+            global.create_cutscene_next_tick[player_index] = {train, player_index}
+            update_ts_ltn_status(player_index, "pending")
+          else
+            global.create_cutscene_next_tick[player_index] = {train, player_index}
+            update_ts_ltn_status(player_index, "pending")
+          end
+        end
+      end
+    end
+  end
+end)
+
+function ltn_delivery_complete(event)
+  local train_id = event.train_id
+  local shipment = event.shipment --[[ { [item], count } } --]]
+
+  for a,b in pairs(global.trainsaver_status) do
+    if b == "active" then
+      local player_index = a
+      local player = game.get_player(player_index)
+      local found_locomotive = {}
+      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
+        found_locomotive[1] = global.followed_loco[player_index].loco
+      else
+        found_locomotive = player.surface.find_entities_filtered({
+          position = player.position,
+          radius = 1,
+          type = "locomotive",
+          limit = 1
+        })
+      end
+      if found_locomotive[1] then
+        local train = {}
+        for c,d in pairs(player.surface.get_trains()) do
+          if d.id == train_id then
+            train = d
+            break
+          end
+        end
+
+        --[[ make sure we actually found the train, so if it's on a different surface or somehow vanished since we got the event or whatever then we don't crash and burn --]]
+        if not train.valid then
+          return
+        end
+
+        if train.id == train_id then
+          update_ts_ltn_status(player_index, "waiting")
+        end
+      end
+    end
+  end
+end
+
+function lts_delivery_failed(event)
+  ltn_delivery_complete(event)
+end
+
+function update_ts_ltn_status(player_index, status)
+  if not global.ts_ltn_status then
+    global.ts_ltn_status = {}
+    global.ts_ltn_status[player_index] = status
+  else
+    global.ts_ltn_status[player_index] = status
+  end
+end
 
 --[[
 EXAMPLE INTERFACE USAGE:
