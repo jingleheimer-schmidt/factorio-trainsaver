@@ -253,8 +253,8 @@ function create_waypoint(waypoint_target, player_index)
     },
   }
 
-  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode so trainsaver will just end at the current location anyway --]]
-  if player.cutscene_character then
+  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to --]]
+  if (player.cutscene_character and (player.cutscene_character.surface.index == player.surface.index)) then
     local waypoint_2 = {
       target = player.cutscene_character,
       transition_time = tt_2,
@@ -262,7 +262,7 @@ function create_waypoint(waypoint_target, player_index)
       zoom = z
     }
     table.insert(created_waypoints, waypoint_2)
-  elseif player.character then
+  elseif (player.character and (player.character.surface.index == player.surface.index)) then
     local waypoint_2 = {
       target = player.character,
       transition_time = tt_2,
