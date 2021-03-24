@@ -140,7 +140,7 @@ function start_trainsaver(command)
           --]]
           play_cutscene(created_waypoints, player_index)
 
-          --[[ if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how could this happen??) then end_trainsaver() --]]
+          --[[ if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how could this happen?? a train with no locomotives that is somehow not in manual mode?? i declare haxxx) then end_trainsaver() --]]
         else
           player.print("trainsaver: something unexpected has occured. please report this event to the mod author. code: 909")
           local command = {
