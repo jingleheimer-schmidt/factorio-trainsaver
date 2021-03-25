@@ -52,7 +52,7 @@ function start_trainsaver(command)
         end
       end
 
-      --[[ sort the table of trains by how much of their path is remaining so we can focus on the one with the longest remaining path --]]
+      --[[ sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path --]]
       if table_of_active_trains[1] then
         local table_of_trains_sorted_by_remaining_path_length = util.table.deepcopy(table_of_active_trains)
         table.sort(table_of_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
@@ -64,7 +64,7 @@ function start_trainsaver(command)
           global.create_cutscene_next_tick[player_index] = {table_of_trains_sorted_by_remaining_path_length[1], player_index}
         end
 
-      --[[ if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global --]]
+      --[[ if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global. This has been superceded by the find longest remaining path method, but we'll keep it here in comments just in case we need it at some point in the future. --]]
       --[[
       if table_of_active_trains[1] then
         local random_train_index = math.random(table_size(table_of_active_trains))
@@ -1044,6 +1044,7 @@ if remote.interfaces["logistic-train-network"] then
   script.on_event(remote.call("logistic-train-network", "on_delivery_failed"), ltn_delivery_failed(event))
 end
 
+--[[ create a new cutscene following trains that just picked up a delivery, so we focus on trains that are delivering goods and not on the empty ones returning to the depots. --]]
 function ltn_pickup_complete(event)
   local train_id = event.train_id
   local planned_shipment = event.planned_shipment --[[{ [item], count } } --]]
@@ -1119,6 +1120,7 @@ function ltn_pickup_complete(event)
   end
 end)
 
+--[[ when an LTN delivery is complete, set the ltn_status global to "waiting" so that we can create a new cutscene even if the target train is already on the path back to the depot, because it doesn't matter --]]
 function ltn_delivery_complete(event)
   local train_id = event.train_id
   local shipment = event.shipment --[[ { [item], count } } --]]
