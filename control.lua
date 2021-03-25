@@ -347,6 +347,7 @@ function play_cutscene(created_waypoints, player_index)
   )
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
+  update_globals_new_cutscene(player_index, created_waypoints)
 
   --[[ unlock any achievements if possible --]]
   --[[
@@ -368,6 +369,9 @@ function play_cutscene(created_waypoints, player_index)
     end
   end
   --]]
+end
+
+function update_globals_new_cutscene(player_index, created_waypoints)
   --[[ update trainsaver status global --]]
   if not global.trainsaver_status then
     global.trainsaver_status = {}
@@ -377,19 +381,16 @@ function play_cutscene(created_waypoints, player_index)
   end
   --[[ update the followed_loco global --]]
   if created_waypoints[1].target.train then
+    local folloco = {
+      unit_number = created_waypoints[1].target.unit_number,
+      train_id = created_waypoints[1].target.train.id,
+      loco = created_waypoints[1].target,
+    }
     if not global.followed_loco then
       global.followed_loco = {}
-      global.followed_loco[player_index] = {
-        unit_number = created_waypoints[1].target.unit_number,
-        train_id = created_waypoints[1].target.train.id,
-        loco = created_waypoints[1].target,
-      }
+      global.followed_loco[player_index] = folloco
     else
-      global.followed_loco[player_index] = {
-        unit_number = created_waypoints[1].target.unit_number,
-        train_id = created_waypoints[1].target.train.id,
-        loco = created_waypoints[1].target,
-      }
+      global.followed_loco[player_index] = folloco
     end
   end
   --[[ register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not --]]
@@ -399,16 +400,22 @@ function play_cutscene(created_waypoints, player_index)
   else
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
   end
+  --[[ update the current_target global --]]
   if not global.current_target then
     global.current_target = {}
     global.current_target[player_index] = created_waypoints[1].target
   else
     global.current_target[player_index] = created_waypoints[1].target
   end
+  --[[ update the ltn status global if necessary --]]
+  if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
+    update_ts_ltn_status(player_index, "following")
+  end
 end
 
 --[[ when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met --]]
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
+  --[[ if LTN mod is installed, prefer those events over the base game events --]]
   if not remote.interfaces["logistic-train-network"] then
     train_changed_state(train_changed_state_event)
   end
@@ -650,9 +657,6 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
-          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
-            update_ts_ltn_status(player_index, "following")
-          end
         end
         if target_train.speed < 0 then
           --[[ abort if the potential waypoint is on a different surface than the player --]]
@@ -667,9 +671,6 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
-          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
-            update_ts_ltn_status(player_index, "following")
-          end
         end
 
       --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
@@ -686,9 +687,6 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
-          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
-            update_ts_ltn_status(player_index, "following")
-          end
         end
         if target_train.locomotives.back_movers[1] then
           --[[ abort if the potential waypoint is on a different surface than the player --]]
@@ -702,9 +700,6 @@ function cutscene_next_tick_function()
           end
           play_cutscene(created_waypoints, player_index)
           global.create_cutscene_next_tick[player_index] = nil
-          if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
-            update_ts_ltn_status(player_index, "following")
-          end
         end
       end
     end
