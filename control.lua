@@ -197,7 +197,7 @@ function create_waypoint(waypoint_target, player_index)
   end
 
   --[[ set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over --]]
-  local tt_2 = tt
+  local tt_2 = util.table.deepcopy(tt)
   if mod_settings["ts-transition-speed"].value > 0 then
     local speed_kmph = mod_settings["ts-transition-speed"].value
     --[[ if train has a station at the end of the path, use the station location --]]
