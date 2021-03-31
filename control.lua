@@ -341,7 +341,7 @@ function play_cutscene(created_waypoints, player_index)
     {
       type = defines.controllers.cutscene,
       waypoints = created_waypoints,
-      --[[ start_position = start_end_entity.position, --]]
+      start_position = player.position,
       --[[ final_transition_time = tt --]]
     }
   )
