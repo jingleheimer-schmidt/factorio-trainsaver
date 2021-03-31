@@ -1173,7 +1173,7 @@ end
 --[[
 Remote Interface:
   remote.call("trainsaver", "trainsaver_status", player_index) --> returns the status of trainsaver for a given player, either "active" or "inactive"
-  remote.call("trainsaver", "trainsaver_target", player_index) --> returns the current target (locomotive) trainsaver is following for a given player or nil if none
+  remote.call("trainsaver", "trainsaver_target", player_index) --> returns the current target (locomotive or other entity) trainsaver is following for a given player or nil if none
 --]]
 
 local interface_functions = {}
