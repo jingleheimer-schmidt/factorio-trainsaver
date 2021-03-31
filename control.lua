@@ -184,7 +184,7 @@ function create_waypoint(waypoint_target, player_index)
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
     tt = convert_speed_into_time(speed_kmph, distance_in_meters)
   else
-    tt = mod_settings["ts-transition-time"] * 60 --[[ convert seconds to ticks --]]
+    tt = mod_settings["ts-transition-time"].value * 60 --[[ convert seconds to ticks --]]
   end
 
   --[[ set the waiting time and zoom variables to use later when creating the waypoint table --]]
@@ -240,7 +240,7 @@ function create_waypoint(waypoint_target, player_index)
       tt_2 = 0
     end
   else
-    tt_2 = mod_settings["ts-transition-time"] * 60 --[[ convert seconds to ticks --]]
+    tt_2 = mod_settings["ts-transition-time"].value * 60 --[[ convert seconds to ticks --]]
   end
 
   --[[ finally let's assemble our waypints table! --]]
@@ -1113,7 +1113,7 @@ function ltn_pickup_complete(event)
       end
     end
   end
-end)
+end
 
 --[[ when an LTN delivery is complete, set the ltn_status global to "waiting" so that we can create a new cutscene even if the target train is already on the path back to the depot, because it doesn't matter --]]
 function ltn_delivery_complete(event)
