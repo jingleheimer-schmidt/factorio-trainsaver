@@ -407,18 +407,11 @@ function update_globals_new_cutscene(player_index, created_waypoints)
   else
     global.current_target[player_index] = created_waypoints[1].target
   end
-  --[[ update the ltn status global if necessary --]]
-  if (global.ts_ltn_status and global.ts_ltn_status[player_index] and (global.ts_ltn_status[player_index] == "pending")) then
-    update_ts_ltn_status(player_index, "following")
-  end
 end
 
 --[[ when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met --]]
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
-  --[[ if LTN mod is installed, prefer those events over the base game events --]]
-  if not remote.interfaces["logistic-train-network"] then
-    train_changed_state(train_changed_state_event)
-  end
+  train_changed_state(train_changed_state_event)
   update_wait_at_signal(train_changed_state_event)
 end)
 
@@ -862,28 +855,6 @@ function game_control_pressed(event)
   end
 end
 
---[[ if trainsaver extended movie making mod is installed, create cutscenes following biters about to attack and stuff --]]
-script.on_event(defines.events.on_unit_group_finished_gathering, function(event)
-  on_unit_group_gathered(event)
-end)
-
-function on_unit_group_gathered(event)
-  local mods = script.active_mods
-  if mods["trainsaver-extended"] then
-    for a,b in pairs(global.trainsaver_status) do
-      if b == "active" then
-        if global.current_target[a].train and global.current_target[a].valid then
-          local player_index = a
-          local unit_group = event.group
-          if ((unit_group.command == defines.command.attack) or (unit_group.command == defines.command.attack_area)) then
-            local created_waypoints = create_waypoint(unit_group, player_index)
-          end
-        end
-      end
-    end
-  end
-end
-
 --[[ s e c r e t s --]]
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
   local rocket = event.rocket
@@ -941,57 +912,6 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
           created_waypoints[2].zoom = 0.2
 
-          --[[
-            start event at tick 35555980
-            rocket destroyed at tick 35557141
-            = 1161 total between the two, 19.35 seconds
-            rockey y position begins changing at tick 35556760
-            rocket starts visually moving out of silo at tick 35556420
-            = 780 ticks of not moving in y coords, 13 seconds
-            = 440 ticks of not visually moving, 7.333 seconds
-            = 721 ticks of visually moving, 12.016 seconds
-            =========================
-            starting position = 199.5
-            ending position = -49.39453125
-            = 168.89453125 total distance traveled by rocket
-            =========================
-            168.89453125 / 721 = 0.2342503901 tiles/tick
-          --]]
-
-          --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
-          --[[
-          if created_waypoints[1].transition_time > (440) then
-            created_waypoints[1].transition_time = 440
-          end
-          created_waypoints[1].time_to_wait = 0
-          created_waypoints[1].zoom = 0.5
-          --]]
-          --[[ set waypoint 2 to proper settings (goal: act as midpoint until rocket begins visually moving upwards)--]]
-          --[[
-          created_waypoints[2].transition_time = (440 - created_waypoints[1].transition_time)
-          if created_waypoints[2].transition_time < 0 then
-            created_waypoints[2].transition_time = 0
-          end
-          created_waypoints[2].time_to_wait = 0
-          created_waypoints[2].zoom = 0.5
-          --]]
-          --[[ set waypoint 3 to proper settings (goal: closely follow the rocket entity, but let it disapear right before it's destroyed) --]]
-          --[[
-            we need to add some additional time to transition_time in order for the camera to follow behind the rocket. That additional time should be determined by player.display_resolution somehow.
-            maybe let's just start by literally adding the value of player.display_resolution to our transition_time? I think we've tried that before but.. idk
-            if that doesn't work great, try multiplying display_resolution by zoom to get more accurate(?) pixel count?
-            and if that is also wonky, then i think we gotta figure out how to convert from display_resolution to time
-
-            at screen resolution 800 and zoom = .75 it's basically perfect, but at 474 the rocket is still in view
-          --]]
-
-          --[[
-          local tt = 1161 - created_waypoints[1].transition_time - created_waypoints[2].transition_time + (player.display_resolution.height / 2 * .45)
-          -- created_waypoints[3].transition_time = tt
-          -- created_waypoints[3].zoom = .45
-          game.print(serpent.block(created_waypoints))
-          --]]
-
           local transfer_alt_mode = player.game_view_settings.show_entity_info
           player.set_controller(
             {
@@ -1032,143 +952,6 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     end
   end
 end)
-
-if remote.interfaces["logistic-train-network"] then
-  script.on_event(remote.call("logistic-train-network", "on_delivery_pickup_complete"), ltn_pickup_complete(event))
-  script.on_event(remote.call("logistic-train-network", "on_delivery_completed"), ltn_delivery_complete(event))
-  script.on_event(remote.call("logistic-train-network", "on_delivery_failed"), ltn_delivery_failed(event))
-end
-
---[[ create a new cutscene following trains that just picked up a delivery, so we focus on trains that are delivering goods and not on the empty ones returning to the depots. --]]
-function ltn_pickup_complete(event)
-  local train_id = event.train_id
-  local planned_shipment = event.planned_shipment --[[{ [item], count } } --]]
-  local actual_shipment = event.actual_shipment --[[ { [item], count } } shipment updated to train inventory --]]
-  for a,b in pairs(global.trainsaver_status) do
-    if b == "active" then
-      local player_index = a
-      local player = game.get_player(player_index)
-      if global.ts_ltn_status and global.ts_ltn_status[player_index] and ((global.ts_ltn_status[player_index] == "following") or (global.ts_ltn_status[player_index] == "pending")) then
-        return
-      end
-      local found_locomotive = {}
-      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
-        found_locomotive[1] = global.followed_loco[player_index].loco
-      else
-        found_locomotive = player.surface.find_entities_filtered({
-          position = player.position,
-          radius = 1,
-          type = "locomotive",
-          limit = 1
-        })
-      end
-      if found_locomotive[1] then
-        local found_train = found_locomotive[1].train
-        local found_state = found_train.state
-        local train = {}
-        for c,d in pairs(player.surface.get_trains()) do
-          if d.id == train_id then
-            train = d
-            break
-          end
-        end
-
-        --[[ make sure we actually found the train, so if it's on a different surface or somehow vanished since we got the event or whatever then we don't crash and burn --]]
-        if not train.valid then
-          return
-        end
-
-        --[[ if the train we're currently following is on the path or arriving at signal or station, and player controller is cutscene, then if the train that generated the LTN event is the same train under the player, make sure we're following the leading locomotive. --]]
-        if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)) then
-
-          --[[ if camera is on train that generated LTN event, switch to leading locomotive --]]
-          if found_train.id == train_id then
-            if not global.create_cutscene_next_tick then
-              global.create_cutscene_next_tick = {}
-              global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-              if global.wait_at_signal and global.wait_at_signal[player_index] then
-                global.wait_at_signal[player_index] = nil
-              end
-              update_ts_ltn_status(player_index, "pending")
-            else
-              global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-              if global.wait_at_signal and global.wait_at_signal[player_index] then
-                global.wait_at_signal[player_index] = nil
-              end
-              update_ts_ltn_status(player_index, "pending")
-            end
-          end
-        else
-
-          --[[ if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the LTN event on the next tick --]]
-          if not global.create_cutscene_next_tick then
-            global.create_cutscene_next_tick = {}
-            global.create_cutscene_next_tick[player_index] = {train, player_index}
-            update_ts_ltn_status(player_index, "pending")
-          else
-            global.create_cutscene_next_tick[player_index] = {train, player_index}
-            update_ts_ltn_status(player_index, "pending")
-          end
-        end
-      end
-    end
-  end
-end
-
---[[ when an LTN delivery is complete, set the ltn_status global to "waiting" so that we can create a new cutscene even if the target train is already on the path back to the depot, because it doesn't matter --]]
-function ltn_delivery_complete(event)
-  local train_id = event.train_id
-  local shipment = event.shipment --[[ { [item], count } } --]]
-
-  for a,b in pairs(global.trainsaver_status) do
-    if b == "active" then
-      local player_index = a
-      local player = game.get_player(player_index)
-      local found_locomotive = {}
-      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
-        found_locomotive[1] = global.followed_loco[player_index].loco
-      else
-        found_locomotive = player.surface.find_entities_filtered({
-          position = player.position,
-          radius = 1,
-          type = "locomotive",
-          limit = 1
-        })
-      end
-      if found_locomotive[1] then
-        local train = {}
-        for c,d in pairs(player.surface.get_trains()) do
-          if d.id == train_id then
-            train = d
-            break
-          end
-        end
-
-        --[[ make sure we actually found the train, so if it's on a different surface or somehow vanished since we got the event or whatever then we don't crash and burn --]]
-        if not train.valid then
-          return
-        end
-
-        if train.id == train_id then
-          update_ts_ltn_status(player_index, "waiting")
-        end
-      end
-    end
-  end
-end
-
-function ltn_delivery_failed(event)
-  ltn_delivery_complete(event)
-end
-
-function update_ts_ltn_status(player_index, status)
-  if not global.ts_ltn_status then
-    global.ts_ltn_status = {}
-    global.ts_ltn_status[player_index] = status
-  else
-    global.ts_ltn_status[player_index] = status
-  end
-end
 
 --[[
 Remote Interface:
