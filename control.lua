@@ -835,6 +835,10 @@ script.on_event("open-train-gui-trainsaver", function(event)
   game_control_pressed(event)
 end)
 
+script.on_event("toggle-driving-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
 script.on_event("toggle-menu-trainsaver", function(event)
   local player = game.get_player(event.player_index)
   if player.controller_type == defines.controllers.cutscene then
