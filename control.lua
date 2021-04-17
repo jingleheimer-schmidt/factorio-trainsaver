@@ -296,7 +296,7 @@ function end_trainsaver(command)
         local mod_settings = player.mod_settings
         local waypoint_target = player.cutscene_character or player.character
         local tt = {}
-        local wt = 30
+        local wt = 60
         local z = {}
         if mod_settings["ts-transition-speed"].value > 0 then
           local speed_kmph = mod_settings["ts-transition-speed"].value
