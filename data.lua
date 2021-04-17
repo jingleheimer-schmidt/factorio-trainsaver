@@ -79,6 +79,15 @@ local openTrainGuiTrainsaverKey = {
   action = "lua",
 }
 
+local toggleDrivingTrainsaverKey = {
+  type = "custom-input",
+  name = "toggle-driving-trainsaver",
+  key_sequence = "",
+  linked_game_control = "toggle-driving",
+  enabled_while_in_cutscene = true,
+  action = "lua",
+}
+
 local selfReflectionAchievement = {
   type = "achievement",
   name = "trainsaver-self-reflection",
@@ -188,6 +197,7 @@ data:extend({
   openLogisticNetworkGuiTrainsaverKey,
   toggleMenuTrainsaverKey,
   openTrainGuiTrainsaverKey,
+  toggleDrivingTrainsaverKey,
   -- selfReflectionAchievement,
   -- findAFriendAchievement,
   -- continuousTenMinutesAchievement,

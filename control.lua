@@ -286,32 +286,97 @@ function end_trainsaver(command)
         return
       end
     end
-    player.exit_cutscene()
-    if global.followed_loco and global.followed_loco[player_index] then
-      global.followed_loco[player_index] = nil
-    end
-    if global.create_cutscene_next_tick and global.create_cutscene_next_tick[player_index] then
-      global.create_cutscene_next_tick[player_index] = nil
-    end
-    if global.wait_at_signal and global.wait_at_signal[player_index] then
-      global.wait_at_signal[player_index]= nil
-    end
-    if global.entity_destroyed_registration_numbers and global.entity_destroyed_registration_numbers[player_index] then
-      global.entity_destroyed_registration_numbers[player_index] = nil
-    end
-    if global.rocket_positions and global.rocket_positions[player_index] then
-      global.rocket_positions[player_index] = nil
-    end
-    if global.trainsaver_status and global.trainsaver_status[player_index] then
-      global.trainsaver_status[player_index] = nil
-    end
-    if global.current_continuous_duration and global.current_continuous_duration[player_index] then
-      global.current_continuous_duration[player_index] = nil
-    end
-    if global.current_target and global.current_target[player_index] then
-      global.current_target[player_index] = nil
+    --[[ create a new cutscene from current position back to cutscene character position so the exit is nice and smooth. If it's triggered while already going back to cutscene character, then exit immediately instead.  --]]
+    if (command.ending_transition and (command.ending_transition == true)) then
+      if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
+        player.exit_cutscene()
+      elseif not (player.cutscene_character or player.character) then
+        player.exit_cutscene()
+      else
+        local mod_settings = player.mod_settings
+        local waypoint_target = player.cutscene_character or player.character
+        local tt = {}
+        local wt = 30
+        local z = {}
+        if mod_settings["ts-transition-speed"].value > 0 then
+          local speed_kmph = mod_settings["ts-transition-speed"].value
+          local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
+          tt = convert_speed_into_time(speed_kmph, distance_in_meters)
+        else
+          tt = mod_settings["ts-transition-time"].value * 60
+        end
+        if mod_settings["ts-variable-zoom"].value == true then
+          local temp_zoom = mod_settings["ts-zoom"].value
+          z = (math.random(((temp_zoom - (temp_zoom*.20))*1000),(((temp_zoom + (temp_zoom*.20)))*1000)))/1000
+        else
+          z = mod_settings["ts-zoom"].value
+        end
+        local created_waypoints = {
+          {
+            target = waypoint_target,
+            transition_time = tt,
+            time_to_wait = wt,
+            zoom = z
+          },
+        }
+        if player.surface.index ~= created_waypoints[1].target.surface.index then
+          player.exit_cutscene()
+        end
+        local transfer_alt_mode = player.game_view_settings.show_entity_info
+        player.set_controller(
+          {
+            type = defines.controllers.cutscene,
+            waypoints = created_waypoints,
+            start_position = player.position,
+          }
+        )
+        player.game_view_settings.show_entity_info = transfer_alt_mode
+        if not global.cutscene_ending then
+          global.cutscene_ending = {}
+          global.cutscene_ending[player_index] = true
+        else
+          global.cutscene_ending[player_index] = true
+        end
+      end
+    else
+      player.exit_cutscene()
     end
   else
+  end
+end
+
+--[[ whenever a cutscene ends for any reason, nil out any globals we saved for them. --]]
+script.on_event(defines.events.on_cutscene_cancelled, function(event)
+  cutscene_ended_nil_globals(event.player_index)
+end)
+
+function cutscene_ended_nil_globals(player_index)
+  if global.followed_loco and global.followed_loco[player_index] then
+    global.followed_loco[player_index] = nil
+  end
+  if global.create_cutscene_next_tick and global.create_cutscene_next_tick[player_index] then
+    global.create_cutscene_next_tick[player_index] = nil
+  end
+  if global.wait_at_signal and global.wait_at_signal[player_index] then
+    global.wait_at_signal[player_index]= nil
+  end
+  if global.entity_destroyed_registration_numbers and global.entity_destroyed_registration_numbers[player_index] then
+    global.entity_destroyed_registration_numbers[player_index] = nil
+  end
+  if global.rocket_positions and global.rocket_positions[player_index] then
+    global.rocket_positions[player_index] = nil
+  end
+  if global.trainsaver_status and global.trainsaver_status[player_index] then
+    global.trainsaver_status[player_index] = nil
+  end
+  if global.current_continuous_duration and global.current_continuous_duration[player_index] then
+    global.current_continuous_duration[player_index] = nil
+  end
+  if global.current_target and global.current_target[player_index] then
+    global.current_target[player_index] = nil
+  end
+  if global.cutscene_ending and global.cutscene_ending[player_index] then
+    global.cutscene_ending[player_index] = nil
   end
 end
 
@@ -795,7 +860,7 @@ script.on_event("toggle-trainsaver", function(event)
     local command = {name = "trainsaver", player_index = event.player_index}
     start_trainsaver(command)
   elseif player.controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
+    local command = {player_index = event.player_index, ending_transition = true}
     end_trainsaver(command)
   end
 end)
@@ -810,7 +875,7 @@ end)
 
 script.on_event("end-trainsaver", function(event)
   if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index}
+    local command = {player_index = event.player_index, ending_transition = true}
     end_trainsaver(command)
   end
 end)
@@ -832,6 +897,10 @@ script.on_event("open-logistic-netowrk-trainsaver", function(event)
 end)
 
 script.on_event("open-train-gui-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("toggle-driving-trainsaver", function(event)
   game_control_pressed(event)
 end)
 
