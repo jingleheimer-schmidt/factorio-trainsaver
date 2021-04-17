@@ -258,7 +258,7 @@ function create_waypoint(waypoint_target, player_index)
     local waypoint_2 = {
       target = player.cutscene_character,
       transition_time = tt_2,
-      time_to_wait = 30,
+      time_to_wait = 60,
       zoom = z
     }
     table.insert(created_waypoints, waypoint_2)
@@ -266,7 +266,7 @@ function create_waypoint(waypoint_target, player_index)
     local waypoint_2 = {
       target = player.character,
       transition_time = tt_2,
-      time_to_wait = 30,
+      time_to_wait = 60,
       zoom = z
     }
     table.insert(created_waypoints, waypoint_2)
