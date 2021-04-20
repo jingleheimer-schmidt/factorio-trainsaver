@@ -345,9 +345,16 @@ function end_trainsaver(command)
   end
 end
 
---[[ whenever a cutscene ends for any reason, nil out any globals we saved for them. --]]
+--[[ when a cutscene is cancelled with player.exit_cutscene(), nil out any globals we saved for them. --]]
 script.on_event(defines.events.on_cutscene_cancelled, function(event)
   cutscene_ended_nil_globals(event.player_index)
+end)
+
+--[[ nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both.. --]]
+script.on_event(defines.events.on_cutscene_waypoint_reached, function(event)
+  if global.cutscene_ending and global.cutscene_ending[event.player_index] and global.cutscene_ending[event.player_index] == true then
+    cutscene_ended_nil_globals(event.player_index)
+  end
 end)
 
 function cutscene_ended_nil_globals(player_index)
