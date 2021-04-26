@@ -354,6 +354,8 @@ end)
 script.on_event(defines.events.on_cutscene_waypoint_reached, function(event)
   if global.cutscene_ending and global.cutscene_ending[event.player_index] and global.cutscene_ending[event.player_index] == true then
     cutscene_ended_nil_globals(event.player_index)
+  elseif global.number_of_waypoints and global.number_of_waypoints[player_index] and global.number_of_waypoints[player_index] == event.waypoint_index then
+    cutscene_ended_nil_globals(event.player_index)
   end
 end)
 
@@ -384,6 +386,9 @@ function cutscene_ended_nil_globals(player_index)
   end
   if global.cutscene_ending and global.cutscene_ending[player_index] then
     global.cutscene_ending[player_index] = nil
+  end
+  if global.number_of_waypoints and global.number_of_waypoints[player_index] then
+    global.number_of_waypoints[player_index] = nil
   end
 end
 
@@ -478,6 +483,12 @@ function update_globals_new_cutscene(player_index, created_waypoints)
     global.current_target[player_index] = created_waypoints[1].target
   else
     global.current_target[player_index] = created_waypoints[1].target
+  end
+  if not global.number_of_waypoints then
+    global.number_of_waypoints = {}
+    global.number_of_waypoints[player_index] = #created_waypoints
+  else
+    global.number_of_waypoints[player_index] = #created_waypoints
   end
 end
 
