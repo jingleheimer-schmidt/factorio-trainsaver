@@ -6,6 +6,8 @@ Date: TBD
     - increased variable zoom modifier from ±15% to ±20%
     - updated mod setting names and descriptions for clarity and readability
     - fixed that the camera would not consistently pan back to player character when trainsaver was ending due to inactivity while transition time was greater than 0
+    - trainsaver will now always pan back to player character when exited, depending on user-set transition speed or time
+    - added a half-second delay before UI and game controls are active when trainsaver is exited
     - increased minimum value for inactivity timeout setting from 1 second to 1 minute
     - added remote interface for other mods to check if trainsaver is active for a given player
     - added remote interface for other mods to get the currently followed target for a given player
