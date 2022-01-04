@@ -872,8 +872,7 @@ script.on_nth_tick(600, function()
   end
 end)
 
---[[ start or end trainsaver based on various hotkeys and settings --]]
-script.on_event("toggle-trainsaver", function(event)
+function start_or_end_trainsaver(event)
   local player = game.get_player(event.player_index)
   if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
     local command = {name = "trainsaver", player_index = event.player_index}
@@ -882,14 +881,15 @@ script.on_event("toggle-trainsaver", function(event)
     local command = {player_index = event.player_index, ending_transition = true}
     end_trainsaver(command)
   end
+end
+
+--[[ start or end trainsaver based on various hotkeys and settings --]]
+script.on_event("toggle-trainsaver", function(event)
+  start_or_end_trainsaver(event)
 end)
 
 script.on_event("start-trainsaver", function(event)
-  local player = game.get_player(event.player_index)
-  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
-    local command = {name = "trainsaver", player_index = event.player_index}
-    start_trainsaver(command)
-  end
+  start_or_end_trainsaver(event)
 end)
 
 script.on_event("end-trainsaver", function(event)
