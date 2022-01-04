@@ -281,6 +281,7 @@ function end_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   if player.controller_type == defines.controllers.cutscene then
+    --[[ if the cutscene creator mod created the cutscene, don't cancel it --]]
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
