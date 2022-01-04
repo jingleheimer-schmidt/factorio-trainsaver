@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.13
+Date: 09JAN2022
+  Changes:
+    - added 12 custom trainsaver achievements
+    - added mod setting to enable notification of certain special events
+    - updated the /trainsaver console command to match the toggle hotkey behavior, which will end trainsaver if it is already active
+    - fixed minor inconsistencies in mod setting capitalizations
+    - updated thumbnail
+    - updated mod license
+---------------------------------------------------------------------------------------------------
 Version: 0.0.12
 Date: 2021-05-09
   Changes:
