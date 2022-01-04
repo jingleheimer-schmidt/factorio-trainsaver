@@ -428,14 +428,24 @@ function play_cutscene(created_waypoints, player_index)
   update_globals_new_cutscene(player_index, created_waypoints)
 
   --[[ unlock any achievements if possible --]]
-  --[[
+  ---[[
   if created_waypoints[1].target.train.passengers then
     for a,b in pairs(created_waypoints[1].target.train.passengers) do
       if b.index == player.index then
         player.unlock_achievement("trainsaver-self-reflection")
+        for c,d in pairs(game.connected_players) do
+          if d.mod_settings["ts-notable-events"].value == true then
+            d.print("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
+          end
+        end
       end
       if b.index ~= player.index then
         player.unlock_achievement("trainsaver-find-a-friend")
+        for c,d in pairs(game.connected_players) do
+          if d.mod_settings["ts-notable-events"].value == true then
+            d.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..b.name.." riding a train")
+          end
+        end
       end
     end
   end
@@ -444,6 +454,11 @@ function play_cutscene(created_waypoints, player_index)
     local remaining_path_distance = path.total_distance - path.travelled_distance
     if remaining_path_distance > 1000000 then
       player.unlock_achievement("trainsaver-long-haul")
+      for c,d in pairs(game.connected_players) do
+        if d.mod_settings["ts-notable-events"].value == true then
+          d.print("[color=orange]trainsaver:[/color] "..player.name.." saw a train with "..remaining_path_distance/1000.."km remaining in its journey")
+        end
+      end
     end
   end
   --]]
@@ -606,10 +621,27 @@ function character_damaged(character_damaged_event)
     if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[b.index] and (global.trainsaver_status[b.index] == "active")) then
       local command = {player_index = b.index}
       end_trainsaver(command)
-      --[[
+      ---[[
       b.unlock_achievement("trainsaver-character-damaged")
+      ---[[
+      for c,d in pairs(game.connected_players) do
+        if d.mod_settings["ts-notable-events"].value == true then
+          if character_damaged_event.cause and character_damaged_event.cause.name then
+            local damager_name = character_damaged_event.cause.localised_name or character_damaged_event.cause.name
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt by "..damager_name.." while watching the trains")
+          else
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt while watching the trains")
+          end
+        end
+      end
+      --]]
       if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
         b.unlock_achievement("trainsaver-damaged-by-followed-train")
+        for c,d in pairs(game.connected_players) do
+          if d.mod_settings["ts-notable-events"].value == true then
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hit by the train they were watching")
+          end
+        end
       end
       --]]
     end
@@ -650,8 +682,13 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
             global.rocket_positions[player_index] = nil
             --]]
-            --[[
+            ---[[
             player.unlock_achievement("trainsaver-a-spectacular-view")
+            for c,d in pairs(game.connected_players) do
+              if d.mod_settings["ts-notable-events"].value == true then
+                d.print("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
+              end
+            end
             --]]
             start_trainsaver(command)
           end
