@@ -456,7 +456,7 @@ function play_cutscene(created_waypoints, player_index)
       player.unlock_achievement("trainsaver-long-haul")
       for c,d in pairs(game.connected_players) do
         if d.mod_settings["ts-notable-events"].value == true then
-          d.print("[color=orange]trainsaver:[/color] "..player.name.." saw a train with "..remaining_path_distance/1000.."km remaining in its journey")
+          d.print("[color=orange]trainsaver:[/color] "..player.name.." is watching a train with "..remaining_path_distance/1000.."km remaining in its journey")
         end
       end
     end
@@ -723,8 +723,8 @@ script.on_event(defines.events.on_tick, function()
   cutscene_next_tick_function()
   --[[
   save_rocket_positions()
+    --]]
   check_achievements()
-  --]]
 end)
 
 function cutscene_next_tick_function()
