@@ -112,7 +112,7 @@ local continuousTenMinutesAchievement = {
   order = "t[secret]-b[1][continuous-10-minutes]",
   icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local continuousThirtyMinutesAchievement = {
@@ -121,7 +121,7 @@ local continuousThirtyMinutesAchievement = {
   order = "t[secret]-b[2][continuous-30-minutes]",
   icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local continuousOneHourAchievement = {
@@ -130,7 +130,7 @@ local continuousOneHourAchievement = {
   order = "t[secret]-b[3][continuous-60-minutes]",
   icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalOneHoursAchievement = {
@@ -139,7 +139,7 @@ local totalOneHoursAchievement = {
   order = "t[secret]-c[1][1-hours-total]",
   icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalTwoHoursAchievement = {
@@ -148,7 +148,7 @@ local totalTwoHoursAchievement = {
   order = "t[secret]-c[2][2-hours-total]",
   icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalFiveHoursAchievement = {
@@ -157,7 +157,7 @@ local totalFiveHoursAchievement = {
   order = "t[secret]-c[3][5-hours-total]",
   icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local rocketLaunchedAchievement = {
@@ -191,9 +191,9 @@ local theLongHaulAchievement = {
   type = "achievement",
   name = "trainsaver-long-haul",
   order = "t[secret]-a[3][long-haul]",
-  icon = "__base__/graphics/achievement/watch-your-step.png",
+  icon = "__base__/graphics/achievement/trans-factorio-express.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 data:extend({
@@ -207,7 +207,7 @@ data:extend({
   toggleMenuTrainsaverKey,
   openTrainGuiTrainsaverKey,
   toggleDrivingTrainsaverKey,
-  selfReflectionAchievement,
+  -- selfReflectionAchievement,
   findAFriendAchievement,
   continuousTenMinutesAchievement,
   continuousThirtyMinutesAchievement,
