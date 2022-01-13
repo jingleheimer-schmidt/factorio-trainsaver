@@ -736,6 +736,11 @@ function cutscene_next_tick_function()
       local player_index = b[2]
       local player = game.get_player(player_index)
 
+      --[[ don't create the cutscene if they've requested to end and we're going back to their character --]]
+      if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
+        return
+      end
+
       --[[ make sure the player is still connected --]]
       if not player.connected then
         return
