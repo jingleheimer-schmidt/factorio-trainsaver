@@ -1,10 +1,12 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.13
-Date: 09JAN2022
+Date: 12JAN2022
   Changes:
-    - added 12 custom trainsaver achievements
+    - added 8 custom trainsaver achievements (and 3 secret hidden ones!)
     - added mod setting to enable notification of certain special events
     - updated the /trainsaver console command to match the toggle hotkey behavior, which will end trainsaver if it is already active
+    - fixed that trainsaver could sometimes target a new train after player requested to exit and the camera was traveling back to their character
+    - fixed crash when the space exploration mod invalidated a train in the tick between a cutscene being ordered and executed
     - fixed minor inconsistencies in mod setting capitalizations
     - updated thumbnail
     - updated mod license
