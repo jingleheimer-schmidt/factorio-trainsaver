@@ -742,7 +742,7 @@ function cutscene_next_tick_function()
       end
 
       --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
-      if not (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
+      if not (target_train.valid or target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
         return
       end
 
