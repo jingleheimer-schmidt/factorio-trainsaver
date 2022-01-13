@@ -187,6 +187,15 @@ local damagedByFollowedTrainAchievement = {
   hidden = true,
 }
 
+local theLongHaulAchievement = {
+  type = "achievement",
+  name = "trainsaver-long-haul",
+  order = "t[secret]-a[3][long-haul]",
+  icon = "__base__/graphics/achievement/watch-your-step.png",
+  icon_size = 128,
+  hidden = true,
+}
+
 data:extend({
   toggleTrainsaverKey,
   startTrainsaverKey,
@@ -209,4 +218,5 @@ data:extend({
   rocketLaunchedAchievement,
   characterDamagedAchievement,
   damagedByFollowedTrainAchievement,
+  theLongHaulAchievement,
 })
