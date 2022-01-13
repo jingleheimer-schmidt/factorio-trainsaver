@@ -839,7 +839,8 @@ function check_achievements()
   if global.trainsaver_status then
     for a,b in pairs(global.trainsaver_status) do
       if b == "active" then
-        if not game.get_player(a).connected then
+        local player = game.get_player(a)
+        if not player.connected then
           return
         end
         --[[ update continuous duration timer global data --]]
@@ -853,13 +854,13 @@ function check_achievements()
             global.current_continuous_duration[a] = global.current_continuous_duration[a] + 1
             local continuous_duration = global.current_continuous_duration[a]
             if continuous_duration == (60 * 60 * 10) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-10-minutes")
+              player.unlock_achievement("trainsaver-continuous-10-minutes")
             end
             if continuous_duration == (60 * 60 * 30) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-30-minutes")
+              player.unlock_achievement("trainsaver-continuous-30-minutes")
             end
             if continuous_duration == (60 * 60 * 60) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-60-minutes")
+              player.unlock_achievement("trainsaver-continuous-60-minutes")
             end
           end
         end
@@ -874,13 +875,13 @@ function check_achievements()
             global.total_duration[a] = global.total_duration[a] + 1
             local total_duration = global.total_duration[a]
             if total_duration == (60 * 60 * 60 * 1) then
-              game.get_player(a).unlock_achievement("trainsaver-1-hours-total")
+              player.unlock_achievement("trainsaver-1-hours-total")
             end
             if total_duration == (60 * 60 * 60 * 2) then
-              game.get_player(a).unlock_achievement("trainsaver-2-hours-total")
+              player.unlock_achievement("trainsaver-2-hours-total")
             end
             if total_duration == (60 * 60 * 60 * 5) then
-              game.get_player(a).unlock_achievement("trainsaver-5-hours-total")
+              player.unlock_achievement("trainsaver-5-hours-total")
             end
           end
         end
