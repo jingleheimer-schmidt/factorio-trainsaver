@@ -272,7 +272,6 @@ function create_waypoint(waypoint_target, player_index)
     table.insert(created_waypoints, waypoint_2)
   else
   end
-
   return created_waypoints
 end
 
@@ -406,6 +405,7 @@ function play_cutscene(created_waypoints, player_index)
       return
     end
   end
+
   --[[ abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case --]]
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
@@ -423,32 +423,35 @@ function play_cutscene(created_waypoints, player_index)
       --[[ final_transition_time = tt --]]
     }
   )
+
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
   update_globals_new_cutscene(player_index, created_waypoints)
 
   --[[ unlock any achievements if possible --]]
   ---[[
-  if created_waypoints[1].target.train.passengers then
-    for a,b in pairs(created_waypoints[1].target.train.passengers) do
-      if b.index == player.index then
-        player.unlock_achievement("trainsaver-self-reflection")
-        for c,d in pairs(game.connected_players) do
-          if d.mod_settings["ts-notable-events"].value == true then
-            d.print("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
+    if created_waypoints[1].target.train.passengers then
+      for a,b in pairs(created_waypoints[1].target.train.passengers) do
+        --[[
+        if b.index == player.index then
+          player.unlock_achievement("trainsaver-self-reflection")
+          for c,d in pairs(game.connected_players) do
+            if d.mod_settings["ts-notable-events"].value == true then
+              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
+            end
           end
         end
-      end
-      if b.index ~= player.index then
-        player.unlock_achievement("trainsaver-find-a-friend")
-        for c,d in pairs(game.connected_players) do
-          if d.mod_settings["ts-notable-events"].value == true then
-            d.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..b.name.." riding a train")
+        --]]
+        if b.index ~= player.index then
+          player.unlock_achievement("trainsaver-find-a-friend")
+          for c,d in pairs(game.connected_players) do
+            if d.mod_settings["ts-notable-events"].value == true then
+              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..b.name.." riding a train")
+            end
           end
         end
       end
     end
-  end
   if created_waypoints[1].target.train.path then
     local path = created_waypoints[1].target.train.path
     local remaining_path_distance = path.total_distance - path.travelled_distance
@@ -619,15 +622,14 @@ function character_damaged(character_damaged_event)
   local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
     if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[b.index] and (global.trainsaver_status[b.index] == "active")) then
-      local command = {player_index = b.index}
-      end_trainsaver(command)
       ---[[
       b.unlock_achievement("trainsaver-character-damaged")
       ---[[
       for c,d in pairs(game.connected_players) do
         if d.mod_settings["ts-notable-events"].value == true then
           if character_damaged_event.cause and character_damaged_event.cause.name then
-            local damager_name = character_damaged_event.cause.localised_name or character_damaged_event.cause.name
+            -- local damager_name = character_damaged_event.cause.localised_name or character_damaged_event.cause.name
+            local damager_name = character_damaged_event.cause.name
             d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt by "..damager_name.." while watching the trains")
           else
             d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt while watching the trains")
@@ -644,6 +646,8 @@ function character_damaged(character_damaged_event)
         end
       end
       --]]
+      local command = {player_index = b.index}
+      end_trainsaver(command)
     end
   end
 end
