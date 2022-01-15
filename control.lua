@@ -272,7 +272,6 @@ function create_waypoint(waypoint_target, player_index)
     table.insert(created_waypoints, waypoint_2)
   else
   end
-
   return created_waypoints
 end
 
@@ -281,6 +280,7 @@ function end_trainsaver(command)
   local player_index = command.player_index
   local player = game.get_player(player_index)
   if player.controller_type == defines.controllers.cutscene then
+    --[[ if the cutscene creator mod created the cutscene, don't cancel it --]]
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
@@ -405,6 +405,7 @@ function play_cutscene(created_waypoints, player_index)
       return
     end
   end
+
   --[[ abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case --]]
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     return
@@ -422,27 +423,45 @@ function play_cutscene(created_waypoints, player_index)
       --[[ final_transition_time = tt --]]
     }
   )
+
   --[[ reset alt-mode to what it was before cutscene controller reset it --]]
   player.game_view_settings.show_entity_info = transfer_alt_mode
   update_globals_new_cutscene(player_index, created_waypoints)
 
   --[[ unlock any achievements if possible --]]
-  --[[
-  if created_waypoints[1].target.train.passengers then
-    for a,b in pairs(created_waypoints[1].target.train.passengers) do
-      if b.index == player.index then
-        player.unlock_achievement("trainsaver-self-reflection")
-      end
-      if b.index ~= player.index then
-        player.unlock_achievement("trainsaver-find-a-friend")
+  ---[[
+    if created_waypoints[1].target.train.passengers then
+      for a,b in pairs(created_waypoints[1].target.train.passengers) do
+        --[[
+        if b.index == player.index then
+          player.unlock_achievement("trainsaver-self-reflection")
+          for c,d in pairs(game.connected_players) do
+            if d.mod_settings["ts-notable-events"].value == true then
+              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
+            end
+          end
+        end
+        --]]
+        if b.index ~= player.index then
+          player.unlock_achievement("trainsaver-find-a-friend")
+          for c,d in pairs(game.connected_players) do
+            if d.mod_settings["ts-notable-events"].value == true then
+              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..b.name.." riding a train")
+            end
+          end
+        end
       end
     end
-  end
   if created_waypoints[1].target.train.path then
     local path = created_waypoints[1].target.train.path
     local remaining_path_distance = path.total_distance - path.travelled_distance
     if remaining_path_distance > 1000000 then
       player.unlock_achievement("trainsaver-long-haul")
+      for c,d in pairs(game.connected_players) do
+        if d.mod_settings["ts-notable-events"].value == true then
+          d.print("[color=orange]trainsaver:[/color] "..player.name.." is watching a train with ".. remaining_path_distance/1000 .."km remaining in its journey")
+        end
+      end
     end
   end
   --]]
@@ -603,14 +622,32 @@ function character_damaged(character_damaged_event)
   local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
     if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[b.index] and (global.trainsaver_status[b.index] == "active")) then
-      local command = {player_index = b.index}
-      end_trainsaver(command)
-      --[[
+      ---[[
       b.unlock_achievement("trainsaver-character-damaged")
-      if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
-        b.unlock_achievement("trainsaver-damaged-by-followed-train")
+      ---[[
+      for c,d in pairs(game.connected_players) do
+        if d.mod_settings["ts-notable-events"].value == true then
+          if character_damaged_event.cause and character_damaged_event.cause.name then
+            -- local damager_name = character_damaged_event.cause.localised_name or character_damaged_event.cause.name
+            local damager_name = character_damaged_event.cause.name
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt by "..damager_name.." while watching the trains")
+          else
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt while watching the trains")
+          end
+        end
       end
       --]]
+      if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
+        b.unlock_achievement("trainsaver-damaged-by-followed-train")
+        for c,d in pairs(game.connected_players) do
+          if d.mod_settings["ts-notable-events"].value == true then
+            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hit by the train they were watching")
+          end
+        end
+      end
+      --]]
+      local command = {player_index = b.index}
+      end_trainsaver(command)
     end
   end
 end
@@ -649,8 +686,13 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
             global.rocket_positions[player_index] = nil
             --]]
-            --[[
+            ---[[
             player.unlock_achievement("trainsaver-a-spectacular-view")
+            for c,d in pairs(game.connected_players) do
+              if d.mod_settings["ts-notable-events"].value == true then
+                d.print("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
+              end
+            end
             --]]
             start_trainsaver(command)
           end
@@ -685,8 +727,8 @@ script.on_event(defines.events.on_tick, function()
   cutscene_next_tick_function()
   --[[
   save_rocket_positions()
+    --]]
   check_achievements()
-  --]]
 end)
 
 function cutscene_next_tick_function()
@@ -698,13 +740,19 @@ function cutscene_next_tick_function()
       local player_index = b[2]
       local player = game.get_player(player_index)
 
+      --[[ don't create the cutscene if they've requested to end and we're going back to their character --]]
+      if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
+        return
+      end
+
       --[[ make sure the player is still connected --]]
       if not player.connected then
         return
       end
 
       --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
-      if not (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
+      if not (target_train.valid or target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
+        global.create_cutscene_next_tick[player_index] = nil
         return
       end
 
@@ -800,7 +848,8 @@ function check_achievements()
   if global.trainsaver_status then
     for a,b in pairs(global.trainsaver_status) do
       if b == "active" then
-        if not game.get_player(a).connected then
+        local player = game.get_player(a)
+        if not player.connected then
           return
         end
         --[[ update continuous duration timer global data --]]
@@ -814,13 +863,13 @@ function check_achievements()
             global.current_continuous_duration[a] = global.current_continuous_duration[a] + 1
             local continuous_duration = global.current_continuous_duration[a]
             if continuous_duration == (60 * 60 * 10) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-10-minutes")
+              player.unlock_achievement("trainsaver-continuous-10-minutes")
             end
             if continuous_duration == (60 * 60 * 30) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-30-minutes")
+              player.unlock_achievement("trainsaver-continuous-30-minutes")
             end
             if continuous_duration == (60 * 60 * 60) then
-              game.get_player(a).unlock_achievement("trainsaver-continuous-60-minutes")
+              player.unlock_achievement("trainsaver-continuous-60-minutes")
             end
           end
         end
@@ -835,13 +884,13 @@ function check_achievements()
             global.total_duration[a] = global.total_duration[a] + 1
             local total_duration = global.total_duration[a]
             if total_duration == (60 * 60 * 60 * 1) then
-              game.get_player(a).unlock_achievement("trainsaver-1-hours-total")
+              player.unlock_achievement("trainsaver-1-hours-total")
             end
             if total_duration == (60 * 60 * 60 * 2) then
-              game.get_player(a).unlock_achievement("trainsaver-2-hours-total")
+              player.unlock_achievement("trainsaver-2-hours-total")
             end
             if total_duration == (60 * 60 * 60 * 5) then
-              game.get_player(a).unlock_achievement("trainsaver-5-hours-total")
+              player.unlock_achievement("trainsaver-5-hours-total")
             end
           end
         end
@@ -871,8 +920,7 @@ script.on_nth_tick(600, function()
   end
 end)
 
---[[ start or end trainsaver based on various hotkeys and settings --]]
-script.on_event("toggle-trainsaver", function(event)
+function start_or_end_trainsaver(event)
   local player = game.get_player(event.player_index)
   if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
     local command = {name = "trainsaver", player_index = event.player_index}
@@ -881,14 +929,15 @@ script.on_event("toggle-trainsaver", function(event)
     local command = {player_index = event.player_index, ending_transition = true}
     end_trainsaver(command)
   end
+end
+
+--[[ start or end trainsaver based on various hotkeys and settings --]]
+script.on_event("toggle-trainsaver", function(event)
+  start_or_end_trainsaver(event)
 end)
 
 script.on_event("start-trainsaver", function(event)
-  local player = game.get_player(event.player_index)
-  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
-    local command = {name = "trainsaver", player_index = event.player_index}
-    start_trainsaver(command)
-  end
+  start_or_end_trainsaver(event)
 end)
 
 script.on_event("end-trainsaver", function(event)

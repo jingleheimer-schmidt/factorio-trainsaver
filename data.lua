@@ -92,79 +92,79 @@ local selfReflectionAchievement = {
   type = "achievement",
   name = "trainsaver-self-reflection",
   order = "t[secret]-a[1][self-reflection]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/lazy-bastard.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local findAFriendAchievement = {
   type = "achievement",
   name = "trainsaver-find-a-friend",
   order = "t[secret]-a[2][find-a-friend]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/lazy-bastard.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local continuousTenMinutesAchievement = {
   type = "achievement",
   name = "trainsaver-continuous-10-minutes",
   order = "t[secret]-b[1][continuous-10-minutes]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local continuousThirtyMinutesAchievement = {
   type = "achievement",
   name = "trainsaver-continuous-30-minutes",
   order = "t[secret]-b[2][continuous-30-minutes]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local continuousOneHourAchievement = {
   type = "achievement",
   name = "trainsaver-continuous-60-minutes",
   order = "t[secret]-b[3][continuous-60-minutes]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalOneHoursAchievement = {
   type = "achievement",
   name = "trainsaver-1-hours-total",
   order = "t[secret]-c[1][1-hours-total]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalTwoHoursAchievement = {
   type = "achievement",
   name = "trainsaver-2-hours-total",
   order = "t[secret]-c[2][2-hours-total]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local totalFiveHoursAchievement = {
   type = "achievement",
   name = "trainsaver-5-hours-total",
   order = "t[secret]-c[3][5-hours-total]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
   icon_size = 128,
-  hidden = true,
+  hidden = false,
 }
 
 local rocketLaunchedAchievement = {
   type = "achievement",
   name = "trainsaver-a-spectacular-view",
   order = "t[secret]-d[1][a-spectacular-view]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/smoke-me-a-kipper-i-will-be-back-for-breakfast.png",
   icon_size = 128,
   hidden = true,
 }
@@ -173,7 +173,7 @@ local characterDamagedAchievement = {
   type = "achievement",
   name = "trainsaver-character-damaged",
   order = "t[secret]-d[2][character-damaged]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/watch-your-step.png",
   icon_size = 128,
   hidden = true,
 }
@@ -182,9 +182,18 @@ local damagedByFollowedTrainAchievement = {
   type = "achievement",
   name = "trainsaver-damaged-by-followed-train",
   order = "t[secret]-d[3][damaged-by-followed-train]",
-  icon = "__base__/graphics/achievement/so-long-and-thanks-for-all-the-fish.png",
+  icon = "__base__/graphics/achievement/watch-your-step.png",
   icon_size = 128,
   hidden = true,
+}
+
+local theLongHaulAchievement = {
+  type = "achievement",
+  name = "trainsaver-long-haul",
+  order = "t[secret]-a[3][long-haul]",
+  icon = "__base__/graphics/achievement/trans-factorio-express.png",
+  icon_size = 128,
+  hidden = false,
 }
 
 data:extend({
@@ -199,14 +208,15 @@ data:extend({
   openTrainGuiTrainsaverKey,
   toggleDrivingTrainsaverKey,
   -- selfReflectionAchievement,
-  -- findAFriendAchievement,
-  -- continuousTenMinutesAchievement,
-  -- continuousThirtyMinutesAchievement,
-  -- continuousOneHourAchievement,
-  -- totalOneHoursAchievement,
-  -- totalTwoHoursAchievement,
-  -- totalFiveHoursAchievement,
-  -- rocketLaunchedAchievement,
-  -- characterDamagedAchievement,
-  -- damagedByFollowedTrainAchievement,
+  findAFriendAchievement,
+  continuousTenMinutesAchievement,
+  continuousThirtyMinutesAchievement,
+  continuousOneHourAchievement,
+  totalOneHoursAchievement,
+  totalTwoHoursAchievement,
+  totalFiveHoursAchievement,
+  rocketLaunchedAchievement,
+  characterDamagedAchievement,
+  damagedByFollowedTrainAchievement,
+  theLongHaulAchievement,
 })

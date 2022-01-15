@@ -94,6 +94,14 @@ local linkedGameControlEndsTrainsaverSetting = {
   order = "ts-j"
 }
 
+local notableEventAlerts = {
+  type = "bool-setting",
+  name = "ts-notable-events",
+  setting_type = "runtime-per-user",
+  default_value = true,
+  order = "ts-k"
+}
+
 local hiddenSecretsSetting = {
   type = "bool-setting",
   name = "ts-secrets",
@@ -114,5 +122,6 @@ data:extend({
   autoStartWhileViewingMapSetting,
   autoStartWhileGuiIsOpenSetting,
   linkedGameControlEndsTrainsaverSetting,
+  notableEventAlerts,
   hiddenSecretsSetting,
 })
