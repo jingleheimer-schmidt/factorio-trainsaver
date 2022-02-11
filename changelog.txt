@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.15
+Date: 10FEB2022
+  Changes:
+    - fixed that the camera could get stuck at origin [0,0] after the space exploration mod invalidated a train in the tick between a cutscene being ordered and executed
+---------------------------------------------------------------------------------------------------
 Version: 0.0.14
 Date: 14JAN2022
   Changes:
