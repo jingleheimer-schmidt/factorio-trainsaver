@@ -979,6 +979,38 @@ script.on_event("toggle-driving-trainsaver", function(event)
   game_control_pressed(event)
 end)
 
+script.on_event("move-up-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-down-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-right-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-left-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("toggle-map-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("shoot-enemy-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("open-kill-stats-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+-- script.on_event("toggle-driving-trainsaver", function(event)
+--   game_control_pressed(event)
+-- end)
+
 script.on_event("toggle-menu-trainsaver", function(event)
   local player = game.get_player(event.player_index)
   if player.controller_type == defines.controllers.cutscene then
