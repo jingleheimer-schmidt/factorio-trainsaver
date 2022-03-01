@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.16
+Date: 28FEB2022
+  Changes:
+    - allow movement, toggle-map, toggle-kill-stats, enter-vehicle, and shoot-enemy game key controls to escape transaver
+---------------------------------------------------------------------------------------------------
 Version: 0.0.15
 Date: 10FEB2022
   Changes:
