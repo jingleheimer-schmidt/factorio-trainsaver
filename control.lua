@@ -751,8 +751,16 @@ function cutscene_next_tick_function()
       end
 
       --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
-      if not (target_train.valid or target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid) then
+      if not (target_train.valid and (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid)) then
         global.create_cutscene_next_tick[player_index] = nil
+        --[[ trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh --]]
+        local command = {
+          name = "trainsaver",
+          player_index = player_index,
+          entity_gone_restart = "yes",
+          train_to_ignore = event.entity.train
+          }
+        start_trainsaver(command)
         return
       end
 
@@ -968,6 +976,30 @@ script.on_event("open-train-gui-trainsaver", function(event)
 end)
 
 script.on_event("toggle-driving-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-up-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-down-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-right-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("move-left-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("toggle-map-trainsaver", function(event)
+  game_control_pressed(event)
+end)
+
+script.on_event("shoot-enemy-trainsaver", function(event)
   game_control_pressed(event)
 end)
 
