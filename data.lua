@@ -142,24 +142,6 @@ local shootEnemyTrainsaverKey = {
   action = "lua",
 }
 
-local openKillStatsTrainsaverKey = {
-  type = "custom-input",
-  name = "open-kill-stats-trainsaver",
-  key_sequence = "",
-  linked_game_control = "kill-statistics",
-  enabled_while_in_cutscene = true,
-  action = "lua",
-}
-
--- local toggleDrivingTrainsaverKey = {
---   type = "custom-input",
---   name = "toggle-driving-trainsaver",
---   key_sequence = "",
---   linked_game_control = "toggle-driving",
---   enabled_while_in_cutscene = true,
---   action = "lua",
--- }
-
 local selfReflectionAchievement = {
   type = "achievement",
   name = "trainsaver-self-reflection",
@@ -285,8 +267,6 @@ data:extend({
   moveLeftTrainsaverKey,
   toggleMapTrainsaverKey,
   shootEnemyTrainsaverKey,
-  openKillStatsTrainsaverKey,
-  -- toggleDrivingTrainsaverKey,
   -- selfReflectionAchievement,
   findAFriendAchievement,
   continuousTenMinutesAchievement,
