@@ -455,13 +455,13 @@ function play_cutscene(created_waypoints, player_index)
   if created_waypoints[1].target.train.path then
     local path = created_waypoints[1].target.train.path
     local remaining_path_distance = path.total_distance - path.travelled_distance
-    if remaining_path_distance > 1000000 then
+    if remaining_path_distance > 10000 then
       player.unlock_achievement("trainsaver-long-haul")
-      for c,d in pairs(game.connected_players) do
-        if d.mod_settings["ts-notable-events"].value == true then
-          d.print("[color=orange]trainsaver:[/color] "..player.name.." is watching a train with ".. remaining_path_distance/1000 .."km remaining in its journey")
-        end
-      end
+      -- for c,d in pairs(game.connected_players) do
+      --   if d.mod_settings["ts-notable-events"].value == true then
+      --     d.print("[color=orange]trainsaver:[/color] "..player.name.." is watching a train with ".. remaining_path_distance/1000 .."km remaining in its journey")
+      --   end
+      -- end
     end
   end
   --]]
