@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.18
+Date: 07JUL2022
+  Changes:
+    - updated mod setting locale to remove duplicate info icon (factorio now adds this icon automatically)
+---------------------------------------------------------------------------------------------------
 Version: 0.0.17
 Date: 21MAR2022
   Changes:
