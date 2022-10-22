@@ -390,6 +390,12 @@ function cutscene_ended_nil_globals(player_index)
   if global.number_of_waypoints and global.number_of_waypoints[player_index] then
     global.number_of_waypoints[player_index] = nil
   end
+  if global.station_minimum and global.station_minimum[player_index] then 
+    global.station_minimum[player_index] = nil
+  end
+  if global.driving_minimum and global.driving_minimum[player_index] then 
+    global.driving_minimum[player_index] = nil 
+  end
 end
 
 --[[ set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :) --]]
@@ -503,11 +509,19 @@ function update_globals_new_cutscene(player_index, created_waypoints)
   else
     global.current_target[player_index] = created_waypoints[1].target
   end
+  --[[ update number of waypoints global --]]
   if not global.number_of_waypoints then
     global.number_of_waypoints = {}
     global.number_of_waypoints[player_index] = #created_waypoints
   else
     global.number_of_waypoints[player_index] = #created_waypoints
+  end
+  --[[ update driving minimum global --]]
+  if not global.driving_minimum then
+    global.driving_minimum = {}
+    global.driving_minimum[player_index] = game.tick
+  else
+    global.driving_minimum[player_index] = game.tick
   end
 end
 
@@ -515,6 +529,7 @@ end
 script.on_event(defines.events.on_train_changed_state, function(train_changed_state_event)
   train_changed_state(train_changed_state_event)
   update_wait_at_signal(train_changed_state_event)
+  update_wait_at_station(train_changed_state_event)
 end)
 
 function train_changed_state(train_changed_state_event)
@@ -541,7 +556,7 @@ function train_changed_state(train_changed_state_event)
           local found_state = found_train.state
 
           --[[ when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive. --]]
-          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station)--[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
+          if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) --[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
 
             --[[ if camera is on train that changed state, switch to leading locomotive --]]
             if found_train.id == train.id then
@@ -557,16 +572,70 @@ function train_changed_state(train_changed_state_event)
                   global.wait_at_signal[player_index] = nil
                 end
               end
-            end
-          else
 
-            --[[ if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, then create a cutscene following the train that generated the change_state event on the next tick --]]
-            if not global.create_cutscene_next_tick then
-              global.create_cutscene_next_tick = {}
-              global.create_cutscene_next_tick[player_index] = {train, player_index}
+            --[[ if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow --]]
+            elseif global.driving_minimum and global.driving_minimum[player_index] then
+              local driving_since_tick = global.driving_minimum[player_index]
+              local minimum_allowed_time = b.mod_settings["ts-driving-minimum"].value * 60 * 60 --[[ converting minutes to ticks --]]
+              -- game.print("driving minimum check triggered")
+              if (driving_since_tick + minimum_allowed_time) < game.tick then
+                -- game.print("driving minimum check suceeded")
+                if not global.create_cutscene_next_tick then
+                  global.create_cutscene_next_tick = {}
+                  global.create_cutscene_next_tick[player_index] = {train, player_index}
+                else
+                  global.create_cutscene_next_tick[player_index] = {train, player_index}
+                end
+              end
+
+              --[[ if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, and it's not the same train that just changed state, and the driving minimum has not been reached yet, then create a cutscene following the train that generated the change_state event on the next tick --]]
             else
-              global.create_cutscene_next_tick[player_index] = {train, player_index}
+              if not global.create_cutscene_next_tick then
+                global.create_cutscene_next_tick = {}
+                global.create_cutscene_next_tick[player_index] = {train, player_index}
+              else
+                global.create_cutscene_next_tick[player_index] = {train, player_index}
+              end
             end
+
+          --[[ if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick --]]
+          elseif (found_state == defines.train_state.wait_station) and (global.station_minimum and global.station_minimum[player_index]) then
+            local waiting_since_tick = global.station_minimum[player_index]
+            local minimum_allowed_time = b.mod_settings["ts-station-minimum"].value * 60 --[[ converting seconds to ticks --]]
+            -- game.print("station minimum check triggered")
+            if (waiting_since_tick + minimum_allowed_time) < game.tick then
+              -- game.print("station minimum check suceeded")
+              if not global.create_cutscene_next_tick then
+                global.create_cutscene_next_tick = {}
+                global.create_cutscene_next_tick[player_index] = {train, player_index}
+              else
+                global.create_cutscene_next_tick[player_index] = {train, player_index}
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+--[[ if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global --]]
+function update_wait_at_station(train_changed_state_event)
+  local train = train_changed_state_event.train
+  local new_state = train_changed_state_event.train.state
+  if new_state == defines.train_state.wait_station then
+    for a,b in pairs(game.connected_players) do
+      if b.controller_type == defines.controllers.cutscene then
+        local player_index = b.index
+        if global.followed_loco and global.followed_loco[player_index] then
+          if train.id == global.followed_loco[player_index].train_id then
+            if not global.station_minimum then
+              global.station_minimum = {}
+              global.station_minimum[player_index] = game.tick
+            else
+              global.station_minimum[player_index] = game.tick
+            end
+            -- game.print("station_minimum global updated")
           end
         end
       end
