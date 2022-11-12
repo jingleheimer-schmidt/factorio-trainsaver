@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.20
+Date: 12NOV2022
+  Changes:
+    - fixed that the signal minimum setting could be ignored under certain conditions
+    - signal minimum is now checked during train state changes, along with station and driving minimums, instead of during cutscene creation
+    - added the /verbose-trainsaver command to toggle verbose troubleshooting mode
+    - updated the /trainsaver command to match the toggle behavior of the trainsaver hotkey
+---------------------------------------------------------------------------------------------------
 Version: 0.0.19
 Date: 22OCT2022
   Changes:
