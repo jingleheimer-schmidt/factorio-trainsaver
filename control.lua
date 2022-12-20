@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 
 --[[ factorio mod trainsaver control script created by asher_sky --]]
 
@@ -41,6 +42,8 @@ local verbose_states = {
   [10] = "[color=blue]destination_full[/color]", -- Same as no_path but all candidate train stops are full
 }
 
+---comment
+---@param command EventData.on_console_command
 function start_trainsaver(command)
   local chatty = global.chatty
   local player_index = command.player_index
@@ -194,11 +197,19 @@ function start_trainsaver(command)
   end
 end
 
+---comment
+---@param position_1 MapPosition
+---@param position_2 MapPosition
+---@return integer
 function calculate_distance(position_1, position_2)
   local distance = math.floor(((position_1.x - position_2.x) ^ 2 + (position_1.y - position_2.y) ^ 2) ^ 0.5)
   return distance
 end
 
+---comment
+---@param speed_kmph number
+---@param distance_in_meters number
+---@return number
 function convert_speed_into_time(speed_kmph, distance_in_meters)
   local speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
   local distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
@@ -213,10 +224,14 @@ function convert_speed_into_time(speed_kmph, distance_in_meters)
 end
 
 --[[ create a waypoint for given waypoint_target using player mod settings --]]
+---comment
+---@param waypoint_target LuaEntity
+---@param player_index PlayerIndex
+---@return table
 function create_waypoint(waypoint_target, player_index)
   local chatty = global.chatty
-  local tt = {}
-  local z = {}
+  local tt = nil
+  local z = nil
   local player = game.get_player(player_index)
   local mod_settings = player.mod_settings
   local chatty_name = "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
@@ -333,6 +348,8 @@ function create_waypoint(waypoint_target, player_index)
 end
 
 --[[ end the screensaver and nil out any globals saved for given player --]]
+---comment
+---@param command any
 function end_trainsaver(command)
   local chatty = global.chatty
   local player_index = command.player_index
@@ -439,6 +456,8 @@ script.on_event(defines.events.on_cutscene_waypoint_reached, function(event)
   end
 end)
 
+---comment
+---@param player_index PlayerIndex
 function cutscene_ended_nil_globals(player_index)
   if global.followed_loco and global.followed_loco[player_index] then
     global.followed_loco[player_index] = nil
@@ -479,11 +498,16 @@ function cutscene_ended_nil_globals(player_index)
 end
 
 --[[ set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :) --]]
+---comment
+---@param player_index PlayerIndex
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
 
 --[[ play cutscene from given waypoints --]]
+---comment
+---@param created_waypoints CutsceneWaypoint[]
+---@param player_index PlayerIndex
 function play_cutscene(created_waypoints, player_index)
   local chatty = global.chatty
   local player = game.get_player(player_index)
@@ -558,6 +582,9 @@ function play_cutscene(created_waypoints, player_index)
   --]]
 end
 
+---comment
+---@param player_index PlayerIndex
+---@param created_waypoints CutsceneWaypoint[]
 function update_globals_new_cutscene(player_index, created_waypoints)
   --[[ update trainsaver status global --]]
   if not global.trainsaver_status then
@@ -617,6 +644,8 @@ script.on_event(defines.events.on_train_changed_state, function(train_changed_st
   update_wait_at_station(train_changed_state_event)
 end)
 
+---comment
+---@param train_changed_state_event EventData.on_train_changed_state
 function train_changed_state(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
@@ -764,6 +793,8 @@ function train_changed_state(train_changed_state_event)
 end
 
 --[[ if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global --]]
+---comment
+---@param train_changed_state_event EventData.on_train_changed_state
 function update_wait_at_station(train_changed_state_event)
   local train = train_changed_state_event.train
   local new_state = train_changed_state_event.train.state
@@ -796,6 +827,8 @@ function update_wait_at_station(train_changed_state_event)
   end
 end
 
+---comment
+---@param train_changed_state_event EventData.on_train_changed_state
 function update_wait_at_signal(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
@@ -856,6 +889,8 @@ end
 --[[ if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available --]]
 script.on_event(defines.events.on_entity_damaged, function(character_damaged_event) character_damaged(character_damaged_event) end, {{filter = "type", type = "character"}})
 
+---comment
+---@param character_damaged_event EventData.on_entity_damaged
 function character_damaged(character_damaged_event)
   local damaged_entity = character_damaged_event.entity
   for a,b in pairs(game.connected_players) do
@@ -940,6 +975,8 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
   end
 end)
 
+---comment
+---@param event EventData.on_entity_died | EventData.on_robot_mined | EventData.on_player_mined_entity
 function locomotive_gone(event)
   local locomotive = event.entity
   for a,b in pairs(game.connected_players) do
@@ -1188,6 +1225,8 @@ script.on_nth_tick(600, function()
   end
 end)
 
+---comment
+---@param event EventData.CustomInputEvent | EventData.on_console_command
 function start_or_end_trainsaver(event)
   local player = game.get_player(event.player_index)
   if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
@@ -1273,6 +1312,8 @@ script.on_event("toggle-menu-trainsaver", function(event)
   end
 end)
 
+---comment
+---@param event EventData.CustomInputEvent
 function game_control_pressed(event)
   local player = game.get_player(event.player_index)
   if player.controller_type == defines.controllers.cutscene then
@@ -1404,3 +1445,12 @@ interface_functions.trainsaver_target = function(player_index)
 end
 
 remote.add_interface("trainsaver",interface_functions)
+
+
+--| documentation section |--
+
+-- A player's unique index in LuaGameScript::players. It is given to them when they are created and remains assigned to them until they are removed.
+---@alias PlayerIndex uint
+
+-- The unique name of a surface
+---@alias SurfaceName string
