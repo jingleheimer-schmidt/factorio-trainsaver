@@ -1,4 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.21
+Date: 12NOV2022
+  Changes:
+    - added code annotations
+---------------------------------------------------------------------------------------------------
+Version: 0.0.20
+Date: 12NOV2022
+  Changes:
+    - fixed that the signal minimum setting could be ignored under certain conditions
+    - signal minimum is now checked during train state changes, along with station and driving minimums, instead of during cutscene creation
+    - added the /verbose-trainsaver command to toggle verbose troubleshooting mode
+    - updated the /trainsaver command to match the toggle behavior of the trainsaver hotkey
+---------------------------------------------------------------------------------------------------
+Version: 0.0.19
+Date: 22OCT2022
+  Changes:
+    - renamed "Signal timeout" setting to "Signal minimum"
+    - added "Station minimum" setting for changing the minimum time the camera will wait before targetting a new train once the current train stops at a station
+    - added "Driving minimum" setting for changing the minimum time the camera will wait before targetting a new train while the current train is driving
+    - fixed that the "Wait at signal" setting could be a negative number
+    - fixed that the "Inactivity timeout" setting tooltip indicated an incorrect default value
+    - changed default value of "Escape with menu" setting from enabled to disabled
+---------------------------------------------------------------------------------------------------
 Version: 0.0.18
 Date: 07JUL2022
   Changes:

@@ -23,7 +23,26 @@ local waitAtSignalSetting = {
   name = "ts-wait-at-signal",
   setting_type = "runtime-per-user",
   default_value = 30, -- seconds, will be converted to ticks
-  order = "ts-b"
+  minimum_value = 0,
+  order = "ts-b-1"
+}
+
+local stationMinimumlSetting = {
+  type = "int-setting",
+  name = "ts-station-minimum",
+  setting_type = "runtime-per-user",
+  default_value = 5, -- seconds, will be converted to ticks
+  minimum_value = 0,
+  order = "ts-b-2"
+}
+
+local drivingMinimumlSetting = {
+  type = "int-setting",
+  name = "ts-driving-minimum",
+  setting_type = "runtime-per-user",
+  default_value = 10, -- minutes, will be converted to ticks
+  minimum_value = 0,
+  order = "ts-b-3"
 }
 
 local timeWaitSetting = {
@@ -82,7 +101,7 @@ local menuEndsTrainsaverSetting = {
   type = "bool-setting",
   name = "ts-menu-hotkey",
   setting_type = "runtime-per-user",
-  default_value = true,
+  default_value = false,
   order = "ts-i"
 }
 
@@ -117,6 +136,8 @@ data:extend({
   zoomSetting,
   variableZoomSetting,
   waitAtSignalSetting,
+  stationMinimumlSetting,
+  drivingMinimumlSetting,
   afkAutoStartSetting,
   menuEndsTrainsaverSetting,
   autoStartWhileViewingMapSetting,
