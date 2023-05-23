@@ -880,40 +880,22 @@ function update_wait_at_signal(train_changed_state_event)
   end
 end
 
---[[ if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available --]]
-script.on_event(defines.events.on_entity_damaged, function(character_damaged_event) character_damaged(character_damaged_event) end, {{filter = "type", type = "character"}})
-
----comment
----@param character_damaged_event EventData.on_entity_damaged
-function character_damaged(character_damaged_event)
-  local damaged_entity = character_damaged_event.entity
-  for a,b in pairs(game.connected_players) do
-    if ((b.controller_type == defines.controllers.cutscene) and (b.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[b.index] and (global.trainsaver_status[b.index] == "active")) then
-      ---[[
-      b.unlock_achievement("trainsaver-character-damaged")
-      ---[[
-      for c,d in pairs(game.connected_players) do
-        if d.mod_settings["ts-notable-events"].value == true then
-          if character_damaged_event.cause and character_damaged_event.cause.name then
-            -- local damager_name = character_damaged_event.cause.localised_name or character_damaged_event.cause.name
-            local damager_name = character_damaged_event.cause.name
-            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt by "..damager_name.." while watching the trains")
-          else
-            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hurt while watching the trains")
-          end
-        end
+---end trainsaver if the cutscene character takes any damage
+---@param event EventData.on_entity_damaged
+local function character_damaged(event)
+  local damaged_entity = event.entity
+  for _, player in pairs(game.connected_players) do
+    if ((player.controller_type == defines.controllers.cutscene) and (player.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[player.index] and (global.trainsaver_status[player.index] == "active")) then
+      player.unlock_achievement("trainsaver-character-damaged")
+      if event.cause and event.cause.train and event.cause.train.id and global.followed_loco[player.index] and global.followed_loco[player.index].train_id and (event.cause.train.id == global.followed_loco[player.index].train_id) then
+        player.unlock_achievement("trainsaver-damaged-by-followed-train")
+        print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." was hit by the train they were watching")
+      elseif event.cause and event.cause.name then
+        print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." was hurt by "..event.cause.name.." while watching the trains")
+      else
+        print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." was hurt while watching the trains")
       end
-      --]]
-      if character_damaged_event.cause and character_damaged_event.cause.train and character_damaged_event.cause.train.id and global.followed_loco[b.index] and global.followed_loco[b.index].train_id and (character_damaged_event.cause.train.id == global.followed_loco[b.index].train_id) then
-        b.unlock_achievement("trainsaver-damaged-by-followed-train")
-        for c,d in pairs(game.connected_players) do
-          if d.mod_settings["ts-notable-events"].value == true then
-            d.print("[color=orange]trainsaver:[/color] "..b.name.." was hit by the train they were watching")
-          end
-        end
-      end
-      --]]
-      local command = {player_index = b.index}
+      local command = {player_index = player.index}
       end_trainsaver(command)
     end
   end
@@ -966,14 +948,8 @@ local function entity_destroyed(event)
       player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
       global.rocket_positions[player_index] = nil
       --]]
-      ----[[
       player.unlock_achievement("trainsaver-a-spectacular-view")
-      for _, connected_player in pairs(game.connected_players) do
-        if connected_player.mod_settings["ts-notable-events"].value == true then
-          connected_player.print("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
-        end
-      end
-      --]]
+      print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
       local command = {
         name = "trainsaver",
         player_index = player_index,
@@ -1246,6 +1222,10 @@ script.on_nth_tick(600, on_nth_tick)
 
 --[[ create any requested cutscenes and update achievement progress --]]
 script.on_event(defines.events.on_tick, on_tick)
+
+--[[ if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available --]]
+local character_damaged_filter = {{filter = "type", type = "character"}}
+script.on_event(defines.events.on_entity_damaged, character_damaged, character_damaged_filter)
 
 --[[ start a new cutscene if the followed locomotive dies or is mined or is destoryed --]]
 local locomotive_filter = {{filter = "type", type = "locomotive"}}
