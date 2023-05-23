@@ -981,132 +981,132 @@ function locomotive_gone(event)
   end
 end
 
+--[[ create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader". --]]
 local function cutscene_next_tick_function()
-
-  --[[ every tick check if we need to create a new cutscene --]]
-  if global.create_cutscene_next_tick then
-    for a,b in pairs(global.create_cutscene_next_tick) do
-      local target_train = b[1]
-      local player_index = b[2]
-      local player = game.get_player(player_index)
-      local chatty = global.chatty
-      local chatty_name = ""
-      local target_name = ""
-      if chatty then
-        chatty_name = "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
-        target_name = "train " .. target_train.id
-        if target_train.locomotives["front_movers"] and target_train.locomotives["front_movers"][1] and target_train.locomotives["front_movers"][1].color then
-          target_name = "[color="..target_train.locomotives["front_movers"][1].color.r..","..target_train.locomotives["front_movers"][1].color.g..","..target_train.locomotives["front_movers"][1].color.b.."]"..target_name.."[/color]"
-        elseif target_train.locomotives["back_movers"] and target_train.locomotives["back_movers"][1] and target_train.locomotives["back_movers"][1].color then
-          target_name = "[color="..target_train.locomotives[2][1].color.r..","..target_train.locomotives[2][1].color.g..","..target_train.locomotives[2][1].color.b.."]"..target_name.."[/color]"
-        end
-      end
-
-      --[[ don't create the cutscene if they've requested to end and we're going back to their character --]]
-      if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
-        if chatty then game.print(chatty_name.."new target request denied by ending_transition") end
-        global.create_cutscene_next_tick[player_index] = nil
-        return
-      end
-
-      --[[ make sure the player is still connected --]]
-      if not player.connected then
-        if chatty then game.print(chatty_name.."new target request denied by disconnected player") end
-        global.create_cutscene_next_tick[player_index] = nil
-        return
-      end
-
-      --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
-      if not (target_train.valid and (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid)) then
-        global.create_cutscene_next_tick[player_index] = nil
-        --[[ trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh --]]
-        local command = {
-          name = "trainsaver",
-          player_index = player_index,
-          entity_gone_restart = "yes",
-          -- train_to_ignore = event.entity.train
-          }
-        if chatty then game.print(chatty_name.."new target is invalid, restarting trainsaver") end
-        global.create_cutscene_next_tick[player_index] = nil
-        start_trainsaver(command)
-        return
-      end
-
-      -- --[[ if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene --]]
-      -- if global.wait_at_signal and global.wait_at_signal[player_index] then
-      --   -- game.print("stored: " .. global.wait_at_signal[player_index] .. ", game: " .. game.tick)
-      --   if global.wait_at_signal[player_index] > game.tick then
-      --     global.create_cutscene_next_tick[player_index] = nil
-      --     if chatty then game.print(chatty_name.."current target ["..target_name.."] is ".. verbose_states[target_train.state] .. ". new target request denied by signal_minimum") end
-      --     return
-      --   else
-      --     global.wait_at_signal[player_index] = nil
-      --     -- game.print("wait_at_signal cleared")
-      --     if chatty then game.print(chatty_name.."current target ["..target_name.."] has exceeded the ".. game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60 * 60 --[[ converting minutes to ticks --]].." tick minimum for ".. verbose_states[target_train.state]) end
-      --   end
-      -- end
-
-      --[[ if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or - --]]
-      if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
-        if target_train.speed > 0 then
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
-          if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
-            return
-          end
-          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
-          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy --]]
-          if b[3] then
-            created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-            created_waypoints[1].zoom = nil
-          end
-          play_cutscene(created_waypoints, player_index)
-          global.create_cutscene_next_tick[player_index] = nil
-        end
-        if target_train.speed < 0 then
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
-          if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
-            return
-          end
-          local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
-          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
-          if b[3] then
-            created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-            created_waypoints[1].zoom = nil
-          end
-          play_cutscene(created_waypoints, player_index)
-          global.create_cutscene_next_tick[player_index] = nil
-        end
-
-      --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
-      elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
-        if target_train.locomotives.front_movers[1] then
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
-          if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
-            return
-          end
-          local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
-          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
-          if b[3] then
-            created_waypoints[1].zoom = nil
-          end
-          play_cutscene(created_waypoints, player_index)
-          global.create_cutscene_next_tick[player_index] = nil
-        end
-        if target_train.locomotives.back_movers[1] then
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
-          if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
-            return
-          end
-          local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
-          --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
-          if b[3] then
-            created_waypoints[1].zoom = nil
-          end
-          play_cutscene(created_waypoints, player_index)
-          global.create_cutscene_next_tick[player_index] = nil
-        end
+  --[[ check if any players need a new cutscene --]]
+  if not global.create_cutscene_next_tick then return end
+  for _, data in pairs(global.create_cutscene_next_tick) do
+    local target_train = data[1]
+    local player_index = data[2]
+    local player = game.get_player(player_index)
+    if not player then goto next_player end
+    local chatty = global.chatty
+    local chatty_name, target_name = "", ""
+    if chatty then
+      chatty_name = "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
+      target_name = "train " .. target_train.id
+      if target_train.locomotives["front_movers"] and target_train.locomotives["front_movers"][1] and target_train.locomotives["front_movers"][1].color then
+        target_name = "[color="..target_train.locomotives["front_movers"][1].color.r..","..target_train.locomotives["front_movers"][1].color.g..","..target_train.locomotives["front_movers"][1].color.b.."]"..target_name.."[/color]"
+      elseif target_train.locomotives["back_movers"] and target_train.locomotives["back_movers"][1] and target_train.locomotives["back_movers"][1].color then
+        target_name = "[color="..target_train.locomotives[2][1].color.r..","..target_train.locomotives[2][1].color.g..","..target_train.locomotives[2][1].color.b.."]"..target_name.."[/color]"
       end
     end
+
+    --[[ don't create the cutscene if they've requested to end and we're going back to their character --]]
+    if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
+      if chatty then game.print(chatty_name.."new target request denied by ending_transition") end
+      global.create_cutscene_next_tick[player_index] = nil
+      goto next_player
+    end
+
+    --[[ make sure the player is still connected --]]
+    if not player.connected then
+      if chatty then game.print(chatty_name.."new target request denied by disconnected player") end
+      global.create_cutscene_next_tick[player_index] = nil
+      goto next_player
+    end
+
+    --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
+    if not (target_train.valid and (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid)) then
+      global.create_cutscene_next_tick[player_index] = nil
+      --[[ trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh --]]
+      local command = {
+        name = "trainsaver",
+        player_index = player_index,
+        entity_gone_restart = "yes",
+        -- train_to_ignore = event.entity.train
+        }
+      if chatty then game.print(chatty_name.."new target is invalid, restarting trainsaver") end
+      global.create_cutscene_next_tick[player_index] = nil
+      start_trainsaver(command)
+      goto next_player
+    end
+
+    -- --[[ if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene --]]
+    -- if global.wait_at_signal and global.wait_at_signal[player_index] then
+    --   -- game.print("stored: " .. global.wait_at_signal[player_index] .. ", game: " .. game.tick)
+    --   if global.wait_at_signal[player_index] > game.tick then
+    --     global.create_cutscene_next_tick[player_index] = nil
+    --     if chatty then game.print(chatty_name.."current target ["..target_name.."] is ".. verbose_states[target_train.state] .. ". new target request denied by signal_minimum") end
+    --     return
+    --   else
+    --     global.wait_at_signal[player_index] = nil
+    --     -- game.print("wait_at_signal cleared")
+    --     if chatty then game.print(chatty_name.."current target ["..target_name.."] has exceeded the ".. game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60 * 60 --[[ converting minutes to ticks --]].." tick minimum for ".. verbose_states[target_train.state]) end
+    --   end
+    -- end
+
+    --[[ if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or - --]]
+    if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
+      if target_train.speed > 0 then
+        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
+          goto next_player
+        end
+        local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy --]]
+        if data[3] then
+          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
+          created_waypoints[1].zoom = nil
+        end
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      end
+      if target_train.speed < 0 then
+        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
+          goto next_player
+        end
+        local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
+        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        if data[3] then
+          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
+          created_waypoints[1].zoom = nil
+        end
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      end
+
+    --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
+    elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
+      if target_train.locomotives.front_movers[1] then
+        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
+          goto next_player
+        end
+        local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        if data[3] then
+          created_waypoints[1].zoom = nil
+        end
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      end
+      if target_train.locomotives.back_movers[1] then
+        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
+          goto next_player
+        end
+        local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
+        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        if data[3] then
+          created_waypoints[1].zoom = nil
+        end
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      end
+    end
+    ::next_player::
   end
 end
 
