@@ -909,10 +909,31 @@ function character_damaged(character_damaged_event)
   end
 end
 
+--[[ restart trainsaver when the currently followed locomotive is destroyed --]]
+---@param event EventData.on_entity_died | EventData.on_robot_mined_entity | EventData.on_player_mined_entity
+local function locomotive_gone(event)
+  local locomotive = event.entity
+  for _,player in pairs(game.connected_players) do
+    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+    local player_index = player.index
+    if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
+    if not (global.followed_loco[player_index].unit_number == locomotive.unit_number) then goto next_player end
+    local command = {
+      name = "trainsaver",
+      player_index = player_index,
+      entity_gone_restart = "yes",
+      train_to_ignore = event.entity.train
+      }
+    start_trainsaver(command)
+    ::next_player::
+  end
+end
+
 --[[ start a new cutscene if the followed locomotive dies or is mined or is destoryed --]]
-script.on_event(defines.events.on_entity_died, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
-script.on_event(defines.events.on_player_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
-script.on_event(defines.events.on_robot_mined_entity, function(event) locomotive_gone(event) end, {{filter = "type", type = "locomotive"}})
+local locomotive_filter = {{filter = "type", type = "locomotive"}}
+script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
+script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
+script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_entity_destroyed, function(event)
   local registration_number = event.registration_number
   if global.entity_destroyed_registration_numbers then
@@ -958,26 +979,6 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
     end
   end
 end)
-
---[[ restart trainsaver when the currently followed locomotive is destroyed --]]
----@param event EventData.on_entity_died | EventData.on_robot_mined | EventData.on_player_mined_entity
-function locomotive_gone(event)
-  local locomotive = event.entity
-  for _,player in pairs(game.connected_players) do
-    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
-    local player_index = player.index
-    if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
-    if not (global.followed_loco[player_index].unit_number == locomotive.unit_number) then goto next_player end
-    local command = {
-      name = "trainsaver",
-      player_index = player_index,
-      entity_gone_restart = "yes",
-      train_to_ignore = event.entity.train
-      }
-    start_trainsaver(command)
-    ::next_player::
-  end
-end
 
 --[[ create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader". --]]
 local function cutscene_next_tick_function()
