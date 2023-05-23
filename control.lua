@@ -1125,57 +1125,40 @@ end
 
 --[[ while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed --]]
 local function check_achievements()
-  if global.trainsaver_status then
-    for a,b in pairs(global.trainsaver_status) do
-      if b == "active" then
-        local player = game.get_player(a)
-        if not player.connected then
-          return
-        end
-        --[[ update continuous duration timer global data --]]
-        if not global.current_continuous_duration then
-          global.current_continuous_duration = {}
-          global.current_continuous_duration[a] = 1
-        else
-          if not global.current_continuous_duration[a] then
-            global.current_continuous_duration[a] = 1
-          else
-            global.current_continuous_duration[a] = global.current_continuous_duration[a] + 1
-            local continuous_duration = global.current_continuous_duration[a]
-            if continuous_duration == (60 * 60 * 10) then
-              player.unlock_achievement("trainsaver-continuous-10-minutes")
-            end
-            if continuous_duration == (60 * 60 * 30) then
-              player.unlock_achievement("trainsaver-continuous-30-minutes")
-            end
-            if continuous_duration == (60 * 60 * 60) then
-              player.unlock_achievement("trainsaver-continuous-60-minutes")
-            end
-          end
-        end
-        --[[ update total duration timer global data --]]
-        if not global.total_duration then
-          global.total_duration = {}
-          global.total_duration[a] = 1
-        else
-          if not global.total_duration[a] then
-            global.total_duration[a] = 1
-          else
-            global.total_duration[a] = global.total_duration[a] + 1
-            local total_duration = global.total_duration[a]
-            if total_duration == (60 * 60 * 60 * 1) then
-              player.unlock_achievement("trainsaver-1-hours-total")
-            end
-            if total_duration == (60 * 60 * 60 * 2) then
-              player.unlock_achievement("trainsaver-2-hours-total")
-            end
-            if total_duration == (60 * 60 * 60 * 5) then
-              player.unlock_achievement("trainsaver-5-hours-total")
-            end
-          end
-        end
-      end
+  if not global.trainsaver_status then return end
+  for player_index, status in pairs(global.trainsaver_status) do
+    if not (status == "active") then goto next_player end
+    local player = game.get_player(player_index)
+    if not (player and player.connected) then goto next_player end
+    --[[ update continuous duration timer global data --]]
+    global.current_continuous_duration = global.current_continuous_duration or {}
+    global.current_continuous_duration[player_index] = global.current_continuous_duration[player_index] or 0
+    local continuous_duration = global.current_continuous_duration[player_index]
+    continuous_duration = continuous_duration + 1
+    if continuous_duration == (60 * 60 * 10) then
+      player.unlock_achievement("trainsaver-continuous-10-minutes")
     end
+    if continuous_duration == (60 * 60 * 30) then
+      player.unlock_achievement("trainsaver-continuous-30-minutes")
+    end
+    if continuous_duration == (60 * 60 * 60) then
+      player.unlock_achievement("trainsaver-continuous-60-minutes")
+    end
+    --[[ update total duration timer global data --]]
+    global.total_duration = global.total_duration or {}
+    global.total_duration[player_index] = global.total_duration[player_index] or 0
+    local total_duration = global.total_duration[player_index]
+    total_duration = total_duration + 1
+    if total_duration == (60 * 60 * 60 * 1) then
+      player.unlock_achievement("trainsaver-1-hours-total")
+    end
+    if total_duration == (60 * 60 * 60 * 2) then
+      player.unlock_achievement("trainsaver-2-hours-total")
+    end
+    if total_duration == (60 * 60 * 60 * 5) then
+      player.unlock_achievement("trainsaver-5-hours-total")
+    end
+    ::next_player::
   end
 end
 
