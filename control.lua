@@ -4,16 +4,6 @@
 
 require "util"
 
-local function toggle_chatty()
-  if not global.chatty then
-    global.chatty = true
-    game.print("verbose trainsaver enabled")
-  else
-    global.chatty = false
-    game.print("verbose trainsaver disabled")
-  end
-end
-
 local verbose_states = {
   [0] = "[color=green]on_the_path[/color]",	-- Normal state, following the path.
   [1] = "[color=purple]path_lost[/color]",	-- Had path and lost it, must stop.
@@ -27,6 +17,38 @@ local verbose_states = {
   [9] = "[color=pink]manual_control[/color]", -- Can move if user explicitly sits in and rides the train.
   [10] = "[color=blue]destination_full[/color]", -- Same as no_path but all candidate train stops are full
 }
+
+local function toggle_chatty()
+  if not global.chatty then
+    global.chatty = true
+    game.print("verbose trainsaver enabled")
+  else
+    global.chatty = false
+    game.print("verbose trainsaver disabled")
+  end
+end
+
+-- return a string with the current game tick and the name of a player colored with the player's color;
+-- i.e. "[123456] [[color=1,1,1]player_name[/color]]"
+---@param player LuaPlayer
+---@return string
+local function chatty_player_name(player)
+  return "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
+end
+
+-- return a string with the name of the train, colored if possible with color of a locomotive on the train
+---@param train LuaTrain
+---@return string
+local function chatty_target_train_name(train)
+  local target_name = "train " .. train.id
+  local front_mover = train.locomotives["front_movers"][1]
+  local back_mover = train.locomotives["back_movers"][1]
+  local color = front_mover.color or back_mover.color
+  if color then
+    target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
+  end
+  return target_name
+end
 
 ---print a message to all players who have notable events enabled
 ---@param message string
