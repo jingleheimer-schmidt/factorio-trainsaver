@@ -981,16 +981,7 @@ function locomotive_gone(event)
   end
 end
 
---[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
-script.on_event(defines.events.on_tick, function()
-  cutscene_next_tick_function()
-  --[[
-  save_rocket_positions()
-    --]]
-  check_achievements()
-end)
-
-function cutscene_next_tick_function()
+local function cutscene_next_tick_function()
 
   --[[ every tick check if we need to create a new cutscene --]]
   if global.create_cutscene_next_tick then
@@ -1120,7 +1111,7 @@ function cutscene_next_tick_function()
 end
 
 --[[ because the rocket destroyed event is not guarenteed to happen in the same tick that the rocket is destroyed, and the cutscene camera will immediately go to [gps=0,0] if the target is destroyed, we need to save the location of the rocket right before it's destroyed so we can teleport the player to that location immediately after the camera goes to [gps=0,0] so that the next cutscene starts where the rocket was destroyed and not at [gps=0,0] --]]
-function save_rocket_positions()
+local function save_rocket_positions()
   if global.rocket_positions then
     for a,b in pairs(global.rocket_positions) do
       local player = game.get_player(a)
@@ -1133,7 +1124,7 @@ function save_rocket_positions()
 end
 
 --[[ while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed --]]
-function check_achievements()
+local function check_achievements()
   if global.trainsaver_status then
     for a,b in pairs(global.trainsaver_status) do
       if b == "active" then
@@ -1188,6 +1179,14 @@ function check_achievements()
   end
 end
 
+--[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
+local function on_tick()
+  cutscene_next_tick_function()
+  -- save_rocket_positions()
+  check_achievements()
+end
+
+--[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
 local function on_nth_tick()
   for _, player in pairs(game.connected_players) do
     if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
@@ -1209,10 +1208,7 @@ local function on_nth_tick()
   end
 end
 
---[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
-script.on_nth_tick(600, on_nth_tick)
-
----comment
+---start or end trainsaver depending on player controller type
 ---@param event EventData.CustomInputEvent | EventData.on_console_command
 local function start_or_end_trainsaver(event)
   local player = game.get_player(event.player_index)
@@ -1226,42 +1222,41 @@ local function start_or_end_trainsaver(event)
   end
 end
 
----comment
+---end trainsaver when the /end-trainsaver command is used
 ---@param event EventData.on_console_command
 local function end_trainsaver_on_command(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if player.controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index, ending_transition = true}
-    end_trainsaver(command)
-  end
+  if not (player.controller_type == defines.controllers.cutscene) then return end
+  local command = {player_index = event.player_index, ending_transition = true}
+  end_trainsaver(command)
 end
 
----comment
+---end trainsaver when the game menu is opened
 ---@param event EventData.CustomInputEvent
 local function toggle_menu_pressed(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if player.controller_type == defines.controllers.cutscene then
-    if player.mod_settings["ts-menu-hotkey"].value == true then
-      local command = {player_index = event.player_index}
-      end_trainsaver(command)
-    end
-  end
+  if not (player.controller_type == defines.controllers.cutscene) then return end
+  if not (player.mod_settings["ts-menu-hotkey"].value == true) then return end
+  local command = {player_index = event.player_index}
+  end_trainsaver(command)
 end
 
----comment
+---end trainsaver when a game control keybind is pressed
 ---@param event EventData.CustomInputEvent
 local function game_control_pressed(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if player.controller_type == defines.controllers.cutscene then
-    if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
-      local command = {player_index = event.player_index}
-      end_trainsaver(command)
-    end
-  end
+  if not (player.controller_type == defines.controllers.cutscene) then return end
+  if not (player.mod_settings["ts-linked-game-control-hotkey"].value == true) then return end
+  local command = {player_index = event.player_index}
+  end_trainsaver(command)
 end
+
+--[[ register events --]]
+script.on_nth_tick(600, on_nth_tick)
+script.on_event(defines.events.on_tick, on_tick)
 
 --[[ start or end trainsaver based on various hotkeys and settings --]]
 script.on_event("toggle-trainsaver", start_or_end_trainsaver)
