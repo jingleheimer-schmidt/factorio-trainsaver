@@ -28,6 +28,16 @@ local verbose_states = {
   [10] = "[color=blue]destination_full[/color]", -- Same as no_path but all candidate train stops are full
 }
 
+---print a message to all players who have notable events enabled
+---@param message string
+local function print_notable_event(message)
+  for _, player in pairs(game.connected_players) do
+    if player.mod_settings["ts-notable-events"].value == true then
+      player.print(message)
+    end
+  end
+end
+
 ---comment
 ---@param command EventData.on_console_command
 function start_trainsaver(command)
