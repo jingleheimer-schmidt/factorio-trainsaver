@@ -929,56 +929,51 @@ local function locomotive_gone(event)
   end
 end
 
---[[ start a new cutscene if the followed locomotive dies or is mined or is destoryed --]]
-local locomotive_filter = {{filter = "type", type = "locomotive"}}
-script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
-script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
-script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
-script.on_event(defines.events.on_entity_destroyed, function(event)
+--[[ restart trainsaver when the currently followed cutscene target is destroyed --]]
+---@param event EventData.on_entity_destroyed
+local function entity_destroyed(event)
   local registration_number = event.registration_number
-  if global.entity_destroyed_registration_numbers then
-    for a,b in pairs(global.entity_destroyed_registration_numbers) do
-      if b == registration_number then
-        if event.unit_number then
-          local simulated_event = {
-            entity = {
-              unit_number = event.unit_number,
-              train = {
-                id = -999999
-              },
-            },
-          }
-          locomotive_gone(simulated_event)
-        else
-          --[[ if we just watched a rocket launch, restart trainsaver to find a new train to follow --]]
-          local player_index = a
-          local player = game.get_player(player_index)
-          if player.controller_type == defines.controllers.cutscene then
-            local command = {
-              name = "trainsaver",
-              player_index = player_index,
-              entity_gone_restart = "yes",
-            }
-            --[[
-            local rocket_destroyed_location_index = game.tick - 1
-            player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
-            global.rocket_positions[player_index] = nil
-            --]]
-            ----[[
-            player.unlock_achievement("trainsaver-a-spectacular-view")
-            for c,d in pairs(game.connected_players) do
-              if d.mod_settings["ts-notable-events"].value == true then
-                d.print("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
-              end
-            end
-            --]]
-            start_trainsaver(command)
-          end
+  if not global.entity_destroyed_registration_numbers then return end
+  for player_index, current_target_registration_number in pairs(global.entity_destroyed_registration_numbers) do
+    if not (current_target_registration_number == registration_number) then goto next_player end
+    if event.unit_number then
+      local simulated_event = {
+        entity = {
+          unit_number = event.unit_number,
+          train = {
+            id = -999999
+          },
+        },
+      }
+      locomotive_gone(simulated_event)
+    else
+      --[[ if we just watched a rocket launch, restart trainsaver to find a new train to follow --]]
+      local player = game.get_player(player_index)
+      if not player then goto next_player end
+      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      --[[
+      local rocket_destroyed_location_index = game.tick - 1
+      player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
+      global.rocket_positions[player_index] = nil
+      --]]
+      ----[[
+      player.unlock_achievement("trainsaver-a-spectacular-view")
+      for _, connected_player in pairs(game.connected_players) do
+        if connected_player.mod_settings["ts-notable-events"].value == true then
+          connected_player.print("[color=orange]trainsaver:[/color] "..player.name.." saw something spectacular")
         end
       end
+      --]]
+      local command = {
+        name = "trainsaver",
+        player_index = player_index,
+        entity_gone_restart = "yes",
+      }
+      start_trainsaver(command)
     end
+    ::next_player::
   end
-end)
+end
 
 --[[ create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader". --]]
 local function cutscene_next_tick_function()
@@ -1161,7 +1156,7 @@ local function check_achievements()
   end
 end
 
---[[ every tick do a whole bunch of stuff that's hidden away in these little function calls --]]
+--[[ create any requested cutscenes and update achievement progress --]]
 local function on_tick()
   cutscene_next_tick_function()
   -- save_rocket_positions()
@@ -1234,9 +1229,20 @@ local function game_control_pressed(event)
   end_trainsaver(command)
 end
 
---[[ register events --]]
+--| event registration section |--
+
+--[[ afk autostart --]]
 script.on_nth_tick(600, on_nth_tick)
+
+--[[ create any requested cutscenes and update achievement progress --]]
 script.on_event(defines.events.on_tick, on_tick)
+
+--[[ start a new cutscene if the followed locomotive dies or is mined or is destoryed --]]
+local locomotive_filter = {{filter = "type", type = "locomotive"}}
+script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
+script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
+script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
+script.on_event(defines.events.on_entity_destroyed, entity_destroyed)
 
 --[[ start or end trainsaver based on various hotkeys and settings --]]
 script.on_event("toggle-trainsaver", start_or_end_trainsaver)
