@@ -4,21 +4,7 @@
 
 require "util"
 
-script.on_init(function()
-  add_commands()
-end)
-
-script.on_load(function()
-  add_commands()
-end)
-
-function add_commands()
-  commands.add_command("trainsaver", "- toggles a dynamic screensaver that follows active trains.", start_or_end_trainsaver)
-  commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
-  commands.add_command("verbose-trainsaver","- toggles trainsaver console debug messages", toggle_chatty)
-end
-
-function toggle_chatty()
+local function toggle_chatty()
   if not global.chatty then
     global.chatty = true
     game.print("verbose trainsaver enabled")
@@ -498,14 +484,12 @@ function cutscene_ended_nil_globals(player_index)
 end
 
 --[[ set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :) --]]
----comment
 ---@param player_index PlayerIndex
 function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
 
 --[[ play cutscene from given waypoints --]]
----comment
 ---@param created_waypoints CutsceneWaypoint[]
 ---@param player_index PlayerIndex
 function play_cutscene(created_waypoints, player_index)
@@ -544,7 +528,7 @@ function play_cutscene(created_waypoints, player_index)
   update_globals_new_cutscene(player_index, created_waypoints)
 
   --[[ unlock any achievements if possible --]]
-  ---[[
+  ----[[
     if created_waypoints[1].target.train.passengers then
       for a,b in pairs(created_waypoints[1].target.train.passengers) do
         --[[
@@ -959,7 +943,7 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
             player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
             global.rocket_positions[player_index] = nil
             --]]
-            ---[[
+            ----[[
             player.unlock_achievement("trainsaver-a-spectacular-view")
             for c,d in pairs(game.connected_players) do
               if d.mod_settings["ts-notable-events"].value == true then
@@ -1204,31 +1188,35 @@ function check_achievements()
   end
 end
 
---[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
-script.on_nth_tick(600, function()
-  for a,b in pairs(game.connected_players) do
-    if ((b.controller_type == defines.controllers.character) or (b.controller_type == defines.controllers.god)) then
-      if b.mod_settings["ts-afk-auto-start"].value == 0 then
+local function on_nth_tick()
+  for _, player in pairs(game.connected_players) do
+    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
+      local mod_settings = player.mod_settings
+      if mod_settings["ts-afk-auto-start"].value == 0 then
         return
       end
-      if ((b.render_mode ~= defines.render_mode.game) and (b.mod_settings["ts-autostart-while-viewing-map"].value == false)) then
+      if ((player.render_mode ~= defines.render_mode.game) and (mod_settings["ts-autostart-while-viewing-map"].value == false)) then
         return
       end
-      if (b.opened_gui_type and (b.opened_gui_type ~= defines.gui_type.none) and (b.mod_settings["ts-autostart-while-gui-is-open"].value == false)) then
+      if (player.opened_gui_type and (player.opened_gui_type ~= defines.gui_type.none) and (mod_settings["ts-autostart-while-gui-is-open"].value == false)) then
         return
       end
-      if b.afk_time > (b.mod_settings["ts-afk-auto-start"].value * 60 * 60) then
-        local command = {name = "trainsaver", player_index = b.index}
+      if player.afk_time > (mod_settings["ts-afk-auto-start"].value * 60 * 60) then
+        local command = {name = "trainsaver", player_index = player.index}
         start_trainsaver(command)
       end
     end
   end
-end)
+end
+
+--[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
+script.on_nth_tick(600, on_nth_tick)
 
 ---comment
 ---@param event EventData.CustomInputEvent | EventData.on_console_command
-function start_or_end_trainsaver(event)
+local function start_or_end_trainsaver(event)
   local player = game.get_player(event.player_index)
+  if not player then return end
   if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
     local command = {name = "trainsaver", player_index = event.player_index}
     start_trainsaver(command)
@@ -1238,84 +1226,35 @@ function start_or_end_trainsaver(event)
   end
 end
 
---[[ start or end trainsaver based on various hotkeys and settings --]]
-script.on_event("toggle-trainsaver", function(event)
-  start_or_end_trainsaver(event)
-end)
-
-script.on_event("start-trainsaver", function(event)
-  start_or_end_trainsaver(event)
-end)
-
-script.on_event("end-trainsaver", function(event)
-  if game.get_player(event.player_index).controller_type == defines.controllers.cutscene then
+---comment
+---@param event EventData.on_console_command
+local function end_trainsaver_on_command(event)
+  local player = game.get_player(event.player_index)
+  if not player then return end
+  if player.controller_type == defines.controllers.cutscene then
     local command = {player_index = event.player_index, ending_transition = true}
     end_trainsaver(command)
   end
-end)
+end
 
-script.on_event("open-inventory-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("open-research-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("open-production-stats-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("open-logistic-netowrk-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("open-train-gui-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("toggle-driving-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("move-up-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("move-down-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("move-right-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("move-left-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("toggle-map-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("shoot-enemy-trainsaver", function(event)
-  game_control_pressed(event)
-end)
-
-script.on_event("toggle-menu-trainsaver", function(event)
+---comment
+---@param event EventData.CustomInputEvent
+local function toggle_menu_pressed(event)
   local player = game.get_player(event.player_index)
+  if not player then return end
   if player.controller_type == defines.controllers.cutscene then
     if player.mod_settings["ts-menu-hotkey"].value == true then
       local command = {player_index = event.player_index}
       end_trainsaver(command)
     end
   end
-end)
+end
 
 ---comment
 ---@param event EventData.CustomInputEvent
-function game_control_pressed(event)
+local function game_control_pressed(event)
   local player = game.get_player(event.player_index)
+  if not player then return end
   if player.controller_type == defines.controllers.cutscene then
     if player.mod_settings["ts-linked-game-control-hotkey"].value == true then
       local command = {player_index = event.player_index}
@@ -1323,6 +1262,24 @@ function game_control_pressed(event)
     end
   end
 end
+
+--[[ start or end trainsaver based on various hotkeys and settings --]]
+script.on_event("toggle-trainsaver", start_or_end_trainsaver)
+script.on_event("start-trainsaver", start_or_end_trainsaver)
+script.on_event("end-trainsaver", end_trainsaver_on_command)
+script.on_event("open-inventory-trainsaver", game_control_pressed)
+script.on_event("open-research-trainsaver", game_control_pressed)
+script.on_event("open-production-stats-trainsaver", game_control_pressed)
+script.on_event("open-logistic-netowrk-trainsaver", game_control_pressed)
+script.on_event("open-train-gui-trainsaver", game_control_pressed)
+script.on_event("toggle-driving-trainsaver", game_control_pressed)
+script.on_event("move-up-trainsaver", game_control_pressed)
+script.on_event("move-down-trainsaver", game_control_pressed)
+script.on_event("move-right-trainsaver", game_control_pressed)
+script.on_event("move-left-trainsaver", game_control_pressed)
+script.on_event("toggle-map-trainsaver", game_control_pressed)
+script.on_event("shoot-enemy-trainsaver", game_control_pressed)
+script.on_event("toggle-menu-trainsaver", toggle_menu_pressed)
 
 --[[ s e c r e t s --]]
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
@@ -1421,6 +1378,15 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     end
   end
 end)
+
+local function add_commands()
+  commands.add_command("trainsaver", "- toggles a dynamic screensaver that follows active trains.", start_or_end_trainsaver)
+  commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
+  commands.add_command("verbose-trainsaver","- toggles trainsaver console debug messages", toggle_chatty)
+end
+
+script.on_init(add_commands)
+script.on_load(add_commands)
 
 --[[
 Remote Interface:
