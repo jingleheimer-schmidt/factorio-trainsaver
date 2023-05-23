@@ -1172,22 +1172,20 @@ end
 --[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
 local function on_nth_tick()
   for _, player in pairs(game.connected_players) do
-    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
-      local mod_settings = player.mod_settings
-      if mod_settings["ts-afk-auto-start"].value == 0 then
-        return
-      end
-      if ((player.render_mode ~= defines.render_mode.game) and (mod_settings["ts-autostart-while-viewing-map"].value == false)) then
-        return
-      end
-      if (player.opened_gui_type and (player.opened_gui_type ~= defines.gui_type.none) and (mod_settings["ts-autostart-while-gui-is-open"].value == false)) then
-        return
-      end
-      if player.afk_time > (mod_settings["ts-afk-auto-start"].value * 60 * 60) then
-        local command = {name = "trainsaver", player_index = player.index}
-        start_trainsaver(command)
-      end
-    end
+    local controller_type = player.controller_type
+    if not ((controller_type == defines.controllers.character) or (controller_type == defines.controllers.god)) then goto next_player end
+    local mod_settings = player.mod_settings
+    local auto_start = mod_settings["ts-afk-auto-start"].value
+    local auto_start_while_viewing_map = mod_settings["ts-autostart-while-viewing-map"].value
+    local auto_start_while_gui_is_open = mod_settings["ts-autostart-while-gui-is-open"].value
+    local opened_gui_type = player.opened_gui_type
+    if auto_start == 0 then goto next_player end
+    if ((player.render_mode ~= defines.render_mode.game) and (auto_start_while_viewing_map == false)) then goto next_player end
+    if (opened_gui_type and (opened_gui_type ~= defines.gui_type.none) and (auto_start_while_gui_is_open == false)) then goto next_player end
+    if player.afk_time < (auto_start * 60 * 60) then goto next_player end
+    local command = {name = "trainsaver", player_index = player.index}
+    start_trainsaver(command)
+    ::next_player::
   end
 end
 
