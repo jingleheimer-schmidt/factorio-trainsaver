@@ -278,150 +278,78 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
   local chatty_name = chatty_player_name(player)
   local name = command.name
   if chatty then game.print(chatty_name.."starting trainsaver") end
-  if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or entity_gone_restart) then
+  local controller_type = player.controller_type
+  local allowed_controller_types = {
+    [defines.controllers.character] = true,
+    [defines.controllers.god] = true,
+  }
+  if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
-    -- create a table of all trains
-    local table_of_all_trains = player.surface.get_trains()
+  -- create a table of all trains
+  local all_trains = player.surface.get_trains()
 
-    -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
-    local table_of_trains = {}
-    if not train_to_ignore then
-      train_to_ignore = {id = -999999}
-    end
-    for a,b in pairs(table_of_all_trains) do
-      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop) or (b.id == train_to_ignore.id)))) then
-        table.insert(table_of_trains, b)
-      end
-    end
-    if chatty then game.print(chatty_name.."created table of trains [" .. #table_of_trains .. " total]") end
-
-    -- if there's no trains, end everything
-    if not table_of_trains[1] then
-      if player.controller_type == defines.controllers.cutscene then
-        local command = {player_index = player_index}
-        if chatty then game.print(chatty_name.."no trains found") end
-        end_trainsaver(command)
-      end
-
-    -- if there are any trains, make a table of all the active (on_the_path) ones
-    else
-      local table_of_active_trains = {}
-      for a,b in pairs(table_of_trains) do
-        if b.state == defines.train_state.on_the_path then
-          table.insert(table_of_active_trains, b)
-        end
-      end
-
-      -- sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path
-      if table_of_active_trains[1] then
-        local table_of_trains_sorted_by_remaining_path_length = util.table.deepcopy(table_of_active_trains)
-        table.sort(table_of_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
-        if chatty then game.print(chatty_name.."created table of active trains [" .. #table_of_trains_sorted_by_remaining_path_length .. " total]") end
-
-        if not global.create_cutscene_next_tick then
-          global.create_cutscene_next_tick = {}
-          global.create_cutscene_next_tick[player_index] = {table_of_trains_sorted_by_remaining_path_length[1], player_index}
-        else
-          global.create_cutscene_next_tick[player_index] = {table_of_trains_sorted_by_remaining_path_length[1], player_index}
-        end
-        if chatty then game.print(chatty_name.."requested cutscene for " .. player.name .. " next tick, following train with longest remaining path") end
-
-      -- if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global. This has been superceded by the find longest remaining path method, but we'll keep it here in comments just in case we need it at some point in the future.
-      --[[
-      if table_of_active_trains[1] then
-        local random_train_index = math.random(table_size(table_of_active_trains))
-        if not global.create_cutscene_next_tick then
-          global.create_cutscene_next_tick = {}
-          global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
-        else
-          global.create_cutscene_next_tick[player_index] = {table_of_active_trains[random_train_index], player_index}
-        end
-        --]]
-        --[[
-        if not command.entity_gone_restart == "yes" then
-          sync_color(player_index)
-        end
-        --]]
-
-      -- if there are no trains on_the_path then make a table of trains waiting at stations
-      else
-        if chatty then game.print(chatty_name.."no trains are on_the_path") end
-        local table_of_trains_at_the_station = {}
-        for c,d in pairs(table_of_trains) do
-          if d.state == defines.train_state.wait_station then
-            table.insert(table_of_trains_at_the_station, d)
-          end
-        end
-        if chatty then game.print(chatty_name.."created table of trains waiting at stations [" .. #table_of_trains_at_the_station .. " total]") end
-
-        -- if there are any trains waiting at stations, pick a random one and play a cutscene from a front or back mover loco
-        if table_of_trains_at_the_station[1] then
-          local random_train_index = math.random(table_size(table_of_trains_at_the_station))
-          local waypoint_target = {}
-          if table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1] then
-            waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.front_movers[1]
-          elseif table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1] then
-            waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
-          end
-          if chatty then game.print(chatty_name.."chose a random train waiting at a station") end
-          -- abort if the potential waypoint is on a different surface than the player
-          if player.surface.index ~= waypoint_target.surface.index then
-            if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
-            return
-          end
-          local created_waypoints = create_waypoint(waypoint_target, player_index)
-          --[[
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
-          --]]
-          play_cutscene(created_waypoints, player_index)
-
-        -- if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target
-        if chatty then game.print(chatty_name.."no trains on_the_path or waiting at stations") end
-        elseif table_of_trains[1].locomotives.front_movers[1] then
-          local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
-          if chatty then game.print(chatty_name.."chose front_mover of first train in table") end
-          -- abort if the potential waypoint is on a different surface than the player
-          if player.surface.index ~= waypoint_target.surface.index then
-            if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
-            return
-          end
-          local created_waypoints = create_waypoint(waypoint_target, player_index)
-          --[[
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
-          --]]
-          play_cutscene(created_waypoints, player_index)
-
-        elseif table_of_trains[1].locomotives.back_movers[1] then
-          local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
-          if chatty then game.print(chatty_name.."chose back_mover of first train in table") end
-          -- abort if the potential waypoint is on a different surface than the player
-          if player.surface.index ~= waypoint_target.surface.index then
-            if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
-            return
-          end
-          local created_waypoints = create_waypoint(waypoint_target, player_index)
-          --[[
-          if not command.entity_gone_restart == "yes" then
-            sync_color(player_index)
-          end
-          --]]
-          play_cutscene(created_waypoints, player_index)
-
-          -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how could this happen?? a train with no locomotives that is somehow not in manual mode?? i declare haxxx) then end_trainsaver()
-        else
-          player.print("trainsaver: something unexpected has occured. please report this event to the mod author. code: 909")
-          local command = {
-            player_index = player_index,
-          }
-          end_trainsaver(command)
-        end
-      end
+  -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
+  local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]
+  if not train_to_ignore then
+    train_to_ignore = {id = -999999}
+  end
+  for _, train in pairs(all_trains) do
+    if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and ( not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
+      table.insert(eligable_trains_with_movers, train)
     end
   end
+  if chatty then game.print(chatty_name.."created table of trains [" .. #eligable_trains_with_movers .. " total]") end
+
+  -- if there's no eligable trains, exit trainsaver
+  if not eligable_trains_with_movers[1] then
+    if chatty then game.print(chatty_name.."no eligable trains found") end
+    end_trainsaver(command)
+    return
+  end
+
+  -- if there are any trains, make a table of all the active (on_the_path) ones
+  local active_trains = {} --[=[@type LuaTrain[]]=]
+  for _, train in pairs(eligable_trains_with_movers) do
+    if train.state == defines.train_state.on_the_path then
+      table.insert(active_trains, train)
+    end
+  end
+  if chatty then game.print(chatty_name.."created table of active trains [" .. #active_trains .. " total]") end
+
+  -- sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path
+  if active_trains[1] then
+    local active_trains_sorted_by_remaining_path_length = util.table.deepcopy(active_trains)
+    table.sort(active_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
+    create_cutscene_next_tick(player_index, active_trains_sorted_by_remaining_path_length[1])
+    if chatty then game.print(chatty_name.."requested cutscene for " .. player.name .. ", following train with longest remaining path") end
+    return
+  end
+
+  -- if there are no trains on_the_path then make a table of trains waiting at stations
+  if chatty then game.print(chatty_name.."no trains are on_the_path") end
+  local trains_at_stations = {} --[=[@type LuaTrain[]]=]
+  for _, train in pairs(eligable_trains_with_movers) do
+    if train.state == defines.train_state.wait_station then
+      table.insert(trains_at_stations, train)
+    end
+  end
+  if chatty then game.print(chatty_name.."created table of trains waiting at stations [" .. #trains_at_stations .. " total]") end
+
+  -- if there are any trains waiting at stations, pick a random one to request a cutscene with
+  if trains_at_stations[1] then
+    local random_train_index = math.random(table_size(trains_at_stations))
+    local waypoint_target = trains_at_stations[random_train_index]
+    create_cutscene_next_tick(player_index, waypoint_target)
+    if chatty then game.print(chatty_name.."chose a random train waiting at a station") end
+    return
+  end
+
+  -- if there are no trains on_the_path or waiting at stations, then pick a random train from the eligible ones to request a cutscene with
+  if chatty then game.print(chatty_name.."no trains on_the_path or waiting at stations") end
+  local random_train_index = math.random(table_size(eligable_trains_with_movers))
+  local waypoint_target = eligable_trains_with_movers[random_train_index]
+  create_cutscene_next_tick(player_index, waypoint_target)
+  if chatty then game.print(chatty_name.."chose a random train") end
 end
 
 -- remove any globals we saved for the player when trainsaver ends
