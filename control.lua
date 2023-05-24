@@ -4,17 +4,17 @@
 require "util"
 
 local verbose_states = {
-  [0] = "[color=green]on_the_path[/color]",	-- Normal state, following the path.
-  [1] = "[color=purple]path_lost[/color]",	-- Had path and lost it, must stop.
-  [2] = "[color=purple]no_schedule[/color]", -- Doesn't have anywhere to go.
-  [3] = "[color=purple]no_path[/color]", -- Has no path and is stopped.
-  [4] = "[color=yellow]arrive_signal[/color]", -- Braking before a rail signal.
-  [5] = "[color=orange]wait_signal[/color]", -- Waiting at a signal.
-  [6] = "[color=yellow]arrive_station[/color]", -- Braking before a station.
-  [7] = "[color=red]wait_station[/color]", -- Waiting at a station.
+  [0] = "[color=green]on_the_path[/color]",        -- Normal state, following the path.
+  [1] = "[color=purple]path_lost[/color]",         -- Had path and lost it, must stop.
+  [2] = "[color=purple]no_schedule[/color]",       -- Doesn't have anywhere to go.
+  [3] = "[color=purple]no_path[/color]",           -- Has no path and is stopped.
+  [4] = "[color=yellow]arrive_signal[/color]",     -- Braking before a rail signal.
+  [5] = "[color=orange]wait_signal[/color]",       -- Waiting at a signal.
+  [6] = "[color=yellow]arrive_station[/color]",    -- Braking before a station.
+  [7] = "[color=red]wait_station[/color]",         -- Waiting at a station.
   [8] = "[color=pink]manual_control_stop[/color]", -- Switched to manual control and has to stop.
-  [9] = "[color=pink]manual_control[/color]", -- Can move if user explicitly sits in and rides the train.
-  [10] = "[color=blue]destination_full[/color]", -- Same as no_path but all candidate train stops are full
+  [9] = "[color=pink]manual_control[/color]",      -- Can move if user explicitly sits in and rides the train.
+  [10] = "[color=blue]destination_full[/color]",   -- Same as no_path but all candidate train stops are full.
 }
 
 local function toggle_chatty()
@@ -82,7 +82,7 @@ end
 ---@param train LuaTrain
 local function create_cutscene_next_tick(player_index, train)
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-  global.create_cutscene_next_tick[player_index] = {train, player_index}
+  global.create_cutscene_next_tick[player_index] = { train, player_index }
 end
 
 -- print a message to all players who have notable events enabled
@@ -109,7 +109,7 @@ end
 ---@param distance_in_meters number
 ---@return number
 local function convert_speed_into_time(speed_kmph, distance_in_meters)
-  local speed = speed_kmph / 60 / 60 / 60 -- speed in km/tick
+  local speed = speed_kmph / 60 / 60 / 60    -- speed in km/tick
   local distance = distance_in_meters / 1000 -- distance in kilometers
   local time = 0
   if speed ~= 0 then
@@ -117,7 +117,6 @@ local function convert_speed_into_time(speed_kmph, distance_in_meters)
   end
   return time
 end
-
 -- create a waypoint for given waypoint_target using player mod settings
 ---@param waypoint_target LuaEntity
 ---@param player_index PlayerIndex
@@ -141,7 +140,7 @@ local function create_waypoint(waypoint_target, player_index)
 
   -- if variable zoom is enabled, then we will randomly zoom in or out by 20%
   if variable_zoom == true then
-    zoom = (math.random(((zoom - (zoom*.20))*1000),(((zoom + (zoom*.20)))*1000)))/1000
+    zoom = (math.random(((zoom - (zoom * .20)) * 1000), (((zoom + (zoom * .20))) * 1000))) / 1000
   end
 
   -- set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over
@@ -200,24 +199,24 @@ local function end_trainsaver(command, ending_transition)
   end
   -- if we're not doing a transition, then just exit the cutscene immediately
   if not ending_transition then
-    if chatty then game.print(chatty_name.."exit trainsaver (instant) requested") end
+    if chatty then game.print(chatty_name .. "exit trainsaver (instant) requested") end
     player.exit_cutscene()
     return
   end
   -- if we're already in the process of exiting, then just exit immediately
   if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
-    if chatty then game.print(chatty_name.."trainsaver is currently exiting. immediatte exit requested") end
+    if chatty then game.print(chatty_name .. "trainsaver is currently exiting. immediatte exit requested") end
     player.exit_cutscene()
     return
   end
   -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
   if not (player.cutscene_character or player.character) then
-    if chatty then game.print(chatty_name.."has no character or cutscene_character. immediate exit requested") end
+    if chatty then game.print(chatty_name .. "has no character or cutscene_character. immediate exit requested") end
     player.exit_cutscene()
     return
   end
   -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
-  if chatty then game.print(chatty_name.."exit trainsaver (transition) requested") end
+  if chatty then game.print(chatty_name .. "exit trainsaver (transition) requested") end
   local mod_settings = player.mod_settings
   local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
   local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
@@ -229,7 +228,7 @@ local function end_trainsaver(command, ending_transition)
     transition_time = convert_speed_into_time(transition_time, distance_in_meters)
   end
   if variable_zoom then
-    zoom = (math.random(((zoom - (zoom*.20))*1000),(((zoom + (zoom*.20)))*1000)))/1000
+    zoom = (math.random(((zoom - (zoom * .20)) * 1000), (((zoom + (zoom * .20))) * 1000))) / 1000
   end
   local created_waypoints = {
     {
@@ -277,7 +276,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
   if not player then return end
   local chatty_name = chatty_player_name(player)
   local name = command.name
-  if chatty then game.print(chatty_name.."starting trainsaver") end
+  if chatty then game.print(chatty_name .. "starting trainsaver") end
   local controller_type = player.controller_type
   local allowed_controller_types = {
     [defines.controllers.character] = true,
@@ -290,19 +289,17 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 
   -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
   local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]
-  if not train_to_ignore then
-    train_to_ignore = {id = -999999}
-  end
+  if not train_to_ignore then train_to_ignore = { id = -999999 } end
   for _, train in pairs(all_trains) do
-    if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and ( not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
+    if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
       table.insert(eligable_trains_with_movers, train)
     end
   end
-  if chatty then game.print(chatty_name.."created table of trains [" .. #eligable_trains_with_movers .. " total]") end
+  if chatty then game.print(chatty_name .. "created table of trains [" .. #eligable_trains_with_movers .. " total]") end
 
   -- if there's no eligable trains, exit trainsaver
   if not eligable_trains_with_movers[1] then
-    if chatty then game.print(chatty_name.."no eligable trains found") end
+    if chatty then game.print(chatty_name .. "no eligable trains found") end
     end_trainsaver(command)
     return
   end
@@ -314,7 +311,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
       table.insert(active_trains, train)
     end
   end
-  if chatty then game.print(chatty_name.."created table of active trains [" .. #active_trains .. " total]") end
+  if chatty then game.print(chatty_name .. "created table of active trains [" .. #active_trains .. " total]") end
 
   -- sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path
   if active_trains[1] then
@@ -326,30 +323,30 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
   end
 
   -- if there are no trains on_the_path then make a table of trains waiting at stations
-  if chatty then game.print(chatty_name.."no trains are on_the_path") end
+  if chatty then game.print(chatty_name .. "no trains are on_the_path") end
   local trains_at_stations = {} --[=[@type LuaTrain[]]=]
   for _, train in pairs(eligable_trains_with_movers) do
     if train.state == defines.train_state.wait_station then
       table.insert(trains_at_stations, train)
     end
   end
-  if chatty then game.print(chatty_name.."created table of trains waiting at stations [" .. #trains_at_stations .. " total]") end
+  if chatty then game.print(chatty_name .. "created table of trains waiting at stations [" .. #trains_at_stations .. " total]") end
 
   -- if there are any trains waiting at stations, pick a random one to request a cutscene with
   if trains_at_stations[1] then
     local random_train_index = math.random(table_size(trains_at_stations))
     local waypoint_target = trains_at_stations[random_train_index]
     create_cutscene_next_tick(player_index, waypoint_target)
-    if chatty then game.print(chatty_name.."chose a random train waiting at a station") end
+    if chatty then game.print(chatty_name .. "chose a random train waiting at a station") end
     return
   end
 
   -- if there are no trains on_the_path or waiting at stations, then pick a random train from the eligible ones to request a cutscene with
-  if chatty then game.print(chatty_name.."no trains on_the_path or waiting at stations") end
+  if chatty then game.print(chatty_name .. "no trains on_the_path or waiting at stations") end
   local random_train_index = math.random(table_size(eligable_trains_with_movers))
   local waypoint_target = eligable_trains_with_movers[random_train_index]
   create_cutscene_next_tick(player_index, waypoint_target)
-  if chatty then game.print(chatty_name.."chose a random train") end
+  if chatty then game.print(chatty_name .. "chose a random train") end
 end
 
 -- remove any globals we saved for the player when trainsaver ends
