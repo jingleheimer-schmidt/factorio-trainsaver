@@ -77,6 +77,14 @@ local function trainsaver_is_active(player)
   end
 end
 
+-- add data to global so a cutscene is created for a given player the following tick
+---@param player_index PlayerIndex
+---@param train LuaTrain
+local function create_cutscene_next_tick(player_index, train)
+  global.cutscene_next_tick = global.cutscene_next_tick or {}
+  global.cutscene_next_tick[player_index] = {train, player_index}
+end
+
 -- print a message to all players who have notable events enabled
 ---@param message string
 local function print_notable_event(message)
@@ -619,18 +627,6 @@ local function play_cutscene(created_waypoints, player_index)
     if remaining_path_distance > 10000 then
       player.unlock_achievement("trainsaver-long-haul")
     end
-  end
-end
-
--- add data to global so a cutscene is created for a given player the following tick
----@param player_index PlayerIndex
----@param train LuaTrain
-local function create_cutscene_next_tick(player_index, train)
-  if not global.create_cutscene_next_tick then
-    global.create_cutscene_next_tick = {}
-    global.create_cutscene_next_tick[player_index] = {train, player_index}
-  else
-    global.create_cutscene_next_tick[player_index] = {train, player_index}
   end
 end
 
