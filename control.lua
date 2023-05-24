@@ -76,14 +76,11 @@ end
 local function convert_speed_into_time(speed_kmph, distance_in_meters)
   local speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
   local distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
-  local time = {}
+  local time = 0
   if speed ~= 0 then
     time = distance / speed
-    return time
-  else
-    time = 0
-    return time
   end
+  return time
 end
 
 --[[ create a waypoint for given waypoint_target using player mod settings --]]
@@ -94,13 +91,13 @@ local function create_waypoint(waypoint_target, player_index)
   local chatty = global.chatty
   local tt = nil
   local z = nil
-  local player = game.get_player(player_index)
+  local player = game.get_player(player_index) --[[@as LuaPlayer]]
   local mod_settings = player.mod_settings
   local chatty_name = chatty_player_name(player)
 
   --[[ we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time --]]
   if mod_settings["ts-transition-speed"].value > 0 then
-    local speed_kmph = mod_settings["ts-transition-speed"].value
+    local speed_kmph = mod_settings["ts-transition-speed"].value --[[@as number]]
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
     tt = convert_speed_into_time(speed_kmph, distance_in_meters)
   else
@@ -239,11 +236,11 @@ local function end_trainsaver(command)
       else
         local mod_settings = player.mod_settings
         local waypoint_target = player.cutscene_character or player.character
-        local tt = {}
+        local tt = 0
         local wt = 30
-        local z = {}
+        local z = 0
         if mod_settings["ts-transition-speed"].value > 0 then
-          local speed_kmph = mod_settings["ts-transition-speed"].value
+          local speed_kmph = mod_settings["ts-transition-speed"].value --[[@as number]]
           local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
           tt = convert_speed_into_time(speed_kmph, distance_in_meters)
         else
@@ -253,7 +250,7 @@ local function end_trainsaver(command)
           local temp_zoom = mod_settings["ts-zoom"].value
           z = (math.random(((temp_zoom - (temp_zoom*.20))*1000),(((temp_zoom + (temp_zoom*.20)))*1000)))/1000
         else
-          z = mod_settings["ts-zoom"].value
+          z = mod_settings["ts-zoom"].value --[[@as number]]
         end
         local created_waypoints = {
           {
