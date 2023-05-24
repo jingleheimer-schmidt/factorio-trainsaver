@@ -15,7 +15,8 @@ local transitionTimeSetting = {
   minimum_value = 0,
 --   maximum_value = 1800,
   default_value = 0, -- km/h, will be converted to time (ticks)
-  order = "ts-a-b"
+  order = "ts-a-b",
+  hidden = true,
 }
 
 local waitAtSignalSetting = {
@@ -51,7 +52,8 @@ local timeWaitSetting = {
   setting_type = "runtime-per-user",
   minimum_value = 1, -- need to have at least 1 minute of "inactivity", because it's not actually inactivity, it's how long the cutscene lasts before returning to player.
   default_value = 15, -- minutes, will be converted to ticks
-  order = "ts-c"
+  order = "ts-c",
+  hidden = true,
 }
 
 local afkAutoStartSetting = {
@@ -78,7 +80,8 @@ local variableZoomSetting = {
   name = "ts-variable-zoom",
   setting_type = "runtime-per-user",
   default_value = true,
-  order = "ts-f"
+  order = "ts-f",
+  hidden = true,
 }
 
 local autoStartWhileGuiIsOpenSetting = {
@@ -102,7 +105,8 @@ local menuEndsTrainsaverSetting = {
   name = "ts-menu-hotkey",
   setting_type = "runtime-per-user",
   default_value = false,
-  order = "ts-i"
+  order = "ts-i",
+  hidden = true,
 }
 
 local linkedGameControlEndsTrainsaverSetting = {

@@ -59,7 +59,6 @@ local function print_notable_event(message)
   end
 end
 
-
 ---comment
 ---@param position_1 MapPosition
 ---@param position_2 MapPosition
