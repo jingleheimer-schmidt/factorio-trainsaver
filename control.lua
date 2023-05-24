@@ -175,96 +175,86 @@ local function create_waypoint(waypoint_target, player_index)
   return created_waypoints
 end
 
--- end the screensaver and nil out any globals saved for given player
+-- end the screensaver
 ---@param command EventData.on_console_command
 ---@param ending_transition boolean?
 local function end_trainsaver(command, ending_transition)
-  local chatty = global.chatty
   local player_index = command.player_index
   if not player_index then return end
   local player = game.get_player(player_index)
   if not player then return end
+  if not trainsaver_is_active(player) then return end
+  local chatty = global.chatty
   local chatty_name = chatty_player_name(player)
-  if player.controller_type == defines.controllers.cutscene then
-    -- if the cutscene creator mod created the cutscene, don't cancel it
-    if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-      if remote.call("cc_check", "cc_status", player_index) == "active" then
-        return
-      end
-    end
-
-    -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth. If it's triggered while already going back to cutscene character, then exit immediately instead
-    if ending_transition then
-      if chatty then game.print(chatty_name.."exit trainsaver (transition) requested") end
-      if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
-        if chatty then game.print(chatty_name.."trainsaver is currently exiting. immediatte exit requested") end
-        player.exit_cutscene()
-      elseif not (player.cutscene_character or player.character) then
-        if chatty then game.print(chatty_name.."player has no character or cutscene_character. immediate exit requested") end
-        player.exit_cutscene()
-      else
-        local mod_settings = player.mod_settings
-        local waypoint_target = player.cutscene_character or player.character
-        local tt = 0
-        local wt = 30
-        local z = 0
-        if mod_settings["ts-transition-speed"].value > 0 then
-          local speed_kmph = mod_settings["ts-transition-speed"].value --[[@as number]]
-          local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-          tt = convert_speed_into_time(speed_kmph, distance_in_meters)
-        else
-          tt = mod_settings["ts-transition-time"].value * 60
-        end
-        if mod_settings["ts-variable-zoom"].value == true then
-          local temp_zoom = mod_settings["ts-zoom"].value
-          z = (math.random(((temp_zoom - (temp_zoom*.20))*1000),(((temp_zoom + (temp_zoom*.20)))*1000)))/1000
-        else
-          z = mod_settings["ts-zoom"].value --[[@as number]]
-        end
-        local created_waypoints = {
-          {
-            target = waypoint_target,
-            transition_time = tt,
-            time_to_wait = wt,
-            zoom = z
-          },
-        }
-        if chatty then game.print(chatty_name.."created ending transition waypoints to player character or cutscene_character") end
-        if player.surface.index ~= created_waypoints[1].target.surface.index then
-          if chatty then game.print(chatty_name.."ending transition target on different surface than player. immediate exit requested") end
-          player.exit_cutscene()
-        end
-        local transfer_alt_mode = player.game_view_settings.show_entity_info
-        player.set_controller(
-          {
-            type = defines.controllers.cutscene,
-            waypoints = created_waypoints,
-            start_position = player.position,
-          }
-        )
-        player.game_view_settings.show_entity_info = transfer_alt_mode
-        if not global.cutscene_ending then
-          global.cutscene_ending = {}
-          global.cutscene_ending[player_index] = true
-        else
-          global.cutscene_ending[player_index] = true
-        end
-        if global.wait_at_signal and global.wait_at_signal[player_index] then
-          global.wait_at_signal[player_index] = nil
-        end
-        if global.station_minimum and global.station_minimum[player_index] then
-          global.station_minimum[player_index] = nil
-        end
-        if global.driving_minimum and global.driving_minimum[player_index] then
-          global.driving_minimum[player_index] = nil
-        end
-      end
-    else
-      if chatty then game.print(chatty_name.."exit trainsaver (instant) requested") end
-      player.exit_cutscene()
-    end
-  else
+  -- if the cutscene creator mod created the cutscene, don't cancel it
+  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+    if remote.call("cc_check", "cc_status", player_index) == "active" then return end
   end
+  -- if we're not doing a transition, then just exit the cutscene immediately
+  if not ending_transition then
+    if chatty then game.print(chatty_name.."exit trainsaver (instant) requested") end
+    player.exit_cutscene()
+    return
+  end
+  -- if we're already in the process of exiting, then just exit immediately
+  if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
+    if chatty then game.print(chatty_name.."trainsaver is currently exiting. immediatte exit requested") end
+    player.exit_cutscene()
+    return
+  end
+  -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
+  if not (player.cutscene_character or player.character) then
+    if chatty then game.print(chatty_name.."has no character or cutscene_character. immediate exit requested") end
+    player.exit_cutscene()
+    return
+  end
+  -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
+  if chatty then game.print(chatty_name.."exit trainsaver (transition) requested") end
+  local mod_settings = player.mod_settings
+  local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
+  local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
+  local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
+  local zoom = mod_settings["ts-zoom"].value --[[@as number]]
+  local wait_time = 30
+  if transition_time > 0 then
+    local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
+    transition_time = convert_speed_into_time(transition_time, distance_in_meters)
+  end
+  if variable_zoom then
+    zoom = (math.random(((zoom - (zoom*.20))*1000),(((zoom + (zoom*.20)))*1000)))/1000
+  end
+  local created_waypoints = {
+    {
+      target = waypoint_target,
+      transition_time = transition_time,
+      time_to_wait = wait_time,
+      zoom = zoom
+    },
+  }
+  if chatty then game.print(chatty_name.."created ending transition waypoints to player character or cutscene_character") end
+  if player.surface.index ~= created_waypoints[1].target.surface.index then
+    if chatty then game.print(chatty_name.."ending transition target on different surface than player. immediate exit requested") end
+    player.exit_cutscene()
+    return
+  end
+  local transfer_alt_mode = player.game_view_settings.show_entity_info
+  player.set_controller(
+    {
+      type = defines.controllers.cutscene,
+      waypoints = created_waypoints,
+      start_position = player.position,
+    }
+  )
+  player.game_view_settings.show_entity_info = transfer_alt_mode
+  -- update globals for a cutscene ending
+  global.cutscene_ending = global.cutscene_ending or {}
+  global.cutscene_ending[player_index] = true
+  global.wait_at_signal = global.wait_at_signal or {}
+  global.wait_at_signal[player_index] = nil
+  global.station_minimum = global.station_minimum or {}
+  global.station_minimum[player_index] = nil
+  global.driving_minimum = global.driving_minimum or {}
+  global.driving_minimum[player_index] = nil
 end
 
 -- start the screensaver :D
