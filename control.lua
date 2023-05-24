@@ -905,13 +905,8 @@ local function cutscene_next_tick_function()
     local chatty = global.chatty
     local chatty_name, target_name = "", ""
     if chatty then
-      chatty_name = "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
-      target_name = "train " .. target_train.id
-      if target_train.locomotives["front_movers"] and target_train.locomotives["front_movers"][1] and target_train.locomotives["front_movers"][1].color then
-        target_name = "[color="..target_train.locomotives["front_movers"][1].color.r..","..target_train.locomotives["front_movers"][1].color.g..","..target_train.locomotives["front_movers"][1].color.b.."]"..target_name.."[/color]"
-      elseif target_train.locomotives["back_movers"] and target_train.locomotives["back_movers"][1] and target_train.locomotives["back_movers"][1].color then
-        target_name = "[color="..target_train.locomotives[2][1].color.r..","..target_train.locomotives[2][1].color.g..","..target_train.locomotives[2][1].color.b.."]"..target_name.."[/color]"
-      end
+      chatty_name = chatty_player_name(player)
+      target_name = chatty_target_train_name(target_train)
     end
 
     -- don't create the cutscene if they've requested to end and we're going back to their character
