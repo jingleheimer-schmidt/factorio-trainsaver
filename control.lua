@@ -63,6 +63,20 @@ local function chatty_target_entity_name(entity)
   return target_name
 end
 
+-- return true if trainsaver is active for given player, or false if not
+---@param player LuaPlayer
+---@return boolean
+local function trainsaver_is_active(player)
+  if not player.controller_type == defines.controllers.cutscene then
+    return false
+  end
+  if global.trainsaver_status and global.trainsaver_status[player.index] then
+    return true
+  else
+    return false
+  end
+end
+
 -- print a message to all players who have notable events enabled
 ---@param message string
 local function print_notable_event(message)
