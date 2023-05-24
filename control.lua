@@ -128,6 +128,8 @@ local function create_waypoint(waypoint_target, player_index)
     waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
   end
   local waypoint_2_end_entity = player.cutscene_character or player.character or {}
+  local waypoint_2_end_entity_name = waypoint_2_end_entity.name
+  if player.cutscene_character then waypoint_2_end_entity_name = "cutscene character" end
   if transition_time_2 > 0 then
     local waypoint_2_start_position = waypoint_2_start_entity.position or waypoint_target.position
     local waypoint_2_end_position = waypoint_2_end_entity.position or player.position
@@ -154,7 +156,7 @@ local function create_waypoint(waypoint_target, player_index)
       zoom = zoom
     }
     table.insert(created_waypoints, waypoint_2)
-    if chatty then game.print(chatty_name.."created waypoint to "..chatty_target_entity_name(waypoint_target).." with return waypoint to "..waypoint_2_end_entity.name) end
+    if chatty then game.print(chatty_name.."created waypoint to "..chatty_target_entity_name(waypoint_target).." with return waypoint to "..waypoint_2_end_entity_name) end
   end
   return created_waypoints
 end
