@@ -63,7 +63,7 @@ local function chatty_target_entity_name(entity)
   return target_name
 end
 
----print a message to all players who have notable events enabled
+-- print a message to all players who have notable events enabled
 ---@param message string
 local function print_notable_event(message)
   for _, player in pairs(game.connected_players) do
@@ -73,7 +73,7 @@ local function print_notable_event(message)
   end
 end
 
----comment
+-- returns the distance between two map positions
 ---@param position_1 MapPosition
 ---@param position_2 MapPosition
 ---@return integer
@@ -82,13 +82,13 @@ local function calculate_distance(position_1, position_2)
   return distance
 end
 
----comment
+-- converts speed in kmph into time in ticks
 ---@param speed_kmph number
 ---@param distance_in_meters number
 ---@return number
 local function convert_speed_into_time(speed_kmph, distance_in_meters)
-  local speed = speed_kmph / 60 / 60 / 60 --[[ speed in km/tick --]]
-  local distance = distance_in_meters / 1000 --[[ distance in kilometers --]]
+  local speed = speed_kmph / 60 / 60 / 60 -- speed in km/tick
+  local distance = distance_in_meters / 1000 -- distance in kilometers
   local time = 0
   if speed ~= 0 then
     time = distance / speed
@@ -96,7 +96,7 @@ local function convert_speed_into_time(speed_kmph, distance_in_meters)
   return time
 end
 
---[[ create a waypoint for given waypoint_target using player mod settings --]]
+-- create a waypoint for given waypoint_target using player mod settings
 ---@param waypoint_target LuaEntity
 ---@param player_index PlayerIndex
 ---@return CutsceneWaypoint[]
@@ -111,18 +111,18 @@ local function create_waypoint(waypoint_target, player_index)
   local zoom = mod_settings["ts-zoom"].value --[[@as number]]
   local time_to_wait = mod_settings["ts-time-wait"].value * 60 * 60 --[[@as number]] --[[ convert minutes to ticks --]]
 
-  --[[ we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time --]]
+  -- we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time
   if transition_time > 0 then
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
     transition_time = convert_speed_into_time(transition_time, distance_in_meters)
   end
 
-  -- [[ if variable zoom is enabled, then we will randomly zoom in or out by 20% --]]
+  -- if variable zoom is enabled, then we will randomly zoom in or out by 20%
   if variable_zoom == true then
     zoom = (math.random(((zoom - (zoom*.20))*1000),(((zoom + (zoom*.20)))*1000)))/1000
   end
 
-  --[[ set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over --]]
+  -- set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over
   local waypoint_2_start_entity = {}
   if waypoint_target.train then
     waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
@@ -135,7 +135,7 @@ local function create_waypoint(waypoint_target, player_index)
     transition_time_2 = convert_speed_into_time(transition_time_2, waypoint_2_distance_in_meters)
   end
 
-  --[[ finally let's assemble our waypints table! --]]
+  -- finally let's assemble our waypints table!
   local created_waypoints = {
     {
       target = waypoint_target,
@@ -145,7 +145,7 @@ local function create_waypoint(waypoint_target, player_index)
     },
   }
 
-  --[[ use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to --]]
+  -- use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to
   if waypoint_2_end_entity.valid and (waypoint_2_end_entity.surface_index == player.surface_index) then
     local waypoint_2 = {
       target = waypoint_2_end_entity,
@@ -159,8 +159,7 @@ local function create_waypoint(waypoint_target, player_index)
   return created_waypoints
 end
 
---[[ end the screensaver and nil out any globals saved for given player --]]
----comment
+-- end the screensaver and nil out any globals saved for given player
 ---@param command EventData.on_console_command
 local function end_trainsaver(command)
   local chatty = global.chatty
@@ -170,14 +169,14 @@ local function end_trainsaver(command)
   if not player then return end
   local chatty_name = chatty_player_name(player)
   if player.controller_type == defines.controllers.cutscene then
-    --[[ if the cutscene creator mod created the cutscene, don't cancel it --]]
+    -- if the cutscene creator mod created the cutscene, don't cancel it
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
       end
     end
 
-    --[[ create a new cutscene from current position back to cutscene character position so the exit is nice and smooth. If it's triggered while already going back to cutscene character, then exit immediately instead.  --]]
+    -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth. If it's triggered while already going back to cutscene character, then exit immediately instead
     if (command.ending_transition and (command.ending_transition == true)) then
       if chatty then game.print(chatty_name.."exit trainsaver (transition) requested") end
       if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
@@ -251,7 +250,7 @@ local function end_trainsaver(command)
   end
 end
 
----comment
+-- start the screensaver :D
 ---@param command EventData.on_console_command
 local function start_trainsaver(command)
   local chatty = global.chatty
@@ -264,10 +263,10 @@ local function start_trainsaver(command)
   if chatty then game.print(chatty_name.."starting trainsaver") end
   if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or (command.entity_gone_restart == "yes")) then
 
-    --[[ create a table of all trains --]]
+    -- create a table of all trains
     local table_of_all_trains = player.surface.get_trains()
 
-    --[[ create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined --]]
+    -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
     local table_of_trains = {}
     if not command.train_to_ignore then
       command.train_to_ignore = {id = -999999}
@@ -279,7 +278,7 @@ local function start_trainsaver(command)
     end
     if chatty then game.print(chatty_name.."created table of trains [" .. #table_of_trains .. " total]") end
 
-    --[[ if there's no trains, end everything --]]
+    -- if there's no trains, end everything
     if not table_of_trains[1] then
       if player.controller_type == defines.controllers.cutscene then
         local command = {player_index = player_index}
@@ -287,7 +286,7 @@ local function start_trainsaver(command)
         end_trainsaver(command)
       end
 
-    --[[ if there are any trains, make a table of all the active (on_the_path) ones --]]
+    -- if there are any trains, make a table of all the active (on_the_path) ones
     else
       local table_of_active_trains = {}
       for a,b in pairs(table_of_trains) do
@@ -296,7 +295,7 @@ local function start_trainsaver(command)
         end
       end
 
-      --[[ sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path --]]
+      -- sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path
       if table_of_active_trains[1] then
         local table_of_trains_sorted_by_remaining_path_length = util.table.deepcopy(table_of_active_trains)
         table.sort(table_of_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
@@ -310,7 +309,7 @@ local function start_trainsaver(command)
         end
         if chatty then game.print(chatty_name.."requested cutscene for " .. player.name .. " next tick, following train with longest remaining path") end
 
-      --[[ if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global. This has been superceded by the find longest remaining path method, but we'll keep it here in comments just in case we need it at some point in the future. --]]
+      -- if there are any trains on_the_path, pick a random one and pass it through global.create_cutscene_next_tick global. This has been superceded by the find longest remaining path method, but we'll keep it here in comments just in case we need it at some point in the future.
       --[[
       if table_of_active_trains[1] then
         local random_train_index = math.random(table_size(table_of_active_trains))
@@ -327,7 +326,7 @@ local function start_trainsaver(command)
         end
         --]]
 
-      --[[ if there are no trains on_the_path then make a table of trains waiting at stations --]]
+      -- if there are no trains on_the_path then make a table of trains waiting at stations
       else
         if chatty then game.print(chatty_name.."no trains are on_the_path") end
         local table_of_trains_at_the_station = {}
@@ -338,7 +337,7 @@ local function start_trainsaver(command)
         end
         if chatty then game.print(chatty_name.."created table of trains waiting at stations [" .. #table_of_trains_at_the_station .. " total]") end
 
-        --[[ if there are any trains waiting at stations, pick a random one and play a cutscene from a front or back mover loco --]]
+        -- if there are any trains waiting at stations, pick a random one and play a cutscene from a front or back mover loco
         if table_of_trains_at_the_station[1] then
           local random_train_index = math.random(table_size(table_of_trains_at_the_station))
           local waypoint_target = {}
@@ -348,7 +347,7 @@ local function start_trainsaver(command)
             waypoint_target = table_of_trains_at_the_station[random_train_index].locomotives.back_movers[1]
           end
           if chatty then game.print(chatty_name.."chose a random train waiting at a station") end
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          -- abort if the potential waypoint is on a different surface than the player
           if player.surface.index ~= waypoint_target.surface.index then
             if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
             return
@@ -361,12 +360,12 @@ local function start_trainsaver(command)
           --]]
           play_cutscene(created_waypoints, player_index)
 
-        --[[ if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target --]]
+        -- if there are no trains on_the_path or waiting at stations, then pick the first train from table_of_trains and play cutscene with either front or back mover as target
         if chatty then game.print(chatty_name.."no trains on_the_path or waiting at stations") end
         elseif table_of_trains[1].locomotives.front_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.front_movers[1]
           if chatty then game.print(chatty_name.."chose front_mover of first train in table") end
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          -- abort if the potential waypoint is on a different surface than the player
           if player.surface.index ~= waypoint_target.surface.index then
             if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
             return
@@ -382,7 +381,7 @@ local function start_trainsaver(command)
         elseif table_of_trains[1].locomotives.back_movers[1] then
           local waypoint_target = table_of_trains[1].locomotives.back_movers[1]
           if chatty then game.print(chatty_name.."chose back_mover of first train in table") end
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          -- abort if the potential waypoint is on a different surface than the player
           if player.surface.index ~= waypoint_target.surface.index then
             if chatty then game.print(chatty_name.."abort: the train is on a different surface than the player") end
             return
@@ -395,7 +394,7 @@ local function start_trainsaver(command)
           --]]
           play_cutscene(created_waypoints, player_index)
 
-          --[[ if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how could this happen?? a train with no locomotives that is somehow not in manual mode?? i declare haxxx) then end_trainsaver() --]]
+          -- if there are no trains on the path or waiting at station, and table_of_trains[1] didn't have a front or back mover (how could this happen?? a train with no locomotives that is somehow not in manual mode?? i declare haxxx) then end_trainsaver()
         else
           player.print("trainsaver: something unexpected has occured. please report this event to the mod author. code: 909")
           local command = {
@@ -449,13 +448,13 @@ local function cutscene_ended_nil_globals(player_index)
   end
 end
 
---[[ when a cutscene is cancelled with player.exit_cutscene(), nil out any globals we saved for them. --]]
+-- when a cutscene is cancelled with player.exit_cutscene(), nil out any globals we saved for them
 ---@param event EventData.on_cutscene_cancelled
 local function cutscene_cancelled(event)
   cutscene_ended_nil_globals(event.player_index)
 end
 
---[[ nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both.. --]]
+-- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
 ---@param event EventData.on_cutscene_waypoint_reached
 local function cutscene_waypoint_reached(event)
   if global.chatty then
@@ -473,24 +472,24 @@ end
 script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
 script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
 
---[[ set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :) --]]
+-- set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :)
 ---@param player_index PlayerIndex
 local function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
 
----comment
+-- update all the globals for a newly created cutscene
 ---@param player_index PlayerIndex
 ---@param created_waypoints CutsceneWaypoint[]
 local function update_globals_new_cutscene(player_index, created_waypoints)
-  --[[ update trainsaver status global --]]
+  -- update trainsaver status global
   if not global.trainsaver_status then
     global.trainsaver_status = {}
     global.trainsaver_status[player_index] = "active"
   else
     global.trainsaver_status[player_index] = "active"
   end
-  --[[ update the followed_loco global --]]
+  -- update the followed_loco global
   if created_waypoints[1].target.train then
     ---@class FollowedLocomotiveData
     ---@field unit_number uint
@@ -509,7 +508,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
       global.followed_loco[player_index] = followed_locomotive_data
     end
   end
-  --[[ register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not --]]
+  -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
   if not global.entity_destroyed_registration_numbers then
     ---@type table<PlayerIndex, uint64>
     global.entity_destroyed_registration_numbers = {}
@@ -517,7 +516,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   else
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
   end
-  --[[ update the current_target global --]]
+  -- update the current_target global
   if not global.current_target then
     ---@type table<PlayerIndex, LuaEntity|LuaUnitGroup>
     global.current_target = {}
@@ -525,7 +524,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   else
     global.current_target[player_index] = created_waypoints[1].target
   end
-  --[[ update number of waypoints global --]]
+  -- update number of waypoints global
   if not global.number_of_waypoints then
     ---@type table<PlayerIndex, integer>
     global.number_of_waypoints = {}
@@ -533,7 +532,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   else
     global.number_of_waypoints[player_index] = #created_waypoints
   end
-  --[[ update driving minimum global --]]
+  -- update driving minimum global
   if not global.driving_minimum then
     ---@type table<PlayerIndex, uint>
     global.driving_minimum = {}
@@ -543,7 +542,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   end
 end
 
---[[ play cutscene from given waypoints --]]
+-- play cutscene from given waypoints
 ---@param created_waypoints CutsceneWaypoint[]
 ---@param player_index PlayerIndex
 local function play_cutscene(created_waypoints, player_index)
@@ -558,32 +557,31 @@ local function play_cutscene(created_waypoints, player_index)
     end
   end
 
-  --[[ abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case --]]
+  -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
   if player.surface.index ~= created_waypoints[1].target.surface.index then
     if chatty then game.print(chatty_name.."abort: waypoint is on different surface than player") end
     return
   end
 
-  --[[ save alt-mode so we can preserve it after cutscene controller resets it --]]
+  -- save alt-mode so we can preserve it after cutscene controller resets it
   local transfer_alt_mode = player.game_view_settings.show_entity_info
 
-  --[[ set the player controller to cutscene camera --]]
+  -- set the player controller to cutscene camera
   player.set_controller(
     {
       type = defines.controllers.cutscene,
       waypoints = created_waypoints,
       start_position = player.position,
-      --[[ final_transition_time = tt --]]
+      -- final_transition_time = tt
     }
   )
   if chatty then game.print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints") end 
 
-  --[[ reset alt-mode to what it was before cutscene controller reset it --]]
+  -- reset alt-mode to what it was before cutscene controller reset it
   player.game_view_settings.show_entity_info = transfer_alt_mode
   update_globals_new_cutscene(player_index, created_waypoints)
 
-  --[[ unlock any achievements if possible --]]
-  ----[[
+  -- unlock any achievements if possible
     if created_waypoints[1].target.train.passengers then
       for a,b in pairs(created_waypoints[1].target.train.passengers) do
         --[[
@@ -611,14 +609,8 @@ local function play_cutscene(created_waypoints, player_index)
     local remaining_path_distance = path.total_distance - path.travelled_distance
     if remaining_path_distance > 10000 then
       player.unlock_achievement("trainsaver-long-haul")
-      -- for c,d in pairs(game.connected_players) do
-      --   if d.mod_settings["ts-notable-events"].value == true then
-      --     d.print("[color=orange]trainsaver:[/color] "..player.name.." is watching a train with ".. remaining_path_distance/1000 .."km remaining in its journey")
-      --   end
-      -- end
     end
   end
-  --]]
 end
 
 -- add data to global so a cutscene is created for a given player the following tick
@@ -633,7 +625,7 @@ local function create_cutscene_next_tick(player_index, train)
   end
 end
 
---[[ if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global --]]
+-- if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global
 ---@param event EventData.on_train_changed_state
 local function update_wait_at_station(event)
   local train = event.train
@@ -666,7 +658,7 @@ local function update_wait_at_signal(train_changed_state_event)
   local train = train_changed_state_event.train
   local old_state = train_changed_state_event.old_state
   local new_state = train_changed_state_event.train.state
-  --[[ if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick) --]]
+  -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
   if --[[(old_state == defines.train_state.arrive_signal) and --]](new_state == defines.train_state.wait_signal) then
     for _, player in pairs(game.connected_players) do
       if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
@@ -690,7 +682,7 @@ local function update_wait_at_signal(train_changed_state_event)
       ::next_player::
     end
   end
-  --[[ if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing --]]
+  -- if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing
   if (old_state == defines.train_state.wait_signal) --[[and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))]] then
     for _, player in pairs(game.connected_players) do
       if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
@@ -740,10 +732,10 @@ local function train_changed_state(event)
     local chatty_name = chatty_player_name(player)
     local found_target_name = chatty_target_train_name(found_train)
 
-    --[[ when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive. --]]
+    -- when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive.
     if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) --[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
 
-      --[[ if camera is on train that changed state, switch to leading locomotive --]]
+      -- if camera is on train that changed state, switch to leading locomotive
       if found_train.id == train.id then
         if not global.create_cutscene_next_tick then
           global.create_cutscene_next_tick = {}
@@ -759,10 +751,10 @@ local function train_changed_state(event)
         end
         if chatty then game.print(chatty_name.."current target ["..found_target_name.."] is the train that changed state. targetting lead locomotive") end
 
-      --[[ if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow --]]
+      -- if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow
       elseif global.driving_minimum and global.driving_minimum[player_index] then
         local driving_since_tick = global.driving_minimum[player_index]
-        local minimum_allowed_time = player.mod_settings["ts-driving-minimum"].value * 60 * 60 --[[ converting minutes to ticks --]]
+        local minimum_allowed_time = player.mod_settings["ts-driving-minimum"].value * 60 * 60 -- converting minutes to ticks
         if (driving_since_tick + minimum_allowed_time) < game.tick then
           create_cutscene_next_tick(player_index, train)
           if chatty then game.print(chatty_name.."current target ["..found_target_name.."] has exceeded the "..minimum_allowed_time.." tick minimum for ".. verbose_states[found_state]) end
@@ -770,7 +762,7 @@ local function train_changed_state(event)
           if chatty then game.print(chatty_name.."current target ["..found_target_name.."] is ".. verbose_states[found_state] .. ". new target request denied by driving_minimum") end
         end
 
-      --   --[[ if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, and it's not the same train that just changed state, and the driving minimum has not been reached yet, then create a cutscene following the train that generated the change_state event on the next tick --]]
+      --   -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, and it's not the same train that just changed state, and the driving minimum has not been reached yet, then create a cutscene following the train that generated the change_state event on the next tick
       -- else
       --   if not global.create_cutscene_next_tick then
       --     global.create_cutscene_next_tick = {}
@@ -781,10 +773,10 @@ local function train_changed_state(event)
       --   if chatty then game.print(chatty_name.."current target state is on_the_path, arrive_signal, or arrive_station, but it's not the same train that just changed state, and the driving minimum has not been reached yet. switching camera to follow new train") end
       end
 
-    --[[ if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick --]]
+    -- if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick
     elseif (found_state == defines.train_state.wait_station) and (global.station_minimum and global.station_minimum[player_index]) then
       local waiting_since_tick = global.station_minimum[player_index]
-      local minimum_allowed_time = player.mod_settings["ts-station-minimum"].value * 60 --[[ converting seconds to ticks --]]
+      local minimum_allowed_time = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
       if (waiting_since_tick + minimum_allowed_time) < game.tick then
         create_cutscene_next_tick(player_index, train)
         if chatty then game.print(chatty_name.."current target ["..found_target_name.."] has exceeded the "..minimum_allowed_time.." tick minimum for ".. verbose_states[found_state]) end
@@ -792,7 +784,7 @@ local function train_changed_state(event)
         if chatty then game.print(chatty_name.."current target ["..found_target_name.."] is ".. verbose_states[found_state] .. ". new target request denied by station_minimum") end
       end
 
-    --[[ if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene --]]
+    -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
     elseif (found_state == defines.train_state.wait_signal) and (global.wait_at_signal and global.wait_at_signal[player_index]) then
       if global.wait_at_signal[player_index] > game.tick then
         global.create_cutscene_next_tick[player_index] = nil
@@ -803,7 +795,7 @@ local function train_changed_state(event)
         if chatty then game.print(chatty_name.."current target ["..found_target_name.."] has exceeded the ".. player.mod_settings["ts-wait-at-signal"].value * 60 --[[ converting seconds to ticks --]].." tick minimum for ".. verbose_states[found_state]) end
       end
 
-    --[[ if the train we're following is not on the path, or arriving at a station, or arriving at a signal, and it's not waiting at a station, then make go follow the new train that just left the station --]]
+    -- if the train we're following is not on the path, or arriving at a station, or arriving at a signal, and it's not waiting at a station, then make go follow the new train that just left the station
     else
       create_cutscene_next_tick(player_index, train)
       -- if chatty then game.print(chatty_name.."current target ["..found_train.id..", "..verbose_states[found_state].."] state is not on_the_path, arrive_signal, arrive_station, or wait_station") end
@@ -835,7 +827,7 @@ local function character_damaged(event)
   end
 end
 
---[[ restart trainsaver when the currently followed locomotive is destroyed --]]
+-- restart trainsaver when the currently followed locomotive is destroyed
 ---@param event EventData.on_entity_died | EventData.on_robot_mined_entity | EventData.on_player_mined_entity
 local function locomotive_gone(event)
   local locomotive = event.entity
@@ -855,7 +847,7 @@ local function locomotive_gone(event)
   end
 end
 
---[[ restart trainsaver when the currently followed cutscene target is destroyed --]]
+-- restart trainsaver when the currently followed cutscene target is destroyed
 ---@param event EventData.on_entity_destroyed
 local function entity_destroyed(event)
   local registration_number = event.registration_number
@@ -873,7 +865,7 @@ local function entity_destroyed(event)
       }
       locomotive_gone(simulated_event)
     else
-      --[[ if we just watched a rocket launch, restart trainsaver to find a new train to follow --]]
+      -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
       local player = game.get_player(player_index)
       if not player then goto next_player end
       if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
@@ -895,9 +887,9 @@ local function entity_destroyed(event)
   end
 end
 
---[[ create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader". --]]
+-- create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader".
 local function cutscene_next_tick_function()
-  --[[ check if any players need a new cutscene --]]
+  -- check if any players need a new cutscene
   if not global.create_cutscene_next_tick then return end
   for _, data in pairs(global.create_cutscene_next_tick) do
     local target_train = data[1]
@@ -916,24 +908,24 @@ local function cutscene_next_tick_function()
       end
     end
 
-    --[[ don't create the cutscene if they've requested to end and we're going back to their character --]]
+    -- don't create the cutscene if they've requested to end and we're going back to their character
     if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
       if chatty then game.print(chatty_name.."new target request denied by ending_transition") end
       global.create_cutscene_next_tick[player_index] = nil
       goto next_player
     end
 
-    --[[ make sure the player is still connected --]]
+    -- make sure the player is still connected
     if not player.connected then
       if chatty then game.print(chatty_name.."new target request denied by disconnected player") end
       global.create_cutscene_next_tick[player_index] = nil
       goto next_player
     end
 
-    --[[ make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure? --]]
+    -- make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure?
     if not (target_train.valid and (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid)) then
       global.create_cutscene_next_tick[player_index] = nil
-      --[[ trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh --]]
+      -- trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh
       local command = {
         name = "trainsaver",
         player_index = player_index,
@@ -946,7 +938,7 @@ local function cutscene_next_tick_function()
       goto next_player
     end
 
-    -- --[[ if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene --]]
+    -- -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
     -- if global.wait_at_signal and global.wait_at_signal[player_index] then
     --   -- game.print("stored: " .. global.wait_at_signal[player_index] .. ", game: " .. game.tick)
     --   if global.wait_at_signal[player_index] > game.tick then
@@ -960,15 +952,15 @@ local function cutscene_next_tick_function()
     --   end
     -- end
 
-    --[[ if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or - --]]
+    -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
     if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
       if target_train.speed > 0 then
-        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        -- abort if the potential waypoint is on a different surface than the player
         if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
           goto next_player
         end
         local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
-        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy --]]
+        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy
         if data[3] then
           created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
           created_waypoints[1].zoom = nil
@@ -977,12 +969,12 @@ local function cutscene_next_tick_function()
         global.create_cutscene_next_tick[player_index] = nil
       end
       if target_train.speed < 0 then
-        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        -- abort if the potential waypoint is on a different surface than the player
         if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
           goto next_player
         end
         local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
-        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
         if data[3] then
           created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
           created_waypoints[1].zoom = nil
@@ -991,15 +983,15 @@ local function cutscene_next_tick_function()
         global.create_cutscene_next_tick[player_index] = nil
       end
 
-    --[[ if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have --]]
+    -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
     elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
       if target_train.locomotives.front_movers[1] then
-        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        -- abort if the potential waypoint is on a different surface than the player
         if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
           goto next_player
         end
         local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
-        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
         if data[3] then
           created_waypoints[1].zoom = nil
         end
@@ -1007,12 +999,12 @@ local function cutscene_next_tick_function()
         global.create_cutscene_next_tick[player_index] = nil
       end
       if target_train.locomotives.back_movers[1] then
-        --[[ abort if the potential waypoint is on a different surface than the player --]]
+        -- abort if the potential waypoint is on a different surface than the player
         if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
           goto next_player
         end
         local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
-        --[[ if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us --]]
+        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
         if data[3] then
           created_waypoints[1].zoom = nil
         end
@@ -1024,7 +1016,7 @@ local function cutscene_next_tick_function()
   end
 end
 
--- --[[ because the rocket destroyed event is not guarenteed to happen in the same tick that the rocket is destroyed, and the cutscene camera will immediately go to [gps=0,0] if the target is destroyed, we need to save the location of the rocket right before it's destroyed so we can teleport the player to that location immediately after the camera goes to [gps=0,0] so that the next cutscene starts where the rocket was destroyed and not at [gps=0,0] --]]
+-- -- because the rocket destroyed event is not guarenteed to happen in the same tick that the rocket is destroyed, and the cutscene camera will immediately go to [gps=0,0] if the target is destroyed, we need to save the location of the rocket right before it's destroyed so we can teleport the player to that location immediately after the camera goes to [gps=0,0] so that the next cutscene starts where the rocket was destroyed and not at [gps=0,0]
 -- local function save_rocket_positions()
 --   if global.rocket_positions then
 --     for a,b in pairs(global.rocket_positions) do
@@ -1037,14 +1029,14 @@ end
 --   end
 -- end
 
---[[ while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed --]]
+-- while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed
 local function check_achievements()
   if not global.trainsaver_status then return end
   for player_index, status in pairs(global.trainsaver_status) do
     if not (status == "active") then goto next_player end
     local player = game.get_player(player_index)
     if not (player and player.connected) then goto next_player end
-    --[[ update continuous duration timer global data --]]
+    -- update continuous duration timer global data
     global.current_continuous_duration = global.current_continuous_duration or {}
     global.current_continuous_duration[player_index] = global.current_continuous_duration[player_index] or 0
     local continuous_duration = global.current_continuous_duration[player_index]
@@ -1058,7 +1050,7 @@ local function check_achievements()
     if continuous_duration == (60 * 60 * 60) then
       player.unlock_achievement("trainsaver-continuous-60-minutes")
     end
-    --[[ update total duration timer global data --]]
+    -- update total duration timer global data
     global.total_duration = global.total_duration or {}
     global.total_duration[player_index] = global.total_duration[player_index] or 0
     local total_duration = global.total_duration[player_index]
@@ -1076,14 +1068,14 @@ local function check_achievements()
   end
 end
 
---[[ create any requested cutscenes and update achievement progress --]]
+-- create any requested cutscenes and update achievement progress
 local function on_tick()
   cutscene_next_tick_function()
   -- save_rocket_positions()
   check_achievements()
 end
 
---[[ auto-start the screensaver if player AFK time is greater than what is specified in mod settings --]]
+-- auto-start the screensaver if player AFK time is greater than what is specified in mod settings
 local function on_nth_tick()
   for _, player in pairs(game.connected_players) do
     local controller_type = player.controller_type
@@ -1151,27 +1143,27 @@ end
 
 --| event registration section |--
 
---[[ afk autostart --]]
+-- afk autostart
 script.on_nth_tick(600, on_nth_tick)
 
---[[ create any requested cutscenes and update achievement progress --]]
+-- create any requested cutscenes and update achievement progress 
 script.on_event(defines.events.on_tick, on_tick)
 
---[[ when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met --]]
+-- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
 script.on_event(defines.events.on_train_changed_state, train_changed_state)
 
---[[ if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available --]]
+-- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available 
 local character_damaged_filter = {{filter = "type", type = "character"}}
 script.on_event(defines.events.on_entity_damaged, character_damaged, character_damaged_filter)
 
---[[ start a new cutscene if the followed locomotive dies or is mined or is destoryed --]]
+-- start a new cutscene if the followed locomotive dies or is mined or is destoryed
 local locomotive_filter = {{filter = "type", type = "locomotive"}}
 script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_entity_destroyed, entity_destroyed)
 
---[[ start or end trainsaver based on various hotkeys and settings --]]
+-- start or end trainsaver based on various hotkeys and settings
 script.on_event("toggle-trainsaver", start_or_end_trainsaver)
 script.on_event("start-trainsaver", start_or_end_trainsaver)
 script.on_event("end-trainsaver", end_trainsaver_on_command)
@@ -1225,24 +1217,24 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
               return
             end
           end
-          --[[ abort if the potential waypoint is on a different surface than the player --]]
+          -- abort if the potential waypoint is on a different surface than the player
           if player.surface.index ~= silo.surface.index then
             return
           end
-          --[[ create the waypoints --]]
+          -- create the waypoints
           local created_waypoints = create_waypoint(silo, player_index)
           silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
           table.insert(created_waypoints, 2, silo_rocket_waypoint_2)
 
-          --[[ set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
+          -- set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
           if created_waypoints[1].transition_time > 440 then
-            --[[ created_waypoints[1].transition_time = 440 --]]
+            -- created_waypoints[1].transition_time = 440
             created_waypoints[1].transition_time = 0
           end
           created_waypoints[1].time_to_wait = 1
           created_waypoints[1].zoom = 0.5
 
-          --[[ set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.) --]]
+          -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
           created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
           created_waypoints[2].zoom = 0.2
 
@@ -1318,4 +1310,4 @@ interface_functions.trainsaver_target = function(player_index)
   end
 end
 
-remote.add_interface("trainsaver",interface_functions)
+remote.add_interface("trainsaver", interface_functions)
