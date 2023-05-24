@@ -2,7 +2,11 @@
 Version: 0.0.21
 Date: TBD
   Changes:
-    - added code annotations
+    - restructured control script to be more modular and robust
+    - marked Transition Time mod setting as hidden
+    - marked Inactivity Timeout mod setting as hidden
+    - marked Escape with Menu mod setting as hidden
+    - marked Variable Zoom mod setting as hidden
     - secret focus mod setting is now enabled by default
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.20
