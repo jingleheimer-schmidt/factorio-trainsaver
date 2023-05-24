@@ -163,7 +163,8 @@ end
 
 -- end the screensaver and nil out any globals saved for given player
 ---@param command EventData.on_console_command
-local function end_trainsaver(command)
+---@param ending_transition boolean?
+local function end_trainsaver(command, ending_transition)
   local chatty = global.chatty
   local player_index = command.player_index
   if not player_index then return end
@@ -179,7 +180,7 @@ local function end_trainsaver(command)
     end
 
     -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth. If it's triggered while already going back to cutscene character, then exit immediately instead
-    if (command.ending_transition and (command.ending_transition == true)) then
+    if ending_transition then
       if chatty then game.print(chatty_name.."exit trainsaver (transition) requested") end
       if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
         if chatty then game.print(chatty_name.."trainsaver is currently exiting. immediatte exit requested") end
@@ -254,7 +255,9 @@ end
 
 -- start the screensaver :D
 ---@param command EventData.on_console_command
-local function start_trainsaver(command)
+---@param train_to_ignore LuaTrain?
+---@param entity_gone_restart boolean?
+local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
   local chatty = global.chatty
   local player_index = command.player_index
   if not player_index then return end
@@ -263,18 +266,18 @@ local function start_trainsaver(command)
   local chatty_name = chatty_player_name(player)
   local name = command.name
   if chatty then game.print(chatty_name.."starting trainsaver") end
-  if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or (command.entity_gone_restart == "yes")) then
+  if (name == "trainsaver") and (((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) or entity_gone_restart) then
 
     -- create a table of all trains
     local table_of_all_trains = player.surface.get_trains()
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
     local table_of_trains = {}
-    if not command.train_to_ignore then
-      command.train_to_ignore = {id = -999999}
+    if not train_to_ignore then
+      train_to_ignore = {id = -999999}
     end
     for a,b in pairs(table_of_all_trains) do
-      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop) or (b.id == command.train_to_ignore.id)))) then
+      if ((b.locomotives.front_movers[1] or b.locomotives.back_movers[1]) and ( not ((b.state == defines.train_state.manual_control) or (b.state == defines.train_state.manual_control_stop) or (b.id == train_to_ignore.id)))) then
         table.insert(table_of_trains, b)
       end
     end
@@ -577,7 +580,7 @@ local function play_cutscene(created_waypoints, player_index)
       -- final_transition_time = tt
     }
   )
-  if chatty then game.print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints") end 
+  if chatty then game.print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints") end
 
   -- reset alt-mode to what it was before cutscene controller reset it
   player.game_view_settings.show_entity_info = transfer_alt_mode
@@ -841,10 +844,11 @@ local function locomotive_gone(event)
     local command = {
       name = "trainsaver",
       player_index = player_index,
-      entity_gone_restart = "yes",
-      train_to_ignore = event.entity.train
+      -- entity_gone_restart = "yes",
+      -- train_to_ignore = event.entity.train
       }
-    start_trainsaver(command)
+    -- start_trainsaver(command)
+    start_trainsaver(command, event.entity.train, true)
     ::next_player::
   end
 end
@@ -881,9 +885,9 @@ local function entity_destroyed(event)
       local command = {
         name = "trainsaver",
         player_index = player_index,
-        entity_gone_restart = "yes",
+        -- entity_gone_restart = "yes",
       }
-      start_trainsaver(command)
+      start_trainsaver(command, nil, true)
     end
     ::next_player::
   end
@@ -931,12 +935,12 @@ local function cutscene_next_tick_function()
       local command = {
         name = "trainsaver",
         player_index = player_index,
-        entity_gone_restart = "yes",
+        -- entity_gone_restart = "yes",
         -- train_to_ignore = event.entity.train
         }
       if chatty then game.print(chatty_name.."new target is invalid, restarting trainsaver") end
       global.create_cutscene_next_tick[player_index] = nil
-      start_trainsaver(command)
+      start_trainsaver(command, nil, true)
       goto next_player
     end
 
@@ -1106,8 +1110,9 @@ local function start_or_end_trainsaver(event)
     local command = {name = "trainsaver", player_index = event.player_index}
     start_trainsaver(command)
   elseif player.controller_type == defines.controllers.cutscene then
-    local command = {player_index = event.player_index, ending_transition = true}
-    end_trainsaver(command)
+    -- local command = {player_index = event.player_index, ending_transition = true}
+    local command = {player_index = event.player_index}
+    end_trainsaver(command, true)
   end
 end
 
@@ -1117,8 +1122,9 @@ local function end_trainsaver_on_command(event)
   local player = game.get_player(event.player_index)
   if not player then return end
   if not (player.controller_type == defines.controllers.cutscene) then return end
-  local command = {player_index = event.player_index, ending_transition = true}
-  end_trainsaver(command)
+  -- local command = {player_index = event.player_index, ending_transition = true}
+  local command = {player_index = event.player_index}
+  end_trainsaver(command, true)
 end
 
 ---end trainsaver when the game menu is opened
