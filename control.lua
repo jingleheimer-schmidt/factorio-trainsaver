@@ -352,41 +352,24 @@ end
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index PlayerIndex
 local function cutscene_ended_nil_globals(player_index)
-  if global.followed_loco and global.followed_loco[player_index] then
-    global.followed_loco[player_index] = nil
-  end
-  if global.create_cutscene_next_tick and global.create_cutscene_next_tick[player_index] then
-    global.create_cutscene_next_tick[player_index] = nil
-  end
-  if global.wait_at_signal and global.wait_at_signal[player_index] then
-    global.wait_at_signal[player_index]= nil
-  end
-  if global.entity_destroyed_registration_numbers and global.entity_destroyed_registration_numbers[player_index] then
-    global.entity_destroyed_registration_numbers[player_index] = nil
-  end
-  if global.rocket_positions and global.rocket_positions[player_index] then
-    global.rocket_positions[player_index] = nil
-  end
-  if global.trainsaver_status and global.trainsaver_status[player_index] then
-    global.trainsaver_status[player_index] = nil
-  end
-  if global.current_continuous_duration and global.current_continuous_duration[player_index] then
-    global.current_continuous_duration[player_index] = nil
-  end
-  if global.current_target and global.current_target[player_index] then
-    global.current_target[player_index] = nil
-  end
-  if global.cutscene_ending and global.cutscene_ending[player_index] then
-    global.cutscene_ending[player_index] = nil
-  end
-  if global.number_of_waypoints and global.number_of_waypoints[player_index] then
-    global.number_of_waypoints[player_index] = nil
-  end
-  if global.station_minimum and global.station_minimum[player_index] then
-    global.station_minimum[player_index] = nil
-  end
-  if global.driving_minimum and global.driving_minimum[player_index] then
-    global.driving_minimum[player_index] = nil
+  local globals_to_nil = {
+    "followed_loco",
+    "create_cutscene_next_tick",
+    "wait_at_signal",
+    "entity_destroyed_registration_numbers",
+    "rocket_positions",
+    "trainsaver_status",
+    "current_continuous_duration",
+    "current_target",
+    "cutscene_ending",
+    "number_of_waypoints",
+    "station_minimum",
+    "driving_minimum",
+  }
+  for _, global_name in pairs(globals_to_nil) do
+    if global[global_name] then
+      global[global_name][player_index] = nil
+    end
   end
 end
 
