@@ -584,7 +584,7 @@ local function play_cutscene(created_waypoints, player_index)
       -- final_transition_time = tt
     }
   )
-  if chatty then game.print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints") end
+  -- if chatty then game.print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints") end
 
   -- reset alt-mode to what it was before cutscene controller reset it
   player.game_view_settings.show_entity_info = transfer_alt_mode
