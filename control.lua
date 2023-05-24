@@ -669,35 +669,32 @@ local function create_cutscene_next_tick(player_index, train)
 end
 
 --[[ if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global --]]
----comment
 ---@param event EventData.on_train_changed_state
 local function update_wait_at_station(event)
   local train = event.train
   local new_state = event.train.state
   if not (new_state == defines.train_state.wait_station) then return end
   for _, player in pairs(game.connected_players) do
-    if player.controller_type == defines.controllers.cutscene then
-      local player_index = player.index
-      if global.followed_loco and global.followed_loco[player_index] then
-        if train.id == global.followed_loco[player_index].train_id then
-          if not global.station_minimum then
-            global.station_minimum = {}
-            global.station_minimum[player_index] = game.tick
-          else
-            global.station_minimum[player_index] = game.tick
-          end
-          if global.chatty then 
-            local target_name = chatty_target_train_name(train)
-            local chatty_name = chatty_player_name(player)
-            game.print(chatty_name.."current target [".. target_name .."] changed to state "..verbose_states[train.state]..". station_minimum tick saved")
-          end
-        end
-      end
+    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+    local player_index = player.index
+    if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
+    if not (train.id == global.followed_loco[player_index].train_id )then goto next_player end
+    if not global.station_minimum then
+      global.station_minimum = {}
+      global.station_minimum[player_index] = game.tick
+    else
+      global.station_minimum[player_index] = game.tick
     end
+    if global.chatty then
+      local target_name = chatty_target_train_name(train)
+      local chatty_name = chatty_player_name(player)
+      game.print(chatty_name.."current target [".. target_name .."] changed to state "..verbose_states[train.state]..". station_minimum tick saved")
+    end
+    ::next_player::
   end
 end
 
----comment
+-- update the wait_at_signal global
 ---@param train_changed_state_event EventData.on_train_changed_state
 local function update_wait_at_signal(train_changed_state_event)
   local train = train_changed_state_event.train
@@ -706,47 +703,41 @@ local function update_wait_at_signal(train_changed_state_event)
   --[[ if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick) --]]
   if --[[(old_state == defines.train_state.arrive_signal) and --]](new_state == defines.train_state.wait_signal) then
     for _, player in pairs(game.connected_players) do
-      if player.controller_type == defines.controllers.cutscene then
-        if global.followed_loco and global.followed_loco[player.index] then
-          if train.id == global.followed_loco[player.index].train_id then
-            if not global.wait_at_signal then
-              global.wait_at_signal = {}
-              local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
-              global.wait_at_signal[player.index] = until_tick
-              -- game.print("until_tick set")
-            else
-              if not global.wait_at_signal[player.index] then
-                local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
-                global.wait_at_signal[player.index] = until_tick
-                -- game.print("until_tick set")
-              end
-            end
-            if global.chatty then
-              local target_name = chatty_target_train_name(train)
-              local chatty_name = chatty_player_name(player)
-              game.print(chatty_name.."current target [" .. target_name .. "] changed to state " .. verbose_states[train.state] .. ". wait_at_signal tick saved")
-            end
-          end
+      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
+      if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
+      if not global.wait_at_signal then
+        global.wait_at_signal = {}
+        local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
+        global.wait_at_signal[player.index] = until_tick
+      else
+        if not global.wait_at_signal[player.index] then
+          local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
+          global.wait_at_signal[player.index] = until_tick
         end
       end
+      if global.chatty then
+        local target_name = chatty_target_train_name(train)
+        local chatty_name = chatty_player_name(player)
+        game.print(chatty_name.."current target [" .. target_name .. "] changed to state " .. verbose_states[train.state] .. ". wait_at_signal tick saved")
+      end
+      ::next_player::
     end
   end
   --[[ if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing --]]
   if (old_state == defines.train_state.wait_signal) --[[and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))]] then
     for _, player in pairs(game.connected_players) do
-      if player.controller_type == defines.controllers.cutscene then
-        if global.followed_loco and global.followed_loco[player.index] then
-          if train.id == global.followed_loco[player.index].train_id then
-            if global.wait_at_signal and global.wait_at_signal[player.index] then
-              global.wait_at_signal[player.index] = nil
-            end
-            if global.chatty then
-              local chatty_name = chatty_player_name(player)
-              game.print(chatty_name.."current target is no longer waiting at a signal. wait_at_signal data cleared")
-            end
-          end
-        end
+      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
+      if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
+      if global.wait_at_signal and global.wait_at_signal[player.index] then
+        global.wait_at_signal[player.index] = nil
       end
+      if global.chatty then
+        local chatty_name = chatty_player_name(player)
+        game.print(chatty_name.."current target is no longer waiting at a signal. wait_at_signal data cleared")
+      end
+      ::next_player::
     end
   end
 end
@@ -780,7 +771,7 @@ local function train_changed_state(event)
     local found_train = found_locomotive[1].train
     if not found_train then goto next_player end
     local found_state = found_train.state
-    local chatty_name = "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
+    local chatty_name = chatty_player_name(player)
     local found_target_name = chatty_target_train_name(found_train)
     -- target_name = target_name .. "; " .. verbose_states[found_state]
     -- if chatty then game.print(chatty_name.."currently following train "..found_train.id.." ["..verbose_states[found_state].."]") end
