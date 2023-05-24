@@ -81,8 +81,8 @@ end
 ---@param player_index PlayerIndex
 ---@param train LuaTrain
 local function create_cutscene_next_tick(player_index, train)
-  global.cutscene_next_tick = global.cutscene_next_tick or {}
-  global.cutscene_next_tick[player_index] = {train, player_index}
+  global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
+  global.create_cutscene_next_tick[player_index] = {train, player_index}
 end
 
 -- print a message to all players who have notable events enabled
