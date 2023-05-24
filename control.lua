@@ -49,6 +49,20 @@ local function chatty_target_train_name(train)
   return target_name
 end
 
+-- return a string with the name of the entity, colored if possible with its color
+---@param entity LuaEntity
+---@return string
+local function chatty_target_entity_name(entity)
+  local id = entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
+  local target_name = entity.name .. " " .. id
+  if entity.train then target_name = "train " .. entity.train.id end
+  local color = entity.color
+  if color then
+    target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
+  end
+  return target_name
+end
+
 ---print a message to all players who have notable events enabled
 ---@param message string
 local function print_notable_event(message)
@@ -85,123 +99,63 @@ end
 --[[ create a waypoint for given waypoint_target using player mod settings --]]
 ---@param waypoint_target LuaEntity
 ---@param player_index PlayerIndex
----@return table
+---@return CutsceneWaypoint[]
 local function create_waypoint(waypoint_target, player_index)
-  local chatty = global.chatty
-  local tt = nil
-  local z = nil
   local player = game.get_player(player_index) --[[@as LuaPlayer]]
   local mod_settings = player.mod_settings
+  local chatty = global.chatty
   local chatty_name = chatty_player_name(player)
+  local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
+  local transition_time_2 = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
+  local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
+  local zoom = mod_settings["ts-zoom"].value --[[@as number]]
+  local time_to_wait = mod_settings["ts-time-wait"].value * 60 * 60 --[[@as number]] --[[ convert minutes to ticks --]]
 
   --[[ we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time --]]
-  if mod_settings["ts-transition-speed"].value > 0 then
-    local speed_kmph = mod_settings["ts-transition-speed"].value --[[@as number]]
+  if transition_time > 0 then
     local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-    tt = convert_speed_into_time(speed_kmph, distance_in_meters)
-  else
-    tt = mod_settings["ts-transition-time"].value * 60 --[[ convert seconds to ticks --]]
+    transition_time = convert_speed_into_time(transition_time, distance_in_meters)
   end
 
-  --[[ set the waiting time and zoom variables to use later when creating the waypoint table --]]
-  local wt = mod_settings["ts-time-wait"].value * 60 * 60
-  if mod_settings["ts-variable-zoom"].value == true then
-    local temp_zoom = mod_settings["ts-zoom"].value
-    z = (math.random(((temp_zoom - (temp_zoom*.20))*1000),(((temp_zoom + (temp_zoom*.20)))*1000)))/1000
-  else
-    z = mod_settings["ts-zoom"].value
+  -- [[ if variable zoom is enabled, then we will randomly zoom in or out by 20% --]]
+  if variable_zoom == true then
+    zoom = (math.random(((zoom - (zoom*.20))*1000),(((zoom + (zoom*.20)))*1000)))/1000
   end
 
   --[[ set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over --]]
-  local tt_2 = util.table.deepcopy(tt)
-  if mod_settings["ts-transition-speed"].value > 0 then
-    local speed_kmph = mod_settings["ts-transition-speed"].value --[[@as number]]
-    --[[ if train has a station at the end of the path, use the station location --]]
-    if waypoint_target.train and waypoint_target.train.path_end_stop then
-      if player.cutscene_character then
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.cutscene_character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      elseif player.character then
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      else
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_stop.position, player.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      end
-    --[[ if train doesn't have a station at the end of the path but does have a rail, use the rail location instead --]]
-    elseif waypoint_target.train and waypoint_target.train.path_end_rail then
-      if player.cutscene_character then
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.cutscene_character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      elseif player.character then
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      else
-        local distance_in_meters = calculate_distance(waypoint_target.train.path_end_rail.position, player.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      end
-    --[[ if waypoint target doesn't have a path or isn't a train at all, just use its current position to calculate the final transition time instead--]]
-    elseif waypoint_target.position then
-      if player.cutscene_character then
-        local distance_in_meters = calculate_distance(waypoint_target.position, player.cutscene_character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      elseif player.character then
-        local distance_in_meters = calculate_distance(waypoint_target.position, player.character.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      else
-        local distance_in_meters = calculate_distance(waypoint_target.position, player.position)
-        tt_2 = convert_speed_into_time(speed_kmph, distance_in_meters)
-      end
-    else
-      tt_2 = 0
-    end
-  else
-    tt_2 = mod_settings["ts-transition-time"].value * 60 --[[ convert seconds to ticks --]]
+  local waypoint_2_start_entity = {}
+  if waypoint_target.train then
+    waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
+  end
+  local waypoint_2_end_entity = player.cutscene_character or player.character or {}
+  if transition_time_2 > 0 then
+    local waypoint_2_start_position = waypoint_2_start_entity.position or waypoint_target.position
+    local waypoint_2_end_position = waypoint_2_end_entity.position or player.position
+    local waypoint_2_distance_in_meters = calculate_distance(waypoint_2_start_position, waypoint_2_end_position)
+    transition_time_2 = convert_speed_into_time(transition_time_2, waypoint_2_distance_in_meters)
   end
 
   --[[ finally let's assemble our waypints table! --]]
   local created_waypoints = {
     {
       target = waypoint_target,
-      transition_time = tt,
-      time_to_wait = wt,
-      zoom = z
+      transition_time = transition_time,
+      time_to_wait = time_to_wait,
+      zoom = zoom
     },
   }
 
-  local target_name = ""
-  if (waypoint_target.train and waypoint_target.train.id) then target_name = "train " .. waypoint_target.train.id else target_name = waypoint_target.name end
-  if waypoint_target.color then 
-    target_name = "[color="..waypoint_target.color.r..","..waypoint_target.color.g..","..waypoint_target.color.b.."]"..target_name.."[/color]"
-  end
-
   --[[ use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to --]]
-  if (player.cutscene_character and (player.cutscene_character.surface.index == player.surface.index)) then
+  if waypoint_2_end_entity.valid and (waypoint_2_end_entity.surface_index == player.surface_index) then
     local waypoint_2 = {
-      target = player.cutscene_character,
-      transition_time = tt_2,
+      target = waypoint_2_end_entity,
+      transition_time = transition_time_2,
       time_to_wait = 60,
-      zoom = z
+      zoom = zoom
     }
     table.insert(created_waypoints, waypoint_2)
-
-    if chatty then game.print(chatty_name.."created waypoint to "..target_name.." with return waypoint to cutscene_character") end
-
-  elseif (player.character and (player.character.surface.index == player.surface.index)) then
-    local waypoint_2 = {
-      target = player.character,
-      transition_time = tt_2,
-      time_to_wait = 60,
-      zoom = z
-    }
-    table.insert(created_waypoints, waypoint_2)
-
-    if chatty then game.print(chatty_name.."created waypoint to "..target_name.." with return waypoint to player_character") end
-
-  else
+    if chatty then game.print(chatty_name.."created waypoint to "..chatty_target_entity_name(waypoint_target).." with return waypoint to "..waypoint_2_end_entity.name) end
   end
-  -- if chatty then game.print(chatty_name.."finalized " ..#created_waypoints .. " waypoints") end
-  -- if chatty then game.print(serpent.block(created_waypoints)) end
   return created_waypoints
 end
 
@@ -538,20 +492,26 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   end
   --[[ update the followed_loco global --]]
   if created_waypoints[1].target.train then
-    local folloco = {
+    ---@class FollowedLocomotiveData
+    ---@field unit_number uint
+    ---@field train_id uint
+    ---@field loco LuaEntity|LuaUnitGroup
+    local followed_locomotive_data = {
       unit_number = created_waypoints[1].target.unit_number,
       train_id = created_waypoints[1].target.train.id,
       loco = created_waypoints[1].target,
     }
     if not global.followed_loco then
+      ---@type table<PlayerIndex, FollowedLocomotiveData>
       global.followed_loco = {}
-      global.followed_loco[player_index] = folloco
+      global.followed_loco[player_index] = followed_locomotive_data
     else
-      global.followed_loco[player_index] = folloco
+      global.followed_loco[player_index] = followed_locomotive_data
     end
   end
   --[[ register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not --]]
   if not global.entity_destroyed_registration_numbers then
+    ---@type table<PlayerIndex, uint64>
     global.entity_destroyed_registration_numbers = {}
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
   else
@@ -559,6 +519,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   end
   --[[ update the current_target global --]]
   if not global.current_target then
+    ---@type table<PlayerIndex, LuaEntity|LuaUnitGroup>
     global.current_target = {}
     global.current_target[player_index] = created_waypoints[1].target
   else
@@ -566,6 +527,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   end
   --[[ update number of waypoints global --]]
   if not global.number_of_waypoints then
+    ---@type table<PlayerIndex, integer>
     global.number_of_waypoints = {}
     global.number_of_waypoints[player_index] = #created_waypoints
   else
@@ -573,6 +535,7 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   end
   --[[ update driving minimum global --]]
   if not global.driving_minimum then
+    ---@type table<PlayerIndex, uint>
     global.driving_minimum = {}
     global.driving_minimum[player_index] = game.tick
   else
@@ -688,7 +651,8 @@ local function update_wait_at_station(event)
       global.station_minimum[player_index] = game.tick
     end
     if global.chatty then
-      local target_name = chatty_target_train_name(train)
+      -- local target_name = chatty_target_train_name(train)
+      local target_name = chatty_target_entity_name(global.followed_loco[player_index].loco)
       local chatty_name = chatty_player_name(player)
       game.print(chatty_name.."current target [".. target_name .."] changed to state "..verbose_states[train.state]..". station_minimum tick saved")
     end
