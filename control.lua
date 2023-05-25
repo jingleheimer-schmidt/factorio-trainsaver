@@ -42,6 +42,7 @@ local function chatty_target_train_name(train)
   local target_name = "train " .. train.id
   local front_mover = train.locomotives["front_movers"][1]
   local back_mover = train.locomotives["back_movers"][1]
+  if not ((front_mover and front_mover.color) or (back_mover and back_mover.color)) then return target_name end
   local color = front_mover.color or back_mover.color
   if color then
     target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
