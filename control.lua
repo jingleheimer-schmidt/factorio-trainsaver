@@ -931,19 +931,6 @@ local function cutscene_next_tick_function()
   end
 end
 
--- -- because the rocket destroyed event is not guarenteed to happen in the same tick that the rocket is destroyed, and the cutscene camera will immediately go to [gps=0,0] if the target is destroyed, we need to save the location of the rocket right before it's destroyed so we can teleport the player to that location immediately after the camera goes to [gps=0,0] so that the next cutscene starts where the rocket was destroyed and not at [gps=0,0]
--- local function save_rocket_positions()
---   if global.rocket_positions then
---     for a,b in pairs(global.rocket_positions) do
---       local player = game.get_player(a)
---       if not player.connected then
---         return
---       end
---       table.insert(global.rocket_positions[a], game.tick, player.position)
---     end
---   end
--- end
-
 -- while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed
 local function check_achievements()
   if not global.trainsaver_status then return end
