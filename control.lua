@@ -168,7 +168,6 @@ end
 local function create_waypoint(waypoint_target, player_index)
   local player = game.get_player(player_index) --[[@as LuaPlayer]]
   local mod_settings = player.mod_settings
-  local chatty = global.chatty
   local chatty_name = chatty_player_name(player)
   local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
   local transition_time_2 = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
@@ -242,7 +241,6 @@ local function end_trainsaver(command, ending_transition)
   local player = game.get_player(player_index)
   if not player then return end
   if not trainsaver_is_active(player) then return end
-  local chatty = global.chatty
   local chatty_name = chatty_player_name(player)
   -- if the cutscene creator mod created the cutscene, don't cancel it
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
@@ -289,7 +287,8 @@ local function end_trainsaver(command, ending_transition)
       zoom = zoom
     },
   }
-  chatty_print(chatty_name.."created ending transition waypoints to player character or cutscene_character")
+  local character_name = player.character and player.character.name or "cutscene character"
+  chatty_print(chatty_name.."created ending transition waypoints to " .. character_name)
   if player.surface_index ~= created_waypoints[1].target.surface_index then
     chatty_print(chatty_name.."ending transition target on different surface than player. immediate exit requested")
     player.exit_cutscene()
@@ -502,7 +501,6 @@ end
 ---@param created_waypoints CutsceneWaypoint[]
 ---@param player_index PlayerIndex
 local function play_cutscene(created_waypoints, player_index)
-  local chatty = global.chatty
   local player = game.get_player(player_index)
   if not player then return end
   local chatty_name = chatty_player_name(player)
