@@ -396,6 +396,11 @@ local function cutscene_cancelled(event)
   cutscene_ended_nil_globals(event.player_index)
 end
 
+---@param event EventData.on_cutscene_finished
+local function cutscene_finished(event)
+  cutscene_ended_nil_globals(event.player_index)
+end
+
 -- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
 ---@param event EventData.on_cutscene_waypoint_reached
 local function cutscene_waypoint_reached(event)
@@ -410,9 +415,6 @@ local function cutscene_waypoint_reached(event)
     cutscene_ended_nil_globals(event.player_index)
   end
 end
-
-script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
-script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
 
 -- set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :)
 ---@param player_index PlayerIndex
@@ -1010,6 +1012,11 @@ script.on_nth_tick(600, on_nth_tick)
 
 -- create any requested cutscenes and update achievement progress 
 script.on_event(defines.events.on_tick, on_tick)
+
+-- deal with global data when a cutscene ends
+script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
+script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
+script.on_event(defines.events.on_cutscene_finished, cutscene_finished)
 
 -- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
 script.on_event(defines.events.on_train_changed_state, train_changed_state)
