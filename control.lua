@@ -82,6 +82,11 @@ end
 ---@param player_index PlayerIndex
 ---@param train LuaTrain
 local function create_cutscene_next_tick(player_index, train)
+  ---@class CreateCutsceneNextTickData
+  ---@field [1] LuaTrain
+  ---@field [2] PlayerIndex
+  ---@field [3] "same train"?
+  ---@type table<PlayerIndex, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
   global.create_cutscene_next_tick[player_index] = { train, player_index }
 end
