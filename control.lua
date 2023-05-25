@@ -1109,6 +1109,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
       end
       if found_locomotive[1] then
         local found_train = found_locomotive[1].train
+        if not found_train then return end
         local found_state = found_train.state
         if ((found_state == defines.train_state.wait_signal) or (found_state == defines.train_state.wait_station)) then
           if global.wait_at_signal and global.wait_at_signal[player_index] then
@@ -1127,7 +1128,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
           end
           -- create the waypoints
           local created_waypoints = create_waypoint(silo, player_index)
-          silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
+          local silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
           table.insert(created_waypoints, 2, silo_rocket_waypoint_2)
 
           -- set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
