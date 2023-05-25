@@ -188,9 +188,14 @@ local function create_waypoint(waypoint_target, player_index)
   end
 
   -- set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over
-  local waypoint_2_start_entity = {}
+  local waypoint_2_start_entity = {} ---@type LuaEntity
   if waypoint_target.train then
     waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
+  end
+  if (waypoint_target.type == "spider-vehicle") then
+    if waypoint_target.autopilot_destinations then
+      waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[-1]} or {}
+    end
   end
   local waypoint_2_end_entity = player.cutscene_character or player.character or {}
   local waypoint_2_end_entity_name = waypoint_2_end_entity.name
