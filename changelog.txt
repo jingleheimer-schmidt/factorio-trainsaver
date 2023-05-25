@@ -8,6 +8,7 @@ Date: TBD
     - marked Escape with Menu mod setting as hidden
     - marked Variable Zoom mod setting as hidden
     - secret focus mod setting is now enabled by default
+    - destination_full train state is now treated equivalent to wait_at_station, so trainsaver can target trains that change from destination_full to an active state
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.20
 Date: 12NOV2022
