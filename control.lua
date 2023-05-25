@@ -824,20 +824,6 @@ local function cutscene_next_tick_function()
       goto next_player
     end
 
-    -- -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
-    -- if global.wait_at_signal and global.wait_at_signal[player_index] then
-    --   -- game.print("stored: " .. global.wait_at_signal[player_index] .. ", game: " .. game.tick)
-    --   if global.wait_at_signal[player_index] > game.tick then
-    --     global.create_cutscene_next_tick[player_index] = nil
-    --     if chatty then game.print(chatty_name.."current target ["..target_name.."] is ".. verbose_states[target_train.state] .. ". new target request denied by signal_minimum") end
-    --     return
-    --   else
-    --     global.wait_at_signal[player_index] = nil
-    --     -- game.print("wait_at_signal cleared")
-    --     if chatty then game.print(chatty_name.."current target ["..target_name.."] has exceeded the ".. game.players[player_index].mod_settings["ts-wait-at-signal"].value * 60 * 60 --[[ converting minutes to ticks --]].." tick minimum for ".. verbose_states[target_train.state]) end
-    --   end
-    -- end
-
     -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
     local front_movers = target_train.locomotives.front_movers
     local back_movers = target_train.locomotives.back_movers
@@ -932,7 +918,6 @@ end
 -- create any requested cutscenes and update achievement progress
 local function on_tick()
   cutscene_next_tick_function()
-  -- save_rocket_positions()
   check_achievements()
 end
 
