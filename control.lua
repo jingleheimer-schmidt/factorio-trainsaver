@@ -86,6 +86,35 @@ local function trainsaver_is_active(player)
   end
 end
 
+-- return true if the current trainsaver target is "idle"
+---@param player LuaPlayer
+---@return boolean
+local function waypoint_target_is_idle(player)
+  local bool = false
+  local player_index = player.index
+  if global.followed_loco and global.followed_loco[player_index] then
+    local locomotive = global.followed_loco[player_index].loco
+    local state = locomotive.train.state
+    local idle_states = {
+      [defines.train_state.arrive_signal] = false,
+      [defines.train_state.arrive_station] = false,
+      [defines.train_state.destination_full] = true,
+      [defines.train_state.manual_control] = false,
+      [defines.train_state.manual_control_stop] = true,
+      [defines.train_state.no_path] = true,
+      [defines.train_state.no_schedule] = true,
+      [defines.train_state.on_the_path] = false,
+      [defines.train_state.path_lost] = true,
+      [defines.train_state.wait_signal] = true,
+      [defines.train_state.wait_station] = true,
+    }
+    if idle_states[state] then
+      bool = true
+    end
+  end
+  return bool
+end
+
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index PlayerIndex
 ---@param train LuaTrain
