@@ -840,6 +840,7 @@ local function cutscene_next_tick_function()
         -- abort if the potential waypoint is on a different surface than the player
         if player.surface_index ~= front_movers[1].surface_index then
           chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
+          global.create_cutscene_next_tick[player_index] = nil
           goto next_player
         end
         local created_waypoints = create_waypoint(front_movers[1], player_index)
@@ -855,6 +856,7 @@ local function cutscene_next_tick_function()
         -- abort if the potential waypoint is on a different surface than the player
         if player.surface_index ~= back_movers[1].surface_index then
           chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
+          global.create_cutscene_next_tick[player_index] = nil
           goto next_player
         end
         local created_waypoints = create_waypoint(back_movers[1], player_index)
@@ -873,6 +875,7 @@ local function cutscene_next_tick_function()
       -- abort if the potential waypoint is on a different surface than the player
       if player.surface_index ~= mover.surface_index then
         chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
+        global.create_cutscene_next_tick[player_index] = nil
         goto next_player
       end
       local created_waypoints = create_waypoint(mover, player_index)
