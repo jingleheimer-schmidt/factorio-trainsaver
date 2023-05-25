@@ -245,7 +245,7 @@ local function end_trainsaver(command, ending_transition)
     },
   }
   if chatty then game.print(chatty_name.."created ending transition waypoints to player character or cutscene_character") end
-  if player.surface.index ~= created_waypoints[1].target.surface.index then
+  if player.surface_index ~= created_waypoints[1].target.surface_index then
     if chatty then game.print(chatty_name.."ending transition target on different surface than player. immediate exit requested") end
     player.exit_cutscene()
     return
@@ -489,7 +489,7 @@ local function play_cutscene(created_waypoints, player_index)
   end
 
   -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-  if player.surface.index ~= created_waypoints[1].target.surface.index then
+  if player.surface_index ~= created_waypoints[1].target.surface_index then
     if chatty then game.print(chatty_name.."abort: waypoint is on different surface than player") end
     return
   end
@@ -1135,7 +1135,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             end
           end
           -- abort if the potential waypoint is on a different surface than the player
-          if player.surface.index ~= silo.surface.index then
+          if player.surface_index ~= silo.surface_index then
             return
           end
           -- create the waypoints
