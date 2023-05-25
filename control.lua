@@ -89,14 +89,15 @@ end
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index PlayerIndex
 ---@param train LuaTrain
-local function create_cutscene_next_tick(player_index, train)
+---@param same_train "same train"?
+local function create_cutscene_next_tick(player_index, train, same_train)
   ---@class CreateCutsceneNextTickData
   ---@field [1] LuaTrain
   ---@field [2] PlayerIndex
   ---@field [3] "same train"?
   ---@type table<PlayerIndex, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-  global.create_cutscene_next_tick[player_index] = { train, player_index }
+  global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
 end
 
 -- print a message to all players who have notable events enabled
