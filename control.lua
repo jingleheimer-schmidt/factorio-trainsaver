@@ -262,6 +262,7 @@ local function end_trainsaver(command, ending_transition)
   )
   player.game_view_settings.show_entity_info = transfer_alt_mode
   -- update globals for a cutscene ending
+  ---@type table<PlayerIndex, boolean>
   global.cutscene_ending = global.cutscene_ending or {}
   global.cutscene_ending[player_index] = true
   global.wait_at_signal = global.wait_at_signal or {}
