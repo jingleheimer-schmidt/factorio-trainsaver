@@ -529,7 +529,9 @@ end
 local function update_wait_at_station(event)
   local train = event.train
   local new_state = event.train.state
-  if not (new_state == defines.train_state.wait_station) then return end
+  local old_state = event.old_state
+  if not ((new_state == defines.train_state.wait_station) or (new_state == defines.train_state.destination_full)) then return end
+  if not ((old_state == defines.train_state.on_the_path) or (old_state == defines.train_state.arrive_station)) then return end
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
     local player_index = player.index
@@ -607,7 +609,7 @@ local function train_changed_state(event)
   local old_state = event.old_state
   local new_state = event.train.state
   local new_state_is_active = (new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal)
-  if not ((old_state == defines.train_state.wait_station) and new_state_is_active) then return end
+  if not (((old_state == defines.train_state.wait_station) or (old_state == defines.train_state.destination_full)) and new_state_is_active) then return end
   local target_name = chatty_target_train_name(train)
   chatty_print("[" .. game.tick .. "] potential target [" .. target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
   for _, player in pairs(game.connected_players) do
@@ -673,7 +675,7 @@ local function train_changed_state(event)
       end
 
     -- if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick
-    elseif (found_state == defines.train_state.wait_station) and (global.station_minimum and global.station_minimum[player_index]) then
+    elseif ((found_state == defines.train_state.wait_station) or (found_state == defines.train_state.destination_full)) and (global.station_minimum and global.station_minimum[player_index]) then
       local waiting_since_tick = global.station_minimum[player_index]
       local minimum_allowed_time = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
       if (waiting_since_tick + minimum_allowed_time) < game.tick then
