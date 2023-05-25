@@ -648,16 +648,6 @@ local function update_trainsaver_viewers(event)
         else
           chatty_print(chatty_name.."denied. current target ["..found_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by driving_minimum")
         end
-
-      --   -- if the train the camera is following has any state other than on_the_path, arrive_signal, or arrive_station, and it's not the same train that just changed state, and the driving minimum has not been reached yet, then create a cutscene following the train that generated the change_state event on the next tick
-      -- else
-      --   if not global.create_cutscene_next_tick then
-      --     global.create_cutscene_next_tick = {}
-      --     global.create_cutscene_next_tick[player_index] = {train, player_index}
-      --   else
-      --     global.create_cutscene_next_tick[player_index] = {train, player_index}
-      --   end
-      --   if chatty then game.print(chatty_name.."current target state is on_the_path, arrive_signal, or arrive_station, but it's not the same train that just changed state, and the driving minimum has not been reached yet. switching camera to follow new train") end
       end
 
     -- if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick
