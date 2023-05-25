@@ -633,8 +633,20 @@ local function update_trainsaver_viewers(event)
   local train = event.train
   local old_state = event.old_state
   local new_state = event.train.state
-  local new_state_is_active = (new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal)
-  if not (((old_state == defines.train_state.wait_station) or (old_state == defines.train_state.destination_full)) and new_state_is_active) then return end
+  local active_states = { ---@type table<defines.train_state, boolean>
+    [defines.train_state.on_the_path] = true,
+    [defines.train_state.arrive_signal] = true,
+    [defines.train_state.arrive_station] = true,
+    [defines.train_state.manual_control] = false,
+  }
+  local wait_station_states = { ---@type table<defines.train_state, boolean>
+    [defines.train_state.wait_station] = true,
+    [defines.train_state.destination_full] = true,
+  }
+  local wait_signal_states = { ---@type table<defines.train_state, boolean>
+    [defines.train_state.wait_signal] = true,
+  }
+  if not (wait_station_states[old_state] and active_states[new_state]) then return end
   local target_name = chatty_target_train_name(train)
   chatty_print("[" .. game.tick .. "] potential target [" .. target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
   for _, player in pairs(game.connected_players) do
@@ -647,12 +659,7 @@ local function update_trainsaver_viewers(event)
     if global.followed_loco and global.followed_loco[player.index] and global.followed_loco[player.index].loco and global.followed_loco[player.index].loco.valid then
       found_locomotive[1] = global.followed_loco[player.index].loco
     else
-      found_locomotive = player.surface.find_entities_filtered({
-        position = player.position,
-        radius = 1,
-        type = "locomotive",
-        limit = 1
-      })
+      found_locomotive = player.surface.find_entities_filtered({position = player.position, radius = 1, type = "locomotive", limit = 1})
     end
     if not found_locomotive[1] then goto next_player end
     local player_index = player.index
@@ -663,7 +670,8 @@ local function update_trainsaver_viewers(event)
     local found_target_name = chatty_target_train_name(found_train)
 
     -- when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive.
-    if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) --[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
+    -- if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) --[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
+    if active_states[found_state] then
 
       -- if camera is on train that changed state, switch to leading locomotive
       if found_train.id == train.id then
@@ -685,7 +693,7 @@ local function update_trainsaver_viewers(event)
       end
 
     -- if the train the camera is following is waiting at a station, and the minimum time to wait at a station has been reached, then go create a new cutscene following the train that generated the change_state event on the next tick
-    elseif ((found_state == defines.train_state.wait_station) or (found_state == defines.train_state.destination_full)) and (global.station_minimum and global.station_minimum[player_index]) then
+    elseif (wait_station_states[found_state]) and (global.station_minimum and global.station_minimum[player_index]) then
       local waiting_since_tick = global.station_minimum[player_index]
       local minimum_allowed_time = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
       if (waiting_since_tick + minimum_allowed_time) < game.tick then
@@ -696,7 +704,7 @@ local function update_trainsaver_viewers(event)
       end
 
     -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
-    elseif (found_state == defines.train_state.wait_signal) and (global.wait_at_signal and global.wait_at_signal[player_index]) then
+    elseif (wait_signal_states[found_state]) and (global.wait_at_signal and global.wait_at_signal[player_index]) then
       if global.wait_at_signal[player_index] > game.tick then
         global.create_cutscene_next_tick[player_index] = nil
         chatty_print(chatty_name.."denied. current target ["..found_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by signal_minimum")
