@@ -602,9 +602,9 @@ local function update_wait_at_signal(train_changed_state_event)
   end
 end
 
--- when a train changes state, see if any players are eligable to transfer focus to it
+-- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
-local function train_changed_state(event)
+local function update_trainsaver_viewers(event)
   local train = event.train
   local old_state = event.old_state
   local new_state = event.train.state
@@ -614,6 +614,10 @@ local function train_changed_state(event)
   chatty_print("[" .. game.tick .. "] potential target [" .. target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
+    if not (player.surface_index == train.carriages[1].surface_index) then
+      chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. train.carriages[1].surface.name .. "]")
+      goto next_player
+    end
     local found_locomotive = {}
     if global.followed_loco and global.followed_loco[player.index] and global.followed_loco[player.index].loco and global.followed_loco[player.index].loco.valid then
       found_locomotive[1] = global.followed_loco[player.index].loco
@@ -638,19 +642,10 @@ local function train_changed_state(event)
 
       -- if camera is on train that changed state, switch to leading locomotive
       if found_train.id == train.id then
-        if not global.create_cutscene_next_tick then
-          global.create_cutscene_next_tick = {}
-          global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-          if global.wait_at_signal and global.wait_at_signal[player_index] then
-            global.wait_at_signal[player_index] = nil
-          end
-        else
-          global.create_cutscene_next_tick[player_index] = {train, player_index, "same train"}
-          if global.wait_at_signal and global.wait_at_signal[player_index] then
-            global.wait_at_signal[player_index] = nil
-          end
-        end
-        if chatty then game.print(chatty_name.."current target ["..found_target_name.."] is the train that changed state. targetting lead locomotive") end
+        create_cutscene_next_tick(player_index, train, "same train")
+        global.wait_at_signal = global.wait_at_signal or {}
+        global.wait_at_signal[player_index] = nil
+        chatty_print(chatty_name.."accepted. current target ["..found_target_name.."] is the train that changed state. targetting lead locomotive")
 
       -- if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow
       elseif global.driving_minimum and global.driving_minimum[player_index] then
@@ -703,6 +698,12 @@ local function train_changed_state(event)
     end
     ::next_player::
   end
+end
+
+-- when a train changes state, see if any players are eligable to transfer focus to it
+---@param event EventData.on_train_changed_state
+local function train_changed_state(event)
+  update_trainsaver_viewers(event)
   update_wait_at_signal(event)
   update_wait_at_station(event)
 end
