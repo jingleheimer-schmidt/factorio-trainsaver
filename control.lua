@@ -536,6 +536,7 @@ local function play_cutscene(created_waypoints, player_index)
   update_globals_new_cutscene(player_index, created_waypoints)
 
   -- unlock any achievements if possible
+  if created_waypoints[1].target and created_waypoints[1].target.train then
     if created_waypoints[1].target.train.passengers then
       for _, passenger in pairs(created_waypoints[1].target.train.passengers) do
         --[[
@@ -550,11 +551,12 @@ local function play_cutscene(created_waypoints, player_index)
         end
       end
     end
-  local path = created_waypoints[1].target.train.path
-  if path then
-    local remaining_path_distance = path.total_distance - path.travelled_distance
-    if remaining_path_distance > 10000 then
-      player.unlock_achievement("trainsaver-long-haul")
+    local path = created_waypoints[1].target.train.path
+    if path then
+      local remaining_path_distance = path.total_distance - path.travelled_distance
+      if remaining_path_distance > 10000 then
+        player.unlock_achievement("trainsaver-long-haul")
+      end
     end
   end
 end
