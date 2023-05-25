@@ -413,64 +413,39 @@ end
 ---@param player_index PlayerIndex
 ---@param created_waypoints CutsceneWaypoint[]
 local function update_globals_new_cutscene(player_index, created_waypoints)
+  local waypoint_target = created_waypoints[1].target
+  local waypoint_position = created_waypoints[1].position
   -- update trainsaver status global
-  if not global.trainsaver_status then
-    global.trainsaver_status = {}
-    global.trainsaver_status[player_index] = "active"
-  else
-    global.trainsaver_status[player_index] = "active"
-  end
+  global.trainsaver_status = global.trainsaver_status or {} ---@type table<PlayerIndex, "active"|nil>
+  global.trainsaver_status[player_index] = "active"
   -- update the followed_loco global
-  if created_waypoints[1].target.train then
+  if (waypoint_target and waypoint_target.train) then
     ---@class FollowedLocomotiveData
     ---@field unit_number uint
     ---@field train_id uint
-    ---@field loco LuaEntity|LuaUnitGroup
+    ---@field loco LuaEntity
     local followed_locomotive_data = {
-      unit_number = created_waypoints[1].target.unit_number,
-      train_id = created_waypoints[1].target.train.id,
-      loco = created_waypoints[1].target,
+      unit_number = waypoint_target.unit_number,
+      train_id = waypoint_target.train.id,
+      loco = waypoint_target --[[@as LuaEntity]],
     }
-    if not global.followed_loco then
-      ---@type table<PlayerIndex, FollowedLocomotiveData>
-      global.followed_loco = {}
-      global.followed_loco[player_index] = followed_locomotive_data
-    else
-      global.followed_loco[player_index] = followed_locomotive_data
-    end
+    global.followed_loco = global.followed_loco or {} ---@type table<PlayerIndex, FollowedLocomotiveData>
+    global.followed_loco[player_index] = followed_locomotive_data
   end
   -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
-  if not global.entity_destroyed_registration_numbers then
-    ---@type table<PlayerIndex, uint64>
-    global.entity_destroyed_registration_numbers = {}
-    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
-  else
-    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(created_waypoints[1].target)
+  if waypoint_target and (waypoint_target.object_name == "LuaEntity") then
+    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<PlayerIndex, uint64>
+    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
   end
   -- update the current_target global
-  if not global.current_target then
-    ---@type table<PlayerIndex, LuaEntity|LuaUnitGroup>
-    global.current_target = {}
-    global.current_target[player_index] = created_waypoints[1].target
-  else
-    global.current_target[player_index] = created_waypoints[1].target
-  end
+  global.current_target = global.current_target or {} ---@type table<PlayerIndex, LuaEntity|LuaUnitGroup>
+  global.current_target[player_index] = waypoint_target
   -- update number of waypoints global
-  if not global.number_of_waypoints then
-    ---@type table<PlayerIndex, integer>
-    global.number_of_waypoints = {}
-    global.number_of_waypoints[player_index] = #created_waypoints
-  else
-    global.number_of_waypoints[player_index] = #created_waypoints
-  end
+  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<PlayerIndex, integer>
+  global.number_of_waypoints[player_index] = #created_waypoints
   -- update driving minimum global
-  if not global.driving_minimum then
-    ---@type table<PlayerIndex, uint>
-    global.driving_minimum = {}
-    global.driving_minimum[player_index] = game.tick
-  else
-    global.driving_minimum[player_index] = game.tick
-  end
+  global.driving_minimum = global.driving_minimum or {} ---@type table<PlayerIndex, uint>
+  global.driving_minimum[player_index] = game.tick
 end
 
 -- play cutscene from given waypoints
