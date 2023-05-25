@@ -521,7 +521,7 @@ local function update_wait_at_station(event)
   local new_state = event.train.state
   if not (new_state == defines.train_state.wait_station) then return end
   for _, player in pairs(game.connected_players) do
-    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+    if not trainsaver_is_active(player) then goto next_player end
     local player_index = player.index
     if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
     if not (train.id == global.followed_loco[player_index].train_id )then goto next_player end
@@ -550,7 +550,7 @@ local function update_wait_at_signal(train_changed_state_event)
   -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
   if --[[(old_state == defines.train_state.arrive_signal) and --]](new_state == defines.train_state.wait_signal) then
     for _, player in pairs(game.connected_players) do
-      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
       if not global.wait_at_signal then
@@ -574,7 +574,7 @@ local function update_wait_at_signal(train_changed_state_event)
   -- if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing
   if (old_state == defines.train_state.wait_signal) --[[and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))]] then
     for _, player in pairs(game.connected_players) do
-      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
       if global.wait_at_signal and global.wait_at_signal[player.index] then
@@ -601,7 +601,7 @@ local function train_changed_state(event)
   local target_name = chatty_target_train_name(train)
   if chatty then game.print("["..game.tick .. "] potential target: "..target_name.." changed state from "..verbose_states[old_state].." to "..verbose_states[new_state]) end
   for _, player in pairs(game.connected_players) do
-    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+    if not trainsaver_is_active(player) then goto next_player end
     local found_locomotive = {}
     if global.followed_loco and global.followed_loco[player.index] and global.followed_loco[player.index].loco and global.followed_loco[player.index].loco.valid then
       found_locomotive[1] = global.followed_loco[player.index].loco
@@ -700,7 +700,7 @@ end
 local function character_damaged(event)
   local damaged_entity = event.entity
   for _, player in pairs(game.connected_players) do
-    if ((player.controller_type == defines.controllers.cutscene) and (player.cutscene_character == damaged_entity) and global.trainsaver_status and global.trainsaver_status[player.index] and (global.trainsaver_status[player.index] == "active")) then
+    if (trainsaver_is_active(player) and player.cutscene_character == damaged_entity) then
       player.unlock_achievement("trainsaver-character-damaged")
       if event.cause and event.cause.train and event.cause.train.id and global.followed_loco[player.index] and global.followed_loco[player.index].train_id and (event.cause.train.id == global.followed_loco[player.index].train_id) then
         player.unlock_achievement("trainsaver-damaged-by-followed-train")
@@ -721,7 +721,7 @@ end
 local function locomotive_gone(event)
   local locomotive = event.entity
   for _,player in pairs(game.connected_players) do
-    if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+    if not trainsaver_is_active(player) then goto next_player end
     local player_index = player.index
     if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
     if not (global.followed_loco[player_index].unit_number == locomotive.unit_number) then goto next_player end
@@ -758,7 +758,7 @@ local function entity_destroyed(event)
       -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
       local player = game.get_player(player_index)
       if not player then goto next_player end
-      if not (player.controller_type == defines.controllers.cutscene) then goto next_player end
+      if not trainsaver_is_active(player) then goto next_player end
       --[[
       local rocket_destroyed_location_index = game.tick - 1
       player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
@@ -976,7 +976,7 @@ end
 local function end_trainsaver_on_command(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if not (player.controller_type == defines.controllers.cutscene) then return end
+  if not trainsaver_is_active(player) then return end
   -- local command = {player_index = event.player_index, ending_transition = true}
   local command = {player_index = event.player_index}
   end_trainsaver(command, true)
@@ -987,7 +987,7 @@ end
 local function toggle_menu_pressed(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if not (player.controller_type == defines.controllers.cutscene) then return end
+  if not trainsaver_is_active(player) then return end
   if not (player.mod_settings["ts-menu-hotkey"].value == true) then return end
   local command = {player_index = event.player_index}
   end_trainsaver(command)
@@ -998,7 +998,7 @@ end
 local function game_control_pressed(event)
   local player = game.get_player(event.player_index)
   if not player then return end
-  if not (player.controller_type == defines.controllers.cutscene) then return end
+  if not trainsaver_is_active(player) then return end
   if not (player.mod_settings["ts-linked-game-control-hotkey"].value == true) then return end
   local command = {player_index = event.player_index}
   end_trainsaver(command)
