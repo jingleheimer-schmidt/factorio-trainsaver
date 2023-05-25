@@ -274,8 +274,10 @@ local function end_trainsaver(command, ending_transition)
   ---@type table<PlayerIndex, boolean>
   global.cutscene_ending = global.cutscene_ending or {}
   global.cutscene_ending[player_index] = true
+  ---@type table<PlayerIndex, number|uint>
   global.wait_at_signal = global.wait_at_signal or {}
   global.wait_at_signal[player_index] = nil
+  ---@type table<PlayerIndex, uint>
   global.station_minimum = global.station_minimum or {}
   global.station_minimum[player_index] = nil
   global.driving_minimum = global.driving_minimum or {}
