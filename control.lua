@@ -586,7 +586,7 @@ local function update_wait_at_signal(train_changed_state_event)
       if global.chatty then
         local chatty_name = chatty_player_name(player)
         local target_name = chatty_target_train_name(train)
-        game.print(chatty_name.."current target [" .. target_name .. "] changed state from [" .. verbose_states[train.state] .. "]. wait_at_signal data cleared")
+        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal data cleared")
       end
       ::next_player::
     end
@@ -675,7 +675,7 @@ local function update_trainsaver_viewers(event)
     -- if the train we're following is not on the path, or arriving at a station, or arriving at a signal, and it's not waiting at a station, then make go follow the new train that just left the station
     else
       create_cutscene_next_tick(player_index, train)
-      chatty_print(chatty_name.."accepted. current target ["..found_train.id.."] has state ["..verbose_states[found_state] .. "] and passed all validity checks")
+      chatty_print(chatty_name.."accepted. current target ["..found_train.id.."] has state ["..verbose_states[found_state] .. "] and passed all inactivity checks")
     end
     ::next_player::
   end
