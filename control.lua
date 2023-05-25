@@ -814,6 +814,7 @@ local function cutscene_next_tick_function()
   for _, data in pairs(global.create_cutscene_next_tick) do
     local target_train = data[1]
     local player_index = data[2]
+    local same_train = data[3]
     local player = game.get_player(player_index)
     if not player then goto next_player end
     local chatty = global.chatty
@@ -838,7 +839,7 @@ local function cutscene_next_tick_function()
     end
 
     -- make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure?
-    if not (target_train.valid and (target_train.locomotives.front_movers[1].valid or target_train.locomotives.back_movers[1].valid)) then
+    if not target_train.valid then
       global.create_cutscene_next_tick[player_index] = nil
       -- trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh
       local command = {
@@ -868,15 +869,17 @@ local function cutscene_next_tick_function()
     -- end
 
     -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
-    if ((target_train.locomotives.front_movers[1]) and (target_train.locomotives.back_movers[1])) then
+    local front_movers = target_train.locomotives.front_movers
+    local back_movers = target_train.locomotives.back_movers
+    if ((front_movers[1]) and (back_movers[1])) then
       if target_train.speed > 0 then
         -- abort if the potential waypoint is on a different surface than the player
-        if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
+        if player.surface_index ~= front_movers[1].surface_index then
           goto next_player
         end
-        local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
+        local created_waypoints = create_waypoint(front_movers[1], player_index)
         -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy
-        if data[3] then
+        if same_train then
           created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
           created_waypoints[1].zoom = nil
         end
@@ -885,12 +888,12 @@ local function cutscene_next_tick_function()
       end
       if target_train.speed < 0 then
         -- abort if the potential waypoint is on a different surface than the player
-        if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
+        if player.surface_index ~= back_movers[1].surface_index then
           goto next_player
         end
-        local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
+        local created_waypoints = create_waypoint(back_movers[1], player_index)
         -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
-        if data[3] then
+        if same_train then
           created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
           created_waypoints[1].zoom = nil
         end
@@ -899,33 +902,19 @@ local function cutscene_next_tick_function()
       end
 
     -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
-    elseif ((target_train.locomotives.front_movers[1]) or (target_train.locomotives.back_movers[1])) then
-      if target_train.locomotives.front_movers[1] then
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface.index ~= target_train.locomotives.front_movers[1].surface.index then
-          goto next_player
-        end
-        local created_waypoints = create_waypoint(target_train.locomotives.front_movers[1], player_index)
-        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
-        if data[3] then
-          created_waypoints[1].zoom = nil
-        end
-        play_cutscene(created_waypoints, player_index)
-        global.create_cutscene_next_tick[player_index] = nil
+    elseif (front_movers[1] or back_movers[1]) then
+      local mover = front_movers[1] or back_movers[1]
+      -- abort if the potential waypoint is on a different surface than the player
+      if player.surface_index ~= mover.surface_index then
+        goto next_player
       end
-      if target_train.locomotives.back_movers[1] then
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface.index ~= target_train.locomotives.back_movers[1].surface.index then
-          goto next_player
-        end
-        local created_waypoints = create_waypoint(target_train.locomotives.back_movers[1], player_index)
-        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
-        if data[3] then
-          created_waypoints[1].zoom = nil
-        end
-        play_cutscene(created_waypoints, player_index)
-        global.create_cutscene_next_tick[player_index] = nil
+      local created_waypoints = create_waypoint(mover, player_index)
+      -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
+      if same_train then
+        created_waypoints[1].zoom = nil
       end
+      play_cutscene(created_waypoints, player_index)
+      global.create_cutscene_next_tick[player_index] = nil
     end
     ::next_player::
   end
