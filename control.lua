@@ -537,12 +537,9 @@ local function update_wait_at_station(event)
     local player_index = player.index
     if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
     if not (train.id == global.followed_loco[player_index].train_id )then goto next_player end
-    if not global.station_minimum then
-      global.station_minimum = {}
-      global.station_minimum[player_index] = game.tick
-    else
-      global.station_minimum[player_index] = game.tick
-    end
+    ---@type table<PlayerIndex, uint>
+    global.station_minimum = global.station_minimum or {}
+    global.station_minimum[player_index] = game.tick
     if global.chatty then
       -- local target_name = chatty_target_train_name(train)
       local target_name = chatty_target_entity_name(global.followed_loco[player_index].loco)
@@ -565,16 +562,8 @@ local function update_wait_at_signal(train_changed_state_event)
       if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
-      if not global.wait_at_signal then
-        global.wait_at_signal = {}
-        local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
-        global.wait_at_signal[player.index] = until_tick
-      else
-        if not global.wait_at_signal[player.index] then
-          local until_tick = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
-          global.wait_at_signal[player.index] = until_tick
-        end
-      end
+      global.wait_at_signal = global.wait_at_signal or {}
+      global.wait_at_signal[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
       if global.chatty then
         local target_name = chatty_target_train_name(train)
         local chatty_name = chatty_player_name(player)
@@ -589,9 +578,8 @@ local function update_wait_at_signal(train_changed_state_event)
       if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
-      if global.wait_at_signal and global.wait_at_signal[player.index] then
-        global.wait_at_signal[player.index] = nil
-      end
+      global.wait_at_signal = global.wait_at_signal or {}
+      global.wait_at_signal[player.index] = nil
       if global.chatty then
         local chatty_name = chatty_player_name(player)
         local target_name = chatty_target_train_name(train)
