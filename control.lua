@@ -494,22 +494,14 @@ local function play_cutscene(created_waypoints, player_index)
     if created_waypoints[1].target.train.passengers then
       for _, passenger in pairs(created_waypoints[1].target.train.passengers) do
         --[[
-        if b.index == player.index then
+        if passenger.index == player.index then
           player.unlock_achievement("trainsaver-self-reflection")
-          for c,d in pairs(game.connected_players) do
-            if d.mod_settings["ts-notable-events"].value == true then
-              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
-            end
-          end
+          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
         end
         --]]
         if passenger.index ~= player.index then
           player.unlock_achievement("trainsaver-find-a-friend")
-          for _, connected_player in pairs(game.connected_players) do
-            if connected_player.mod_settings["ts-notable-events"].value == true then
-              connected_player.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..passenger.name.." riding a train")
-            end
-          end
+          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw "..passenger.name.." riding a train")
         end
       end
     end
