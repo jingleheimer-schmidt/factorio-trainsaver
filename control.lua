@@ -489,7 +489,7 @@ local function play_cutscene(created_waypoints, player_index)
 
   -- unlock any achievements if possible
     if created_waypoints[1].target.train.passengers then
-      for a,b in pairs(created_waypoints[1].target.train.passengers) do
+      for _, passenger in pairs(created_waypoints[1].target.train.passengers) do
         --[[
         if b.index == player.index then
           player.unlock_achievement("trainsaver-self-reflection")
@@ -500,18 +500,18 @@ local function play_cutscene(created_waypoints, player_index)
           end
         end
         --]]
-        if b.index ~= player.index then
+        if passenger.index ~= player.index then
           player.unlock_achievement("trainsaver-find-a-friend")
-          for c,d in pairs(game.connected_players) do
-            if d.mod_settings["ts-notable-events"].value == true then
-              d.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..b.name.." riding a train")
+          for _, connected_player in pairs(game.connected_players) do
+            if connected_player.mod_settings["ts-notable-events"].value == true then
+              connected_player.print("[color=orange]trainsaver:[/color] "..player.name.." saw "..passenger.name.." riding a train")
             end
           end
         end
       end
     end
-  if created_waypoints[1].target.train.path then
-    local path = created_waypoints[1].target.train.path
+  local path = created_waypoints[1].target.train.path
+  if path then
     local remaining_path_distance = path.total_distance - path.travelled_distance
     if remaining_path_distance > 10000 then
       player.unlock_achievement("trainsaver-long-haul")
