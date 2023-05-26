@@ -224,7 +224,7 @@ end
 local function create_waypoint(waypoint_target, player_index)
   local player = game.get_player(player_index) --[[@as LuaPlayer]]
   local mod_settings = player.mod_settings
-  local chatty_name = chatty_player_name(player)
+  local chatty_name = get_chatty_name(player)
   local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
   local transition_time_2 = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
   local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
@@ -271,7 +271,7 @@ local function create_waypoint(waypoint_target, player_index)
       zoom = zoom
     },
   }
-  local message = chatty_name .. "created waypoint to " .. chatty_target_entity_name(waypoint_target) .. " with no return waypoint"
+  local message = chatty_name .. "created waypoint to " .. get_chatty_name(waypoint_target) .. " with no return waypoint"
 
   -- use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to
   if waypoint_2_end_entity.valid and (waypoint_2_end_entity.surface_index == player.surface_index) then
@@ -282,7 +282,7 @@ local function create_waypoint(waypoint_target, player_index)
       zoom = zoom
     }
     table.insert(created_waypoints, waypoint_2)
-    message = chatty_name .. "created waypoint to " .. chatty_target_entity_name(waypoint_target) .. " with return waypoint to " .. waypoint_2_end_entity_name
+    message = chatty_name .. "created waypoint to " .. get_chatty_name(waypoint_target) .. " with return waypoint to " .. waypoint_2_end_entity_name
   end
   chatty_print(message)
   return created_waypoints
@@ -297,7 +297,7 @@ local function end_trainsaver(command, ending_transition)
   local player = game.get_player(player_index)
   if not player then return end
   if not trainsaver_is_active(player) then return end
-  local chatty_name = chatty_player_name(player)
+  local chatty_name = get_chatty_name(player)
   -- if the cutscene creator mod created the cutscene, don't cancel it
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
     if remote.call("cc_check", "cc_status", player_index) == "active" then return end
@@ -383,7 +383,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
   if not player_index then return end
   local player = game.get_player(player_index)
   if not player then return end
-  local chatty_name = chatty_player_name(player)
+  local chatty_name = get_chatty_name(player)
   local name = command.name
   chatty_print(chatty_name .. "starting trainsaver")
   local controller_type = player.controller_type
@@ -498,7 +498,7 @@ end
 local function cutscene_waypoint_reached(event)
   if global.chatty then
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
-    local chatty_name = chatty_player_name(player)
+    local chatty_name = get_chatty_name(player)
     game.print(chatty_name.."arrived at waypoint [index "..event.waypoint_index.."]")
   end
   if global.cutscene_ending and global.cutscene_ending[event.player_index] and global.cutscene_ending[event.player_index] == true then
@@ -559,7 +559,7 @@ end
 local function play_cutscene(created_waypoints, player_index)
   local player = game.get_player(player_index)
   if not player then return end
-  local chatty_name = chatty_player_name(player)
+  local chatty_name = get_chatty_name(player)
   -- chatty_print(chatty_name.."initiating cutscene")
   if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
     if remote.call("cc_check", "cc_status", player_index) == "active" then
@@ -635,8 +635,8 @@ local function update_wait_at_station(event)
     global.station_minimum[player_index] = game.tick
     if global.chatty then
       -- local target_name = chatty_target_train_name(train)
-      local target_name = chatty_target_entity_name(global.followed_loco[player_index].loco)
-      local chatty_name = chatty_player_name(player)
+      local target_name = get_chatty_name(global.followed_loco[player_index].loco)
+      local chatty_name = get_chatty_name(player)
       game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. station_minimum tick saved")
     end
     ::next_player::
@@ -658,8 +658,8 @@ local function update_wait_at_signal(train_changed_state_event)
       global.wait_at_signal = global.wait_at_signal or {}
       global.wait_at_signal[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
       if global.chatty then
-        local target_name = chatty_target_train_name(train)
-        local chatty_name = chatty_player_name(player)
+        local target_name = get_chatty_name(train)
+        local chatty_name = get_chatty_name(player)
         chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal tick saved")
       end
       ::next_player::
@@ -674,8 +674,8 @@ local function update_wait_at_signal(train_changed_state_event)
       global.wait_at_signal = global.wait_at_signal or {}
       global.wait_at_signal[player.index] = nil
       if global.chatty then
-        local chatty_name = chatty_player_name(player)
-        local target_name = chatty_target_train_name(train)
+        local chatty_name = get_chatty_name(player)
+        local target_name = get_chatty_name(train)
         game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal data cleared")
       end
       ::next_player::
@@ -703,7 +703,7 @@ local function update_trainsaver_viewers(event)
     [defines.train_state.wait_signal] = true,
   }
   if not (wait_station_states[old_state] and active_states[new_state]) then return end
-  local target_name = chatty_target_train_name(train)
+  local target_name = get_chatty_name(train)
   chatty_print("[" .. game.tick .. "] potential target [" .. target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
