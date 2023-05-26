@@ -924,16 +924,10 @@ local function cutscene_next_tick_function()
       goto next_player
     end
 
-    -- make sure things are still valid. they should be but idk, i guess doesn't hurt too much to make sure?
+    -- make sure things are still valid. restart trainsaver if target was invalid
     if not target_train.valid then
       global.create_cutscene_next_tick[player_index] = nil
-      -- trying this because idk what else to do. why does it go to 0,0 when a train is on a spaceship going to a different surface in space exploration mod? ahhhhhhhhh
-      local command = {
-        name = "trainsaver",
-        player_index = player_index,
-        -- entity_gone_restart = "yes",
-        -- train_to_ignore = event.entity.train
-        }
+      local command = { name = "trainsaver", player_index = player_index }
       chatty_print(chatty_name.."new target is invalid, restarting trainsaver")
       global.create_cutscene_next_tick[player_index] = nil
       start_trainsaver(command, nil, true)
@@ -943,54 +937,35 @@ local function cutscene_next_tick_function()
     -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
     local front_movers = target_train.locomotives.front_movers
     local back_movers = target_train.locomotives.back_movers
-    if ((front_movers[1]) and (back_movers[1])) then
-      if target_train.speed > 0 then
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface_index ~= front_movers[1].surface_index then
-          chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
-          global.create_cutscene_next_tick[player_index] = nil
-          goto next_player
-        end
-        local created_waypoints = create_waypoint(front_movers[1], player_index)
-        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy
-        if same_train then
-          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-          created_waypoints[1].zoom = nil
-        end
-        play_cutscene(created_waypoints, player_index)
-        global.create_cutscene_next_tick[player_index] = nil
-      end
-      if target_train.speed < 0 then
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface_index ~= back_movers[1].surface_index then
-          chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
-          global.create_cutscene_next_tick[player_index] = nil
-          goto next_player
-        end
-        local created_waypoints = create_waypoint(back_movers[1], player_index)
-        -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
-        if same_train then
-          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-          created_waypoints[1].zoom = nil
-        end
-        play_cutscene(created_waypoints, player_index)
-        global.create_cutscene_next_tick[player_index] = nil
-      end
+    local movers = nil
+    local mover = nil
 
-    -- if target train doesn't have both front and back movers, then create waypoints/cutscene for whichever movers type it does have
-    elseif (front_movers[1] or back_movers[1]) then
-      local mover = front_movers[1] or back_movers[1]
-      -- abort if the potential waypoint is on a different surface than the player
+    if front_movers[1] and back_movers[1] then
+      if target_train.speed ~= 0 then
+        movers = target_train.speed > 0 and front_movers or back_movers
+        mover = movers[1]
+      end
+    elseif front_movers[1] or back_movers[1] then
+      mover = front_movers[1] or back_movers[1]
+    end
+
+    if mover then
+      -- Abort if the potential waypoint is on a different surface than the player
       if player.surface_index ~= mover.surface_index then
-        chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..front_movers[1].surface.name)
+        chatty_print(chatty_name.."new target request denied by surface mismatch, player is on "..player.surface.name..", target is on "..mover.surface.name)
         global.create_cutscene_next_tick[player_index] = nil
         goto next_player
       end
+
       local created_waypoints = create_waypoint(mover, player_index)
-      -- if the train is bi-directional and we're just switching from one end to the other, set transition time to 15 ticks per carriage so it's nice and smooth. Also nil out zoom so it doesn't go crazy on us
+
+      -- If the train is bi-directional and we're just switching from one end to the other,
+      -- set transition time to 15 ticks per carriage so it's nice and smooth. Also remove zoom so it stays the same
       if same_train then
+        created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
         created_waypoints[1].zoom = nil
       end
+
       play_cutscene(created_waypoints, player_index)
       global.create_cutscene_next_tick[player_index] = nil
     end
