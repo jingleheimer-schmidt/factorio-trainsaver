@@ -176,7 +176,7 @@ local function target_is_spider(target)
   end
 end
 
--- return true if the current trainsaver target is "idle"
+-- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
 ---@param player LuaPlayer
 ---@return boolean
 local function waypoint_target_is_idle(player)
