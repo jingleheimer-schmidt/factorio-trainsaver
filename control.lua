@@ -908,12 +908,7 @@ local function cutscene_next_tick_function()
     local same_train = data[3]
     local player = game.get_player(player_index)
     if not player then goto next_player end
-    local chatty = global.chatty
-    local chatty_name, target_name = "", ""
-    if chatty then
-      chatty_name = chatty_player_name(player)
-      target_name = chatty_target_train_name(target_train)
-    end
+    local chatty_name = get_chatty_name(player)
 
     -- don't create the cutscene if they've requested to end and we're going back to their character
     if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
