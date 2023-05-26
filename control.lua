@@ -990,12 +990,16 @@ local function cutscene_next_tick_function()
     -- if the target train has both front and back movers, then figure out which is leading the train based on if speed is + or -
     local front_movers = target_train.locomotives.front_movers
     local back_movers = target_train.locomotives.back_movers
+    local state = target_train.state
+    local speed = target_train.speed
     local movers = nil
     local mover = nil
 
     if front_movers[1] and back_movers[1] then
-      if target_train.speed ~= 0 then
-        movers = target_train.speed > 0 and front_movers or back_movers
+      -- chatty_print(chatty_name .. "speed: " .. speed)
+      -- chatty_print(chatty_name .. "state: " .. verbose_states[state])
+      if active_states[state] and speed ~= 0 then
+        movers = speed > 0 and front_movers or back_movers
         mover = movers[1]
       end
     elseif front_movers[1] or back_movers[1] then
@@ -1021,6 +1025,9 @@ local function cutscene_next_tick_function()
 
       play_cutscene(created_waypoints, player_index)
       global.create_cutscene_next_tick[player_index] = nil
+    else
+      chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
+      -- global.create_cutscene_next_tick[player_index] = nil
     end
     ::next_player::
   end
