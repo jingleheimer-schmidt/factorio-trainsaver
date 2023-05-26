@@ -394,10 +394,10 @@ local function end_trainsaver(command, ending_transition)
   global.wait_at_signal = global.wait_at_signal or {}
   global.wait_at_signal[player_index] = nil
   ---@type table<PlayerIndex, uint>
-  global.station_minimum = global.station_minimum or {}
-  global.station_minimum[player_index] = nil
-  global.driving_minimum = global.driving_minimum or {}
-  global.driving_minimum[player_index] = nil
+  global.wait_station_since_tick = global.wait_station_since_tick or {}
+  global.wait_station_since_tick[player_index] = nil
+  global.driving_since_tick = global.driving_since_tick or {}
+  global.driving_since_tick[player_index] = nil
 end
 
 -- start the screensaver :D
@@ -576,8 +576,8 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<PlayerIndex, integer>
   global.number_of_waypoints[player_index] = #created_waypoints
   -- update driving minimum global
-  global.driving_minimum = global.driving_minimum or {} ---@type table<PlayerIndex, uint>
-  global.driving_minimum[player_index] = game.tick
+  global.driving_since_tick = global.driving_since_tick or {} ---@type table<PlayerIndex, uint>
+  global.driving_since_tick[player_index] = game.tick
 end
 
 -- play cutscene from given waypoints
