@@ -51,7 +51,7 @@ local timeWaitSetting = {
   name = "ts-time-wait",
   setting_type = "runtime-per-user",
   minimum_value = 1, -- need to have at least 1 minute of "inactivity", because it's not actually inactivity, it's how long the cutscene lasts before returning to player.
-  default_value = 15, -- minutes, will be converted to ticks
+  default_value = 60, -- minutes, will be converted to ticks
   order = "ts-c",
   hidden = true,
 }
@@ -70,7 +70,7 @@ local zoomSetting = {
   name = "ts-zoom",
   setting_type = "runtime-per-user",
   minimum_value = .1,
-  default_value = .3,
+  default_value = .375,
   maximum_value = 5,
   order = "ts-e"
 }
