@@ -3,7 +3,7 @@
 
 require "util"
 
-local verbose_states = {
+local verbose_states = { ---@type table<defines.train_state, string>
   [0] = "[color=green]on_the_path[/color]",        -- Normal state, following the path.
   [1] = "[color=purple]path_lost[/color]",         -- Had path and lost it, must stop.
   [2] = "[color=purple]no_schedule[/color]",       -- Doesn't have anywhere to go.
