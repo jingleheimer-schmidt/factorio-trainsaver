@@ -179,13 +179,19 @@ end
 -- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
 ---@param player LuaPlayer
 ---@return boolean
-local function waypoint_target_is_idle(player)
+local function waypoint_target_has_idle_state(player)
   local bool = false
-  local player_index = player.index
-  if global.followed_loco and global.followed_loco[player_index] then
-    local locomotive = global.followed_loco[player_index].loco
+  local current_target = current_trainsaver_target(player)
+  if current_target and target_is_locomotive(current_target) then
+    local locomotive = current_target --[[@as LuaEntity]]
     local state = locomotive.train.state
     if idle_states[state] then
+      bool = true
+    end
+  elseif current_target and target_is_spider(current_target) then
+    local spider = current_target --[[@as LuaEntity]]
+    local speed = spider.speed
+    if speed == 0 then
       bool = true
     end
   end
