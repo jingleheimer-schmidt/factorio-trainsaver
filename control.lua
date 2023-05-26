@@ -711,19 +711,16 @@ local function update_trainsaver_viewers(event)
       chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. train.carriages[1].surface.name .. "]")
       goto next_player
     end
-    local found_locomotive = {}
-    if global.followed_loco and global.followed_loco[player.index] and global.followed_loco[player.index].loco and global.followed_loco[player.index].loco.valid then
-      found_locomotive[1] = global.followed_loco[player.index].loco
-    else
-      found_locomotive = player.surface.find_entities_filtered({position = player.position, radius = 1, type = "locomotive", limit = 1})
-    end
-    if not found_locomotive[1] then goto next_player end
+    local current_target = current_trainsaver_target(player)
+    if not (current_target and target_is_entity(current_target))then goto next_player end
+    local chatty_name = get_chatty_name(player)
+    local current_target_name = get_chatty_name(current_target)
     local player_index = player.index
-    local found_train = found_locomotive[1].train
+    local found_train, found_state
+    if not target_is_locomotive(current_target) then goto spider_handling end
+    found_train = current_target.train
     if not found_train then goto next_player end
-    local found_state = found_train.state
-    local chatty_name = chatty_player_name(player)
-    local found_target_name = chatty_target_train_name(found_train)
+    found_state = found_train.state
 
     -- when a train changes from stopped at station to on the path or arriving at signal, and player controller is cutscene, and there's a locomotive within 1 tile of player, and that locomotive train state is on the path or arriving at signal or station, then if the train that changed state is the same train under the player, make sure we're following the leading locomotive.
     -- if ((found_state == defines.train_state.on_the_path) or (found_state == defines.train_state.arrive_signal) or (found_state == defines.train_state.arrive_station) --[[or ((found_state == defines.train_state.manual_control) and (found_locomotive[1].train.speed ~= 0))--]]) then
@@ -734,7 +731,7 @@ local function update_trainsaver_viewers(event)
         create_cutscene_next_tick(player_index, train, "same train")
         global.wait_at_signal = global.wait_at_signal or {}
         global.wait_at_signal[player_index] = nil
-        chatty_print(chatty_name.."accepted. current target ["..found_target_name.."] is the train that changed state. targetting lead locomotive")
+        chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] is the train that changed state. targetting lead locomotive")
 
       -- if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow
       elseif global.driving_minimum and global.driving_minimum[player_index] then
@@ -742,9 +739,9 @@ local function update_trainsaver_viewers(event)
         local minimum_allowed_time = player.mod_settings["ts-driving-minimum"].value * 60 * 60 -- converting minutes to ticks
         if (driving_since_tick + minimum_allowed_time) < game.tick then
           create_cutscene_next_tick(player_index, train)
-          chatty_print(chatty_name.."accepted. current target ["..found_target_name.."] has exceeded the ["..minimum_allowed_time.."] tick minimum for ".. verbose_states[found_state])
+          chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has exceeded the ["..minimum_allowed_time.."] tick minimum for ".. verbose_states[found_state])
         else
-          chatty_print(chatty_name.."denied. current target ["..found_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by driving_minimum")
+          chatty_print(chatty_name.."denied. current target ["..current_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by driving_minimum")
         end
       end
 
@@ -754,26 +751,26 @@ local function update_trainsaver_viewers(event)
       local minimum_allowed_time = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
       if (waiting_since_tick + minimum_allowed_time) < game.tick then
         create_cutscene_next_tick(player_index, train)
-        chatty_print(chatty_name.."accepted. current target ["..found_target_name.."] has exceeded the ["..minimum_allowed_time.."] tick minimum for [".. verbose_states[found_state] .. "]")
+        chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has exceeded the ["..minimum_allowed_time.."] tick minimum for [".. verbose_states[found_state] .. "]")
       else
-        chatty_print(chatty_name.."denied. current target ["..found_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by station_minimum")
+        chatty_print(chatty_name.."denied. current target ["..current_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by station_minimum")
       end
 
     -- if global.wait_at_signal untill_tick is greater than current game tick, then don't create a new cutscene: set create_cutscene_next_tick to nil and wait until next train state update. If we've passed the untill_tick, then set wait_at_signal to nill and continue creating the cutscene
     elseif (wait_signal_states[found_state]) and (global.wait_at_signal and global.wait_at_signal[player_index]) then
       if global.wait_at_signal[player_index] > game.tick then
         global.create_cutscene_next_tick[player_index] = nil
-        chatty_print(chatty_name.."denied. current target ["..found_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by signal_minimum")
+        chatty_print(chatty_name.."denied. current target ["..current_target_name.."] is [".. verbose_states[found_state] .. "]. new target request denied by signal_minimum")
       else
         global.wait_at_signal[player_index] = nil
         create_cutscene_next_tick(player_index, train)
-        chatty_print(chatty_name.."accepted. current target [" .. found_target_name .. "] has exceeded the [" .. player.mod_settings["ts-wait-at-signal"] .value * 60 .. "] tick minimum for [" .. verbose_states[found_state] .. "]")
+        chatty_print(chatty_name.."accepted. current target [" .. current_target_name .. "] has exceeded the [" .. player.mod_settings["ts-wait-at-signal"] .value * 60 .. "] tick minimum for [" .. verbose_states[found_state] .. "]")
       end
 
     -- if the train we're following is not on the path, or arriving at a station, or arriving at a signal, and it's not waiting at a station, then make go follow the new train that just left the station
     else
       create_cutscene_next_tick(player_index, train)
-      chatty_print(chatty_name.."accepted. current target ["..found_train.id.."] has state ["..verbose_states[found_state] .. "] and passed all inactivity checks")
+      chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has state ["..verbose_states[found_state] .. "] and passed all inactivity checks")
     end
     ::next_player::
   end
