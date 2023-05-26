@@ -657,9 +657,8 @@ local function update_wait_at_station(event)
     local player_index = player.index
     if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
     if not (train.id == global.followed_loco[player_index].train_id )then goto next_player end
-    ---@type table<PlayerIndex, uint>
-    global.station_minimum = global.station_minimum or {}
-    global.station_minimum[player_index] = game.tick
+    global.wait_station_since_tick = global.wait_station_since_tick or {}
+    global.wait_station_since_tick[player_index] = game.tick
     if global.chatty then
       -- local target_name = chatty_target_train_name(train)
       local target_name = get_chatty_name(global.followed_loco[player_index].loco)
