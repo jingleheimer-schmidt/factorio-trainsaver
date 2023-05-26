@@ -772,9 +772,41 @@ local function update_trainsaver_viewers(event)
       create_cutscene_next_tick(player_index, train)
       chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has state ["..verbose_states[found_state] .. "] and passed all inactivity checks")
     end
+    ::spider_handling::
+    if not target_is_spider(current_target) then goto next_player end
+    if current_target.autopilot_destinations[1] and not (current_target.speed == 0) then goto next_player end
+    create_cutscene_next_tick(player_index, train)
+    chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] is idle")
     ::next_player::
   end
 end
+
+-- 
+---@param event EventData.on_spider_command_completed
+local function spider_command_completed(event)
+  chatty_print("spider_command_completed event fired")
+  local spider = event.vehicle
+  local next_destination = spider.autopilot_destinations[1]
+  if not next_destination then
+    chatty_print("reached final destination")
+  end
+end
+
+--
+---@param event EventData.on_player_used_spider_remote
+local function player_used_spider_remote(event)
+  chatty_print("player_used_spider_remote event fired")
+  if not event.success then return end
+  local spider = event.vehicle
+  local next_destination = spider.autopilot_destinations[1]
+  if not next_destination then return end
+  local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+  if not trainsaver_is_active(player) then return end
+  if not waypoint_target_is_idle(player) then return end
+end
+
+script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
+script.on_event(defines.events.on_spider_command_completed, spider_command_completed)
 
 -- when a train changes state, see if any players are eligable to transfer focus to it
 ---@param event EventData.on_train_changed_state
