@@ -92,7 +92,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function trainsaver_is_active(player)
-  if not player.controller_type == defines.controllers.cutscene then
+  if not (player.controller_type == defines.controllers.cutscene) then
     return false
   end
   if global.trainsaver_status and global.trainsaver_status[player.index] then
