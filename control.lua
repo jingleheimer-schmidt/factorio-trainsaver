@@ -803,6 +803,9 @@ local function player_used_spider_remote(event)
   local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
   if not trainsaver_is_active(player) then return end
   if not waypoint_target_is_idle(player) then return end
+  local waypoints = create_waypoint(spider, player.index)
+  if not waypoints then return end
+  play_cutscene(waypoints, player.index)
 end
 
 script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
