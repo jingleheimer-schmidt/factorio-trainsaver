@@ -249,7 +249,7 @@ local function create_waypoint(waypoint_target, player_index)
   end
   if (waypoint_target.type == "spider-vehicle") then
     if waypoint_target.autopilot_destinations then
-      waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[-1]} or {}
+      waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[#waypoint_target.autopilot_destinations]} or {}
     end
   end
   local waypoint_2_end_entity = player.cutscene_character or player.character or {}
