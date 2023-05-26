@@ -72,6 +72,22 @@ local function chatty_target_entity_name(entity)
   return target_name
 end
 
+-- return a string with the name of the target, colored if possible with its color
+---@param target LuaEntity|LuaUnitGroup|LuaTrain|LuaPlayer
+---@return string
+local function get_chatty_name(target)
+  local object_name = target.object_name
+  if object_name == "LuaTrain" then
+    return chatty_target_train_name(target)
+  elseif object_name == "LuaPlayer" then
+    return chatty_player_name(target)
+  elseif object_name == "LuaEntity" then
+    return chatty_target_entity_name(target)
+  else
+    return "LuaUnitGroup"
+  end
+end
+
 -- return true if trainsaver is active for given player, or false if not
 ---@param player LuaPlayer
 ---@return boolean
