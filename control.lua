@@ -795,31 +795,67 @@ local function update_trainsaver_viewers(event)
   end
 end
 
+-- when a spidertron is given a command, or reaches a waypoint destination, add it as a potential trainsaver target
+---@param event EventData.on_spider_command_completed|EventData.on_player_used_spider_remote
+local function spidertron_changed_state(event)
+  local spider = event.vehicle
+  if not spider.autopilot_destinations[1] then return end -- filter for spidertrons with at least one more waypoint to go to
+  if spider.name == "companion" then return end -- don't target klonan's companion drone mod spidertrons
+  local chatty_target_name = get_chatty_name(spider)
+  chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(spider.autopilot_destinations[1]) .. "")
+  for _, player in pairs(game.connected_players) do
+    if (player.mod_settings["ts-secrets"].value == false) then goto next_player end
+    if not trainsaver_is_active(player) then goto next_player end
+    local current_target = current_trainsaver_target(player)
+    if not current_target then goto next_player end
+    local target_is_active = not waypoint_target_has_idle_state(player)
+    local current_target_name = get_chatty_name(current_target)
+    local chatty_name = get_chatty_name(player)
+    if target_is_locomotive(current_target) then
+      if target_is_active and not exceeded_driving_minimum(player) then
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the driving_minimum")
+        goto next_player
+      end
+      if wait_station_states[current_target.train.state] and not exceeded_station_minimum(player) then
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the station_minimum")
+        goto next_player
+      end
+      if wait_signal_states[current_target.train.state] and not exceeded_signal_minimum(player) then
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the signal_minimum")
+        goto next_player
+      end
+    end
+    if target_is_spider(current_target) then
+      local spider_id = script.register_on_entity_destroyed(spider)
+      local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]])
+      if target_is_active then
+        if not (spider_id == current_target_id) then
+          chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is active")
+          goto next_player
+        else
+          chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is the potential target")
+          goto next_player
+        end
+      end
+    end
+    chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] is idle and passed all inactivity checks")
+    local waypoints = create_waypoint(spider, player.index)
+    play_cutscene(waypoints, player.index)
+    ::next_player::
+  end
+end
+
 -- 
 ---@param event EventData.on_spider_command_completed
 local function spider_command_completed(event)
-  chatty_print("spider_command_completed event fired")
-  local spider = event.vehicle
-  local next_destination = spider.autopilot_destinations[1]
-  if not next_destination then
-    chatty_print("reached final destination")
-  end
+  spidertron_changed_state(event)
 end
 
 --
 ---@param event EventData.on_player_used_spider_remote
 local function player_used_spider_remote(event)
-  chatty_print("player_used_spider_remote event fired")
   if not event.success then return end
-  local spider = event.vehicle
-  local next_destination = spider.autopilot_destinations[1]
-  if not next_destination then return end
-  local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
-  if not trainsaver_is_active(player) then return end
-  if not waypoint_target_is_idle(player) then return end
-  local waypoints = create_waypoint(spider, player.index)
-  if not waypoints then return end
-  play_cutscene(waypoints, player.index)
+  spidertron_changed_state(event)
 end
 
 script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
