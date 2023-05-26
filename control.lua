@@ -855,6 +855,10 @@ local function spidertron_changed_state(event)
     local target_is_active = not waypoint_target_has_idle_state(player)
     local current_target_name = get_chatty_name(current_target)
     local chatty_name = get_chatty_name(player)
+    if not (spider.surface_index == player.surface_index) then
+      chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
+      goto next_player
+    end
     if target_is_locomotive(current_target) then
       if target_is_active and not exceeded_driving_minimum(player) then
         chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the driving_minimum")
