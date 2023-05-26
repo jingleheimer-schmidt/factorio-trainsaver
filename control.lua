@@ -709,6 +709,49 @@ local function update_wait_at_signal(train_changed_state_event)
   end
 end
 
+-- return true if player has been watching an active train for longer than the driving minimum
+---@param player LuaPlayer
+---@return boolean
+local function exceeded_driving_minimum(player)
+  local driving_since_tick = global.driving_since_tick and global.driving_since_tick[player.index]
+  if not driving_since_tick then return false end
+  local minimum_driving_ticks = player.mod_settings["ts-driving-minimum"].value * 60 * 60 -- converting minutes to ticks
+  local driving_until_tick = driving_since_tick + minimum_driving_ticks
+  if (driving_until_tick < game.tick) then
+    return true
+  else
+    return false
+  end
+end
+
+-- return true if player has been watching a stopped train at a station for longer than the station minimum
+---@param player LuaPlayer
+---@return boolean
+local function exceeded_station_minimum(player)
+  local stationed_since_tick = global.wait_station_since_tick and global.wait_station_since_tick[player.index]
+  if not stationed_since_tick then return false end
+  local minimum_stationed_ticks = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
+  local stationed_until_tick = stationed_since_tick + minimum_stationed_ticks
+  if (stationed_until_tick < game.tick) then
+    return true
+  else
+    return false
+  end
+end
+
+-- return true if player has been watching a train that has been waiting at a signal for longer than the wait at signal minimum
+---@param player LuaPlayer
+---@return boolean
+local function exceeded_signal_minimum(player)
+  local wait_signal_until_tick = global.wait_at_signal and global.wait_at_signal[player.index]
+  if not wait_signal_until_tick then return false end
+  if wait_signal_until_tick < game.tick then
+    return true
+  else
+    return false
+  end
+end
+
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
 local function update_trainsaver_viewers(event)
