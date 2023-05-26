@@ -17,6 +17,40 @@ local verbose_states = { ---@type table<defines.train_state, string>
   [10] = "[color=blue]destination_full[/color]",   -- Same as no_path but all candidate train stops are full.
 }
 
+local active_states = { ---@type table<defines.train_state, boolean>
+  [defines.train_state.on_the_path] = true,
+  [defines.train_state.path_lost] = false,
+  [defines.train_state.no_schedule] = false,
+  [defines.train_state.no_path] = false,
+  [defines.train_state.arrive_signal] = true,
+  [defines.train_state.wait_signal] = false,
+  [defines.train_state.arrive_station] = true,
+  [defines.train_state.wait_station] = false,
+  [defines.train_state.manual_control_stop] = false,
+  [defines.train_state.manual_control] = false,
+  [defines.train_state.destination_full] = false,
+}
+local idle_states = { ---@type table<defines.train_state, boolean>
+  [defines.train_state.on_the_path] = false,
+  [defines.train_state.path_lost] = false,
+  [defines.train_state.no_schedule] = true,
+  [defines.train_state.no_path] = true,
+  [defines.train_state.arrive_signal] = false,
+  [defines.train_state.wait_signal] = true,
+  [defines.train_state.arrive_station] = false,
+  [defines.train_state.wait_station] = true,
+  [defines.train_state.manual_control_stop] = false,
+  [defines.train_state.manual_control] = false,
+  [defines.train_state.destination_full] = true,
+}
+local wait_station_states = { ---@type table<defines.train_state, boolean>
+[defines.train_state.wait_station] = true,
+[defines.train_state.destination_full] = true,
+}
+local wait_signal_states = { ---@type table<defines.train_state, boolean>
+[defines.train_state.wait_signal] = true,
+}
+
 local function toggle_chatty()
   if not global.chatty then
     global.chatty = true
@@ -151,19 +185,6 @@ local function waypoint_target_is_idle(player)
   if global.followed_loco and global.followed_loco[player_index] then
     local locomotive = global.followed_loco[player_index].loco
     local state = locomotive.train.state
-    local idle_states = {
-      [defines.train_state.arrive_signal] = false,
-      [defines.train_state.arrive_station] = false,
-      [defines.train_state.destination_full] = true,
-      [defines.train_state.manual_control] = false,
-      [defines.train_state.manual_control_stop] = true,
-      [defines.train_state.no_path] = true,
-      [defines.train_state.no_schedule] = true,
-      [defines.train_state.on_the_path] = false,
-      [defines.train_state.path_lost] = true,
-      [defines.train_state.wait_signal] = true,
-      [defines.train_state.wait_station] = true,
-    }
     if idle_states[state] then
       bool = true
     end
@@ -689,19 +710,6 @@ local function update_trainsaver_viewers(event)
   local train = event.train
   local old_state = event.old_state
   local new_state = event.train.state
-  local active_states = { ---@type table<defines.train_state, boolean>
-    [defines.train_state.on_the_path] = true,
-    [defines.train_state.arrive_signal] = true,
-    [defines.train_state.arrive_station] = true,
-    [defines.train_state.manual_control] = false,
-  }
-  local wait_station_states = { ---@type table<defines.train_state, boolean>
-    [defines.train_state.wait_station] = true,
-    [defines.train_state.destination_full] = true,
-  }
-  local wait_signal_states = { ---@type table<defines.train_state, boolean>
-    [defines.train_state.wait_signal] = true,
-  }
   if not (wait_station_states[old_state] and active_states[new_state]) then return end
   local target_name = get_chatty_name(train)
   chatty_print("[" .. game.tick .. "] potential target [" .. target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
