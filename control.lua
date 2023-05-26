@@ -102,6 +102,46 @@ local function trainsaver_is_active(player)
   end
 end
 
+-- returns the current trainsaver target for a given player, if any
+---@param player LuaPlayer
+---@return LuaEntity|LuaUnitGroup|nil
+local function current_trainsaver_target(player)
+  global.current_target = global.current_target or {}
+  return global.current_target[player.index]
+end
+
+-- returns true if the provided cutscene waypoint target is an entity
+---@param target LuaEntity|LuaUnitGroup|nil
+local function target_is_entity(target)
+  if target and (target.object_name == "LuaEntity") then
+    return true
+  else
+    return false
+  end
+end
+
+-- returns true if the given entity is a locomotive
+---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
+local function target_is_locomotive(target)
+  if target and target_is_entity(target) and (target.type == "locomotive") then
+    return true
+  else
+    return false
+  end
+end
+
+-- returns true if the given entity is a spidertron
+---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
+local function target_is_spider(target)
+  if target and target_is_entity(target) and (target.type == "spider-vehicle") then
+    return true
+  else
+    return false
+  end
+end
+
 -- return true if the current trainsaver target is "idle"
 ---@param player LuaPlayer
 ---@return boolean
