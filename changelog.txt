@@ -1,18 +1,20 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.21
-Date: TBD
+Date: 26MAY2023
   Changes:
     - restructured control script to be more modular and robust
     - destination_full train state is now treated equivalent to wait_at_station, so trainsaver can target trains that change from destination_full to an active state
     - simplified verbose mode handling and message content
     - verbose mode message formatting is now more consistent
-    - marked Transition time mod setting as hidden
-    - changed default value of Inactivity timeout mod setting from 15 to 60 minutes
-    - marked Inactivity timeout mod setting as hidden
-    - marked Escape with menu mod setting as hidden
-    - marked Variable zoom mod setting as hidden
-    - Enable secret focus mod setting renamed to Enable scope creep
-    - Enable scope creep mod setting is now enabled by default
+    - marked "Transition time" mod setting as hidden
+    - changed default value of "Inactivity timeout" mod setting from 15 to 60 minutes
+    - changed default value of "Zoom" mod setting from 0.3 to 0.375
+    - marked "Inactivity timeout" mod setting as hidden
+    - marked "Escape with menu" mod setting as hidden
+    - marked "Variable zoom" mod setting as hidden
+    - "Enable secret focus" mod setting renamed to "Enable scope creep"
+    - "Enable scope creep" mod setting is now enabled by default
+    - added additional trainsaver targets when "Enable scope creep" mod setting is enabled
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.20
 Date: 12NOV2022
