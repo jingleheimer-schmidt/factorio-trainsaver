@@ -199,15 +199,15 @@ local function waypoint_target_has_idle_state(player)
 end
 
 -- add data to global so a cutscene is created for a given player the following tick
----@param player_index PlayerIndex
+---@param player_index uint
 ---@param train LuaTrain
 ---@param same_train "same train"?
 local function create_cutscene_next_tick(player_index, train, same_train)
   ---@class CreateCutsceneNextTickData
   ---@field [1] LuaTrain
-  ---@field [2] PlayerIndex
+  ---@field [2] uint -- player index
   ---@field [3] "same train"?
-  ---@type table<PlayerIndex, CreateCutsceneNextTickData>
+  ---@type table<uint, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
   global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
 end
@@ -246,7 +246,7 @@ local function convert_speed_into_time(speed_kmph, distance_in_meters)
 end
 -- create a waypoint for given waypoint_target using player mod settings
 ---@param waypoint_target LuaEntity
----@param player_index PlayerIndex
+---@param player_index uint
 ---@return CutsceneWaypoint[]
 local function create_waypoint(waypoint_target, player_index)
   local player = game.get_player(player_index) --[[@as LuaPlayer]]
@@ -387,13 +387,13 @@ local function end_trainsaver(command, ending_transition)
   )
   player.game_view_settings.show_entity_info = transfer_alt_mode
   -- update globals for a cutscene ending
-  ---@type table<PlayerIndex, boolean>
+  ---@type table<uint, boolean>
   global.cutscene_ending = global.cutscene_ending or {}
   global.cutscene_ending[player_index] = true
-  ---@type table<PlayerIndex, number|uint>
+  ---@type table<uint, number|uint>
   global.wait_at_signal = global.wait_at_signal or {}
   global.wait_at_signal[player_index] = nil
-  ---@type table<PlayerIndex, uint>
+  ---@type table<uint, uint>
   global.wait_station_since_tick = global.wait_station_since_tick or {}
   global.wait_station_since_tick[player_index] = nil
   global.driving_since_tick = global.driving_since_tick or {}
@@ -486,7 +486,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 end
 
 -- remove any globals we saved for the player when trainsaver ends
----@param player_index PlayerIndex
+---@param player_index uint
 local function cutscene_ended_nil_globals(player_index)
   local globals_to_nil = {
     "followed_loco",
@@ -536,19 +536,19 @@ local function cutscene_waypoint_reached(event)
 end
 
 -- set character color to player color so it's the same when controller switches from character to cutscene. This is no longer used since the introduction of cutscene character now handles this, but we're keeping it here for the memories :)
----@param player_index PlayerIndex
+---@param player_index uint
 local function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
 
 -- update all the globals for a newly created cutscene
----@param player_index PlayerIndex
+---@param player_index uint
 ---@param created_waypoints CutsceneWaypoint[]
 local function update_globals_new_cutscene(player_index, created_waypoints)
   local waypoint_target = created_waypoints[1].target
   local waypoint_position = created_waypoints[1].position
   -- update trainsaver status global
-  global.trainsaver_status = global.trainsaver_status or {} ---@type table<PlayerIndex, "active"|nil>
+  global.trainsaver_status = global.trainsaver_status or {} ---@type table<uint, "active"|nil>
   global.trainsaver_status[player_index] = "active"
   -- update the followed_loco global
   if (waypoint_target and waypoint_target.train) then
@@ -561,28 +561,28 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
       train_id = waypoint_target.train.id,
       loco = waypoint_target --[[@as LuaEntity]],
     }
-    global.followed_loco = global.followed_loco or {} ---@type table<PlayerIndex, FollowedLocomotiveData>
+    global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
   end
   -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
   if waypoint_target and (waypoint_target.object_name == "LuaEntity") then
-    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<PlayerIndex, uint64>
+    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
   end
   -- update the current_target global
-  global.current_target = global.current_target or {} ---@type table<PlayerIndex, LuaEntity|LuaUnitGroup>
+  global.current_target = global.current_target or {} ---@type table<uint, LuaEntity|LuaUnitGroup>
   global.current_target[player_index] = waypoint_target
   -- update number of waypoints global
-  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<PlayerIndex, integer>
+  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<uint, integer>
   global.number_of_waypoints[player_index] = #created_waypoints
   -- update driving minimum global
-  global.driving_since_tick = global.driving_since_tick or {} ---@type table<PlayerIndex, uint>
+  global.driving_since_tick = global.driving_since_tick or {} ---@type table<uint, uint>
   global.driving_since_tick[player_index] = game.tick
 end
 
 -- play cutscene from given waypoints
 ---@param created_waypoints CutsceneWaypoint[]
----@param player_index PlayerIndex
+---@param player_index uint
 local function play_cutscene(created_waypoints, player_index)
   local player = game.get_player(player_index)
   if not player then return end
