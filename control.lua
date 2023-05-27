@@ -1205,7 +1205,7 @@ script.on_event(defines.events.on_tick, on_tick)
 -- deal with global data when a cutscene ends
 script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
 script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
-script.on_event(defines.events.on_cutscene_finished, cutscene_finished)
+-- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version. 
 
 -- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
 script.on_event(defines.events.on_train_changed_state, train_changed_state)
