@@ -563,9 +563,10 @@ local function sync_color(player_index)
 end
 
 -- update all the globals for a newly created cutscene
----@param player_index uint
+---@param player LuaPlayer
 ---@param created_waypoints CutsceneWaypoint[]
-local function update_globals_new_cutscene(player_index, created_waypoints)
+local function update_globals_new_cutscene(player, created_waypoints)
+  local player_index = player.index
   local waypoint_target = created_waypoints[1].target
   local waypoint_position = created_waypoints[1].position
   local mod_settings = player.mod_settings
@@ -576,15 +577,16 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   global.trainsaver_status = global.trainsaver_status or {} ---@type table<uint, "active"|nil>
   global.trainsaver_status[player_index] = "active"
   -- update the followed_loco global
-  if (waypoint_target and waypoint_target.train) then
+  if target_is_locomotive(waypoint_target) then
+    local locomotive = waypoint_target --[[@as LuaEntity]]
     ---@class FollowedLocomotiveData
     ---@field unit_number uint
     ---@field train_id uint
     ---@field loco LuaEntity
     local followed_locomotive_data = {
-      unit_number = waypoint_target.unit_number,
-      train_id = waypoint_target.train.id,
-      loco = waypoint_target --[[@as LuaEntity]],
+      unit_number = locomotive.unit_number,
+      train_id = locomotive.train.id,
+      loco = locomotive,
     }
     global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
@@ -648,7 +650,7 @@ local function play_cutscene(created_waypoints, player_index)
 
   -- reset alt-mode to what it was before cutscene controller reset it
   player.game_view_settings.show_entity_info = transfer_alt_mode
-  update_globals_new_cutscene(player_index, created_waypoints)
+  update_globals_new_cutscene(player, created_waypoints)
 
   -- unlock any achievements if possible
   if created_waypoints[1].target and created_waypoints[1].target.train then
