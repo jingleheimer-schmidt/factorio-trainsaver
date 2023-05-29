@@ -1317,98 +1317,61 @@ script.on_event("toggle-menu-trainsaver", toggle_menu_pressed)
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
   local rocket = event.rocket
   local silo = event.rocket_silo
-  for a,b in pairs(game.connected_players) do
-    if b.controller_type == defines.controllers.cutscene then
-      local player_index = b.index
-      local player = b
-      if player.mod_settings["ts-secrets"].value == false then
+  for _, player in pairs(game.connected_players) do
+    if not trainsaver_is_active(player) then goto next_player end
+    if player.mod_settings["ts-secrets"].value == false then goto next_player end
+    local player_index = player.index
+    local current_target = current_trainsaver_target(player)
+    if not current_target then goto next_player end
+    if not waypoint_target_has_idle_state(player) then goto next_player end
+    if not waypoint_target_passes_inactivity_check(player, current_target) then goto next_player end
+    if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
+      if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
       end
-      local found_locomotive = {}
-      if global.followed_loco and global.followed_loco[player_index] and global.followed_loco[player_index].loco and global.followed_loco[player_index].loco.valid then
-        found_locomotive[1] = global.followed_loco[player_index].loco
-      else
-        found_locomotive = b.surface.find_entities_filtered({
-          position = b.position,
-          radius = 1,
-          type = "locomotive",
-          limit = 1
-        })
-      end
-      if found_locomotive[1] then
-        local found_train = found_locomotive[1].train
-        if not found_train then return end
-        local found_state = found_train.state
-        if ((found_state == defines.train_state.wait_signal) or (found_state == defines.train_state.wait_station)) then
-          if global.wait_at_signal and global.wait_at_signal[player_index] then
-            if global.wait_at_signal[player_index] > game.tick then
-              return
-            end
-          end
-          if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-            if remote.call("cc_check", "cc_status", player_index) == "active" then
-              return
-            end
-          end
-          -- abort if the potential waypoint is on a different surface than the player
-          if player.surface_index ~= silo.surface_index then
-            return
-          end
-          -- create the waypoints
-          local created_waypoints = create_waypoint(silo, player_index)
-          local silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
-          table.insert(created_waypoints, 2, silo_rocket_waypoint_2)
-
-          -- set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
-          if created_waypoints[1].transition_time > 440 then
-            -- created_waypoints[1].transition_time = 440
-            created_waypoints[1].transition_time = 0
-          end
-          created_waypoints[1].time_to_wait = 1
-          created_waypoints[1].zoom = 0.5
-
-          -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
-          created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
-          created_waypoints[2].zoom = 0.2
-
-          local transfer_alt_mode = player.game_view_settings.show_entity_info
-          player.set_controller(
-            {
-              type = defines.controllers.cutscene,
-              waypoints = created_waypoints,
-              --[[
-              start_position = player.position,
-              final_transition_time = player.mod_settings["ts-transition-time"].value * 60
-              --]]
-            }
-          )
-          player.game_view_settings.show_entity_info = transfer_alt_mode
-          if not global.trainsaver_status then
-            global.trainsaver_status = {}
-            global.trainsaver_status[player_index] = "active"
-          else
-            global.trainsaver_status[player_index] = "active"
-          end
-          --[[
-          if not global.rocket_positions then
-            global.rocket_positions = {}
-            global.rocket_positions[player_index] = {}
-          else
-            global.rocket_positions[player_index] = {}
-          end
-          --]]
-          if global.followed_loco and global.followed_loco[player_index] then
-            global.followed_loco[player_index] = nil
-          end
-          if not global.entity_destroyed_registration_numbers then
-            global.entity_destroyed_registration_numbers = {}
-            global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
-          else
-            global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
-          end
-        end
-      end
     end
+    -- abort if the potential waypoint is on a different surface than the player
+    if player.surface_index ~= silo.surface_index then
+      return
+    end
+    -- create the waypoints
+    local created_waypoints = create_waypoint(silo, player_index)
+    local silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
+    table.insert(created_waypoints, 2, silo_rocket_waypoint_2)
+
+    -- set waypoint 1 to proper settings (goal: get to rocket silo before rocket starts leaving)--]]
+    if created_waypoints[1].transition_time > 440 then
+      -- created_waypoints[1].transition_time = 440
+      created_waypoints[1].transition_time = 0
+    end
+    created_waypoints[1].time_to_wait = 1
+    created_waypoints[1].zoom = 0.5
+
+    -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
+    created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
+    created_waypoints[2].zoom = 0.2
+
+    local transfer_alt_mode = player.game_view_settings.show_entity_info
+    player.set_controller(
+      {
+        type = defines.controllers.cutscene,
+        waypoints = created_waypoints,
+        --[[
+        start_position = player.position,
+        final_transition_time = player.mod_settings["ts-transition-time"].value * 60
+        --]]
+      }
+    )
+    player.game_view_settings.show_entity_info = transfer_alt_mode
+    global.trainsaver_status = global.trainsaver_status or {}
+    global.trainsaver_status[player_index] = "active"
+    global.followed_loco = global.followed_loco or {}
+    global.followed_loco[player_index] = nil
+    global.current_target = global.current_target or {}
+    global.current_target[player_index] = created_waypoints[1].target
+    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {}
+    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
+  ::next_player::
   end
 end)
 
