@@ -805,6 +805,27 @@ local function exceeded_spider_idle_minimum(player)
   end
 end
 
+-- 
+---@param player LuaPlayer
+---@param waypoint_target LuaEntity
+---@return boolean
+local function waypoint_target_passes_inactivity_check(player, waypoint_target)
+  local bool = false
+  if target_is_locomotive(waypoint_target) then
+    if exceeded_driving_minimum(player) or exceeded_station_minimum(player) or exceeded_signal_minimum(player) then
+      bool = true
+    end
+  elseif target_is_spider(waypoint_target) then
+    if exceeded_spider_walking_minimum(player) or exceeded_spider_idle_minimum(player) then
+      bool = true
+    end
+  elseif target_is_rocket_silo(waypoint_target) then
+    bool = true
+  end
+  return bool
+end
+
+
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
 local function update_trainsaver_viewers(event)
