@@ -175,6 +175,17 @@ local function target_is_spider(target)
   end
 end
 
+-- returns true if the given entity is a rocket silo
+---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
+local function target_is_rocket_silo(target)
+  if target and target_is_entity(target) and (target.type == "rocket-silo") then
+    return true
+  else
+    return false
+  end
+end
+
 -- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
 ---@param player LuaPlayer
 ---@return boolean
@@ -193,6 +204,8 @@ local function waypoint_target_has_idle_state(player)
     if speed == 0 then
       bool = true
     end
+  elseif current_target and target_is_rocket_silo(current_target) then
+    bool = false
   end
   return bool
 end
