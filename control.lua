@@ -762,6 +762,18 @@ local function exceeded_signal_minimum(player)
     return false
   end
 end
+
+-- return true if player has been watching a spidertron for longer than the driving minimum
+---@param player LuaPlayer
+---@return boolean
+local function exceeded_spider_walking_minimum(player)
+  local spider_walking_until_tick = global.spider_walking_since_tick and global.spider_walking_since_tick[player.index]
+  if spider_walking_until_tick and (spider_walking_until_tick < game.tick) then
+    return true
+  else
+    return false
+  end
+end
     return true
   else
     return false
