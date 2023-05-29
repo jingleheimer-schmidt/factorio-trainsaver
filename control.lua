@@ -756,8 +756,12 @@ end
 ---@return boolean
 local function exceeded_signal_minimum(player)
   local wait_signal_until_tick = global.wait_at_signal and global.wait_at_signal[player.index]
-  if not wait_signal_until_tick then return false end
-  if wait_signal_until_tick < game.tick then
+  if wait_signal_until_tick and (wait_signal_until_tick < game.tick) then
+    return true
+  else
+    return false
+  end
+end
     return true
   else
     return false
