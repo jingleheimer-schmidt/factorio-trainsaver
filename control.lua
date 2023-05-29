@@ -684,8 +684,8 @@ local function update_wait_at_station(event)
   local train = event.train
   local new_state = event.train.state
   local old_state = event.old_state
-  if not ((new_state == defines.train_state.wait_station) or (new_state == defines.train_state.destination_full)) then return end
-  if not ((old_state == defines.train_state.on_the_path) or (old_state == defines.train_state.arrive_station)) then return end
+  if not wait_station_states[new_state] then return end
+  -- if not active_states[old_state] then return end
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
     local player_index = player.index
