@@ -403,8 +403,6 @@ local function end_trainsaver(command, ending_transition)
   global.cutscene_ending = global.cutscene_ending or {}
   global.cutscene_ending[player_index] = true
   ---@type table<uint, number|uint>
-  global.wait_at_signal = global.wait_at_signal or {}
-  global.wait_at_signal[player_index] = nil
   ---@type table<uint, uint>
   global.wait_station_since_tick = global.wait_station_since_tick or {}
   global.wait_station_since_tick[player_index] = nil
@@ -693,8 +691,8 @@ local function update_wait_at_signal(train_changed_state_event)
       if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
-      global.wait_at_signal = global.wait_at_signal or {}
-      global.wait_at_signal[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
+      global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+      global.wait_signal_until_tick[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
       if global.chatty then
         local target_name = get_chatty_name(train)
         local chatty_name = get_chatty_name(player)
@@ -709,8 +707,8 @@ local function update_wait_at_signal(train_changed_state_event)
       if not trainsaver_is_active(player) then goto next_player end
       if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
       if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
-      global.wait_at_signal = global.wait_at_signal or {}
-      global.wait_at_signal[player.index] = nil
+      global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+      global.wait_signal_until_tick[player.index] = nil
       if global.chatty then
         local chatty_name = get_chatty_name(player)
         local target_name = get_chatty_name(train)
@@ -755,7 +753,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_signal_minimum(player)
-  local wait_signal_until_tick = global.wait_at_signal and global.wait_at_signal[player.index]
+  local wait_signal_until_tick = global.wait_signal_until_tick and global.wait_signal_until_tick[player.index]
   if wait_signal_until_tick and (wait_signal_until_tick < game.tick) then
     return true
   else
@@ -817,8 +815,8 @@ local function update_trainsaver_viewers(event)
       -- if camera is on train that changed state, switch to leading locomotive
       if current_target_train and (current_target_train.id == new_target.id) then
         create_cutscene_next_tick(player_index, new_target, "same train")
-        global.wait_at_signal = global.wait_at_signal or {}
-        global.wait_at_signal[player_index] = nil
+        global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+        global.wait_signal_until_tick[player_index] = nil
         chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] is the train that changed state. targetting lead locomotive")
         goto next_player
       end
@@ -850,7 +848,7 @@ local function update_trainsaver_viewers(event)
     elseif wait_signal_states[current_target_state] then
       if exceeded_signal_minimum(player) then
         create_cutscene_next_tick(player_index, new_target)
-        global.wait_at_signal[player_index] = nil
+        global.wait_signal_until_tick[player_index] = nil
         chatty_print(chatty_name.."accepted. current target [" .. current_target_name .. "] has exceeded the minimum for [" .. verbose_states[current_target_state] .. "]")
       else
         -- global.create_cutscene_next_tick[player_index] = nil
