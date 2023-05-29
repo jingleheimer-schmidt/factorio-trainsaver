@@ -774,6 +774,16 @@ local function exceeded_spider_walking_minimum(player)
     return false
   end
 end
+
+-- return true if player has been watching a stopped spidertron for longer than the station minimum
+---@param player LuaPlayer
+---@return boolean
+local function exceeded_spider_idle_minimum(player)
+  local spider_idle_since_tick = global.spider_idle_since_tick and global.spider_idle_since_tick[player.index]
+  if not spider_idle_since_tick then return false end
+  local minimum_spider_idle_ticks = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
+  local spider_idle_until_tick = spider_idle_since_tick + minimum_spider_idle_ticks
+  if (spider_idle_until_tick < game.tick) then
     return true
   else
     return false
