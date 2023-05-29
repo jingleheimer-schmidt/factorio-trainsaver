@@ -403,11 +403,22 @@ local function end_trainsaver(command, ending_transition)
   global.cutscene_ending = global.cutscene_ending or {}
   global.cutscene_ending[player_index] = true
   ---@type table<uint, number|uint>
-  ---@type table<uint, uint>
-  global.wait_station_since_tick = global.wait_station_since_tick or {}
-  global.wait_station_since_tick[player_index] = nil
+  global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+  global.wait_signal_until_tick[player_index] = nil
+  ---@type table<uint, number|uint>
+  global.wait_station_until_tick = global.wait_station_until_tick or {}
+  global.wait_station_until_tick[player_index] = nil
+  ---@type table<uint, number|uint>
+  global.driving_until_tick = global.driving_until_tick or {}
+  global.driving_until_tick[player_index] = nil
+
+  -- these ones aren't used any more, but we'll keep them around for a while just because
   global.driving_since_tick = global.driving_since_tick or {}
   global.driving_since_tick[player_index] = nil
+  global.wait_station_since_tick = global.wait_station_since_tick or {}
+  global.wait_station_since_tick[player_index] = nil
+  global.wait_at_signal = global.wait_at_signal or {}
+  global.wait_at_signal[player_index] = nil
 end
 
 -- start the screensaver :D
@@ -557,6 +568,10 @@ end
 local function update_globals_new_cutscene(player_index, created_waypoints)
   local waypoint_target = created_waypoints[1].target
   local waypoint_position = created_waypoints[1].position
+  local mod_settings = player.mod_settings
+  -- local station_minimum = mod_settings["ts-station-minimum"].value * 60
+  local driving_minimum = mod_settings["ts-driving-minimum"].value * 60 * 60
+  local current_tick = game.tick
   -- update trainsaver status global
   global.trainsaver_status = global.trainsaver_status or {} ---@type table<uint, "active"|nil>
   global.trainsaver_status[player_index] = "active"
@@ -573,6 +588,16 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
     }
     global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
+    -- update driving minimum global
+    -- global.driving_since_tick = global.driving_since_tick or {} ---@type table<uint, uint>
+    -- global.driving_since_tick[player_index] = game.tick
+    global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint>
+    global.driving_until_tick[player_index] = current_tick + driving_minimum
+  end
+  -- update the spider_walking_until_tick global
+  if target_is_spider(waypoint_target) then
+    global.spider_walking_until_tick = global.spider_walking_until_tick or {} ---@type table<uint, uint>
+    global.spider_walking_until_tick[player_index] = current_tick + driving_minimum
   end
   -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
   if waypoint_target and (waypoint_target.object_name == "LuaEntity") then
@@ -585,9 +610,6 @@ local function update_globals_new_cutscene(player_index, created_waypoints)
   -- update number of waypoints global
   global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<uint, integer>
   global.number_of_waypoints[player_index] = #created_waypoints
-  -- update driving minimum global
-  global.driving_since_tick = global.driving_since_tick or {} ---@type table<uint, uint>
-  global.driving_since_tick[player_index] = game.tick
 end
 
 -- play cutscene from given waypoints
@@ -665,10 +687,12 @@ local function update_wait_at_station(event)
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
     local player_index = player.index
-    if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
-    if not (train.id == global.followed_loco[player_index].train_id )then goto next_player end
-    global.wait_station_since_tick = global.wait_station_since_tick or {}
-    global.wait_station_since_tick[player_index] = game.tick
+    local current_target = current_trainsaver_target(player)
+    if not target_is_locomotive(current_target) then goto next_player end
+    local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
+    if not (train.id == current_target_train.id)then goto next_player end
+    global.wait_station_until_tick = global.wait_station_until_tick or {}
+    global.wait_station_until_tick[player_index] = game.tick + player.mod_settings["ts-station-minimum"].value * 60
     if global.chatty then
       -- local target_name = chatty_target_train_name(train)
       local target_name = get_chatty_name(global.followed_loco[player_index].loco)
@@ -723,11 +747,8 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_driving_minimum(player)
-  local driving_since_tick = global.driving_since_tick and global.driving_since_tick[player.index]
-  if not driving_since_tick then return false end
-  local minimum_driving_ticks = player.mod_settings["ts-driving-minimum"].value * 60 * 60 -- converting minutes to ticks
-  local driving_until_tick = driving_since_tick + minimum_driving_ticks
-  if (driving_until_tick < game.tick) then
+  local driving_until_tick = global.driving_until_tick and global.driving_until_tick[player.index]
+  if driving_until_tick and (driving_until_tick < game.tick) then
     return true
   else
     return false
@@ -738,11 +759,8 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_station_minimum(player)
-  local stationed_since_tick = global.wait_station_since_tick and global.wait_station_since_tick[player.index]
-  if not stationed_since_tick then return false end
-  local minimum_stationed_ticks = player.mod_settings["ts-station-minimum"].value * 60 -- converting seconds to ticks
-  local stationed_until_tick = stationed_since_tick + minimum_stationed_ticks
-  if (stationed_until_tick < game.tick) then
+  local stationed_until_tick = global.wait_station_until_tick and global.wait_station_until_tick[player.index]
+  if stationed_until_tick and (stationed_until_tick < game.tick) then
     return true
   else
     return false
@@ -824,7 +842,7 @@ local function update_trainsaver_viewers(event)
       -- if the camera is not following the train that just changed state, and if the camera has been following the same train for a longer time than allowed by mod settings, then go ahead and find a new train to follow
       if exceeded_driving_minimum(player) then
           create_cutscene_next_tick(player_index, new_target)
-          global.driving_since_tick[player_index] = nil
+          global.driving_until_tick[player_index] = nil
           chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has exceeded the minimum for ".. verbose_states[current_target_state])
           goto next_player
       else
@@ -837,7 +855,7 @@ local function update_trainsaver_viewers(event)
     elseif wait_station_states[current_target_state] then
       if exceeded_station_minimum(player) then
         create_cutscene_next_tick(player_index, new_target)
-        global.wait_station_since_tick[player_index] = nil
+        global.wait_station_until_tick[player_index] = nil
         chatty_print(chatty_name.."accepted. current target ["..current_target_name.."] has exceeded the minimum for [".. verbose_states[current_target_state] .. "]")
       else
         -- global.create_cutscene_next_tick[player_index] = nil
