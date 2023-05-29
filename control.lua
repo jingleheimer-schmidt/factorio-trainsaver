@@ -602,7 +602,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
     global.spider_walking_until_tick[player_index] = current_tick + driving_minimum
   end
   -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
-  if waypoint_target and (waypoint_target.object_name == "LuaEntity") then
+  if target_is_entity(waypoint_target) then
     global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
     global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
   end
