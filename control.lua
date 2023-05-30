@@ -1396,6 +1396,7 @@ script.on_event("toggle-menu-trainsaver", toggle_menu_pressed)
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
   local rocket = event.rocket
   local silo = event.rocket_silo
+  chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(rocket) .. "] ordered to launch at [" .. get_chatty_name(silo) .. "]")
   for _, player in pairs(game.connected_players) do
     if not trainsaver_is_active(player) then goto next_player end
     if player.mod_settings["ts-secrets"].value == false then goto next_player end
