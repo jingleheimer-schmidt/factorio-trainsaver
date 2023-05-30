@@ -812,12 +812,17 @@ end
 
 -- 
 ---@param player LuaPlayer
----@param waypoint_target LuaEntity
 ---@return boolean
-local function waypoint_target_passes_inactivity_check(player, waypoint_target)
+local function waypoint_target_passes_inactivity_checks(player)
   local bool = false
+  local waypoint_target = current_trainsaver_target(player)
   if target_is_locomotive(waypoint_target) then
-    if exceeded_driving_minimum(player) or exceeded_station_minimum(player) or exceeded_signal_minimum(player) then
+    local locomotive = waypoint_target --[[@as LuaEntity]]
+    local state = locomotive.train.state
+    local exceeded_driving_state = active_states[state] and exceeded_driving_minimum(player)
+    local exceeded_station_state = wait_station_states[state] and exceeded_station_minimum(player)
+    local exceeded_signal_state = wait_signal_states[state] and exceeded_signal_minimum(player)
+    if exceeded_driving_state or exceeded_station_state or exceeded_signal_state then
       bool = true
     end
   elseif target_is_spider(waypoint_target) then
@@ -825,7 +830,7 @@ local function waypoint_target_passes_inactivity_check(player, waypoint_target)
       bool = true
     end
   elseif target_is_rocket_silo(waypoint_target) then
-    bool = true
+    bool = false
   end
   return bool
 end
