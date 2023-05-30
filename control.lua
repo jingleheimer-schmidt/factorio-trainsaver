@@ -541,23 +541,35 @@ end
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index uint
 local function cutscene_ended_nil_globals(player_index)
-  local globals_to_nil = {
-    "followed_loco",
-    "create_cutscene_next_tick",
-    "wait_at_signal",
-    "entity_destroyed_registration_numbers",
-    "rocket_positions",
-    "trainsaver_status",
-    "current_continuous_duration",
-    "current_target",
-    "cutscene_ending",
-    "number_of_waypoints",
-    "station_minimum",
-    "driving_minimum",
-  }
-  for _, global_name in pairs(globals_to_nil) do
-    if global[global_name] then
-      global[global_name][player_index] = nil
+  -- local globals_to_nil = {
+  --   "followed_loco",
+  --   "create_cutscene_next_tick",
+  --   "wait_at_signal",
+  --   "entity_destroyed_registration_numbers",
+  --   "rocket_positions",
+  --   "trainsaver_status",
+  --   "current_continuous_duration",
+  --   "current_target",
+  --   "cutscene_ending",
+  --   "number_of_waypoints",
+  --   "station_minimum",
+  --   "driving_minimum",
+  --   "wait_signal_until_tick",
+  --   "wait_station_until_tick",
+  --   "driving_until_tick",
+  -- }
+  -- global.wait_signal_until_tick
+  -- for _, global_name in pairs(globals_to_nil) do
+  --   if global[global_name] then
+  --     global[global_name][player_index] = nil
+  --   end
+  -- end
+  -- local total_durations = global.total_duration
+  for _, global_name in pairs(global) do
+    if global_name and global_name[player_index] then
+      if not (global_name == "total_duration") then
+        global_name[player_index] = nil
+      end
     end
   end
 end
