@@ -549,10 +549,15 @@ local function cutscene_waypoint_reached(event)
     local chatty_name = get_chatty_name(player)
     game.print(chatty_name.."arrived at waypoint [index "..event.waypoint_index.."]")
   end
-  if global.cutscene_ending and global.cutscene_ending[event.player_index] and global.cutscene_ending[event.player_index] == true then
-    cutscene_ended_nil_globals(event.player_index)
-  elseif global.number_of_waypoints and global.number_of_waypoints[event.player_index] and global.number_of_waypoints[event.player_index] == event.waypoint_index then
-    cutscene_ended_nil_globals(event.player_index)
+  local player_index = event.player_index
+  global.cutscene_ending = global.cutscene_ending or {}
+  local cutscene_ending = global.cutscene_ending[player_index]
+  global.number_of_waypoints = global.number_of_waypoints or {}
+  local number_of_waypoints = global.number_of_waypoints[player_index]
+  if cutscene_ending then
+    cutscene_ended_nil_globals(player_index)
+  elseif number_of_waypoints and (number_of_waypoints == event.waypoint_index) then
+    cutscene_ended_nil_globals(player_index)
   end
 end
 
