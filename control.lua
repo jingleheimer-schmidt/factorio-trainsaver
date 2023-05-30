@@ -869,8 +869,27 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
       bool = false
     end
   elseif target_is_spider(waypoint_target) then
-    if exceeded_spider_walking_minimum(player) or exceeded_spider_idle_minimum(player) then
-      bool = true
+    local destinations = waypoint_target.autopilot_destinations[1]
+    local speed = waypoint_target.speed
+    if speed > 0 then
+      if exceeded_spider_walking_minimum(player) then
+        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for walking spidertron")
+        bool = true
+      else
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for walking spidertron")
+        bool = false
+      end
+    elseif speed == 0 then
+      if exceeded_spider_idle_minimum(player) then
+        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
+        bool = true
+      else
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
+        bool = false
+      end
+    else
+      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has negative speed??")
+      bool = false -- when would this happen??
     end
   elseif target_is_rocket_silo(waypoint_target) then
     bool = false
