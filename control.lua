@@ -992,24 +992,43 @@ end
 ---@param event EventData.on_spider_command_completed|EventData.on_player_used_spider_remote
 local function spidertron_changed_state(event)
   local spider = event.vehicle
-  if not spider.autopilot_destinations[1] then return end -- filter for spidertrons with at least one more waypoint to go to
+  -- if not spider.autopilot_destinations[1] then return end -- filter for spidertrons with at least one more waypoint to go to
   if spider.name == "companion" then return end -- don't target klonan's companion drone mod spidertrons
+  local destinations = spider.autopilot_destinations
   local chatty_target_name = get_chatty_name(spider)
-  chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(spider.autopilot_destinations[1]) .. "")
+  if destinations[1] then
+    chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
+  end
   for _, player in pairs(game.connected_players) do
-    if (player.mod_settings["ts-secrets"].value == false) then goto next_player end
+    local mod_settings = player.mod_settings
+    if (mod_settings["ts-secrets"].value == false) then goto next_player end
     if not trainsaver_is_active(player) then goto next_player end
+    local chatty_name = get_chatty_name(player)
+    if not destinations[1] then
+      local current_target = current_trainsaver_target(player)
+      if not current_target then goto next_player end
+      local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]]) -- carefull... might be a unitgroup
+      local spider_id = script.register_on_entity_destroyed(spider --[[@as LuaEntity]])
+      if current_target_id == spider_id then
+        global.spider_idle_until_tick = global.spider_idle_until_tick or {}
+        global.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
+        chatty_print(chatty_name .. "current target [" .. chatty_target_name .. "] reached its final destination. set spider_idle_until_tick to [" .. global.spider_idle_until_tick[player.index] .. "]")
+      end
+      goto next_player
+    end
     local current_target = current_trainsaver_target(player)
     if not current_target then goto next_player end
-    local target_is_active = not waypoint_target_has_idle_state(player)
     local current_target_name = get_chatty_name(current_target)
-    local chatty_name = get_chatty_name(player)
     if not (spider.surface_index == player.surface_index) then
       chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
       goto next_player
     end
     if target_is_locomotive(current_target) then
-      if not waypoint_target_passes_inactivity_checks(player, current_target) then
+      if waypoint_target_passes_inactivity_checks(player, current_target) then
+        local waypoints = create_waypoint(spider, player.index)
+        play_cutscene(waypoints, player.index)
+        goto next_player
+      else
         goto next_player
       end
     elseif target_is_spider(current_target) then
@@ -1018,8 +1037,7 @@ local function spidertron_changed_state(event)
       if (spider_id == current_target_id) then
         chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is the potential target")
         goto next_player
-      end
-      if waypoint_target_passes_inactivity_checks(player, current_target) then
+      elseif waypoint_target_passes_inactivity_checks(player, current_target) then
         local waypoints = create_waypoint(spider, player.index)
         play_cutscene(waypoints, player.index)
       end
