@@ -644,11 +644,27 @@ local function update_globals_new_cutscene(player, created_waypoints)
     -- global.driving_since_tick[player_index] = game.tick
     global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint>
     global.driving_until_tick[player_index] = current_tick + driving_minimum
+    global.wait_station_until_tick = global.wait_station_until_tick or {}
+    global.wait_station_until_tick[player_index] = nil
+    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+    global.wait_signal_until_tick[player_index] = nil
+    global.spider_walking_until_tick = global.spider_walking_until_tick or {}
+    global.spider_walking_until_tick[player_index] = nil
+    global.spider_idle_until_tick = global.spider_idle_until_tick or {}
+    global.spider_idle_until_tick[player_index] = nil
   end
   -- update the spider_walking_until_tick global
   if target_is_spider(waypoint_target) then
     global.spider_walking_until_tick = global.spider_walking_until_tick or {} ---@type table<uint, uint>
     global.spider_walking_until_tick[player_index] = current_tick + driving_minimum
+    global.spider_idle_until_tick = global.spider_idle_until_tick or {}
+    global.spider_idle_until_tick[player_index] = nil
+    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+    global.wait_signal_until_tick[player_index] = nil
+    global.driving_until_tick = global.driving_until_tick or {}
+    global.driving_until_tick[player_index] = nil
+    global.wait_station_until_tick = global.wait_station_until_tick or {}
+    global.wait_station_until_tick[player_index] = nil
   end
   -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
   if target_is_entity(waypoint_target) then
