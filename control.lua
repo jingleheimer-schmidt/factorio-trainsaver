@@ -542,37 +542,48 @@ end
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index uint
 local function cutscene_ended_nil_globals(player_index)
-  -- local globals_to_nil = {
-  --   "followed_loco",
-  --   "create_cutscene_next_tick",
-  --   "wait_at_signal",
-  --   "entity_destroyed_registration_numbers",
-  --   "rocket_positions",
-  --   "trainsaver_status",
-  --   "current_continuous_duration",
-  --   "current_target",
-  --   "cutscene_ending",
-  --   "number_of_waypoints",
-  --   "station_minimum",
-  --   "driving_minimum",
-  --   "wait_signal_until_tick",
-  --   "wait_station_until_tick",
-  --   "driving_until_tick",
-  -- }
-  -- global.wait_signal_until_tick
-  -- for _, global_name in pairs(globals_to_nil) do
-  --   if global[global_name] then
-  --     global[global_name][player_index] = nil
-  --   end
-  -- end
-  -- local total_durations = global.total_duration
-  for _, global_name in pairs(global) do
-    if global_name and global_name[player_index] then
-      if not (global_name == "total_duration") then
-        global_name[player_index] = nil
-      end
-    end
-  end
+  global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
+  global.create_cutscene_next_tick[player_index] = nil
+  global.wait_at_signal = global.wait_at_signal or {}
+  global.wait_at_signal[player_index] = nil
+  global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {}
+  global.entity_destroyed_registration_numbers[player_index] = nil
+  global.rocket_positions = global.rocket_positions or {}
+  global.rocket_positions[player_index] = nil
+  global.trainsaver_status = global.trainsaver_status or {}
+  global.trainsaver_status[player_index] = nil
+  global.current_continuous_duration = global.current_continuous_duration or {}
+  global.current_continuous_duration[player_index] = nil
+  global.current_target = global.current_target or {}
+  global.current_target[player_index] = nil
+  global.cutscene_ending = global.cutscene_ending or {}
+  global.cutscene_ending[player_index] = nil
+  global.number_of_waypoints = global.number_of_waypoints or {}
+  global.number_of_waypoints[player_index] = nil
+  global.driving_until_tick = global.driving_until_tick or {}
+  global.driving_until_tick[player_index] = nil
+  global.wait_signal_until_tick = global.wait_signal_until_tick or {}
+  global.wait_signal_until_tick[player_index] = nil
+  global.wait_station_until_tick = global.wait_station_until_tick or {}
+  global.wait_station_until_tick[player_index] = nil
+  global.wait_station_since_tick = global.wait_station_since_tick or {}
+  global.wait_station_since_tick[player_index] = nil
+  global.spider_idle_until_tick = global.spider_idle_until_tick or {}
+  global.spider_idle_until_tick[player_index] = nil
+  global.spider_walking_until_tick = global.spider_walking_until_tick or {}
+  global.spider_walking_until_tick[player_index] = nil
+
+  -- gobals that aren't supposed to be used any more, but might still exist from older versions of the mod
+  global.followed_loco = global.followed_loco or {}
+  global.followed_loco[player_index] = nil
+  global.driving_since_tick = global.driving_since_tick or {}
+  global.driving_since_tick[player_index] = nil
+  global.wait_signal_since_tick = global.wait_signal_since_tick or {}
+  global.wait_signal_since_tick[player_index] = nil
+  global.station_minimum = global.station_minimum or {}
+  global.station_minimum[player_index] = nil
+  global.driving_minimum = global.driving_minimum or {}
+  global.driving_minimum[player_index] = nil
 end
 
 -- when a cutscene is cancelled with player.exit_cutscene(), nil out any globals we saved for them
