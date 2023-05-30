@@ -1341,7 +1341,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     local current_target = current_trainsaver_target(player)
     if not current_target then goto next_player end
     if not waypoint_target_has_idle_state(player) then goto next_player end
-    if not waypoint_target_passes_inactivity_check(player, current_target) then goto next_player end
+    if not waypoint_target_passes_inactivity_checks(player, current_target) then goto next_player end
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
         return
