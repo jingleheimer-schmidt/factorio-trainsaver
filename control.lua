@@ -816,14 +816,36 @@ end
 local function waypoint_target_passes_inactivity_checks(player)
   local bool = false
   local waypoint_target = current_trainsaver_target(player)
+  if not waypoint_target then return true end
+  local current_target_name = get_chatty_name(waypoint_target)
+  local chatty_name = get_chatty_name(player)
   if target_is_locomotive(waypoint_target) then
-    local locomotive = waypoint_target --[[@as LuaEntity]]
+    local locomotive = waypoint_target
     local state = locomotive.train.state
-    local exceeded_driving_state = active_states[state] and exceeded_driving_minimum(player)
-    local exceeded_station_state = wait_station_states[state] and exceeded_station_minimum(player)
-    local exceeded_signal_state = wait_signal_states[state] and exceeded_signal_minimum(player)
-    if exceeded_driving_state or exceeded_station_state or exceeded_signal_state then
-      bool = true
+    if active_states[state] then
+      if exceeded_driving_minimum(player) then
+        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = true
+      else
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = false
+      end
+    elseif wait_station_states[state] then
+      if exceeded_station_minimum(player) then
+        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = true
+      else
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = false
+      end
+    elseif wait_signal_states[state] then
+      if exceeded_signal_minimum(player) then
+        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = true
+      else
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
+        bool = false
+      end
     end
   elseif target_is_spider(waypoint_target) then
     if exceeded_spider_walking_minimum(player) or exceeded_spider_idle_minimum(player) then
