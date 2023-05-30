@@ -129,7 +129,7 @@ end
 local function chatty_target_entity_name(entity)
   local id = entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
   local target_name = entity.name .. " " .. id
-  if entity.train then target_name = "train " .. entity.train.id .. ", " .. target_name end
+  if entity.train then target_name = "train " .. entity.train.id .. ": " .. id end
   local color = entity.color
   if color then
     target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
