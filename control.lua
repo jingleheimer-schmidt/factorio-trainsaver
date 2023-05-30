@@ -780,8 +780,10 @@ local function update_wait_at_signal(train_changed_state_event)
   if --[[(old_state == defines.train_state.arrive_signal) and --]](new_state == defines.train_state.wait_signal) then
     for _, player in pairs(game.connected_players) do
       if not trainsaver_is_active(player) then goto next_player end
-      if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
-      if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
+      local current_target = current_trainsaver_target(player)
+      if not target_is_locomotive(current_target) then goto next_player end
+      local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
+      if not (train.id == current_target_train.id) then goto next_player end
       global.wait_signal_until_tick = global.wait_signal_until_tick or {}
       global.wait_signal_until_tick[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
       if global.chatty then
@@ -796,8 +798,10 @@ local function update_wait_at_signal(train_changed_state_event)
   if (old_state == defines.train_state.wait_signal) --[[and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))]] then
     for _, player in pairs(game.connected_players) do
       if not trainsaver_is_active(player) then goto next_player end
-      if not (global.followed_loco and global.followed_loco[player.index]) then goto next_player end
-      if not (train.id == global.followed_loco[player.index].train_id) then goto next_player end
+      local current_target = current_trainsaver_target(player)
+      if not target_is_locomotive(current_target) then goto next_player end
+      local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
+      if not (train.id == current_target_train.id) then goto next_player end
       global.wait_signal_until_tick = global.wait_signal_until_tick or {}
       global.wait_signal_until_tick[player.index] = nil
       if global.chatty then
