@@ -844,10 +844,11 @@ end
 
 -- 
 ---@param player LuaPlayer
+---@param waypoint_target LuaEntity|LuaUnitGroup?
 ---@return boolean
-local function waypoint_target_passes_inactivity_checks(player)
+local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
   local bool = false
-  local waypoint_target = current_trainsaver_target(player)
+  waypoint_target = waypoint_target or current_trainsaver_target(player)
   if not waypoint_target then return true end
   local current_target_name = get_chatty_name(waypoint_target)
   local chatty_name = get_chatty_name(player)
