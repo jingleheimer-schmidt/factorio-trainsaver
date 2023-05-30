@@ -1022,35 +1022,21 @@ local function spidertron_changed_state(event)
       goto next_player
     end
     if target_is_locomotive(current_target) then
-      if target_is_active and not exceeded_driving_minimum(player) then
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the driving_minimum")
+      if not waypoint_target_passes_inactivity_checks(player, current_target) then
         goto next_player
       end
-      if wait_station_states[current_target.train.state] and not exceeded_station_minimum(player) then
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the station_minimum")
-        goto next_player
-      end
-      if wait_signal_states[current_target.train.state] and not exceeded_signal_minimum(player) then
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the signal_minimum")
-        goto next_player
-      end
-    end
-    if target_is_spider(current_target) then
+    elseif target_is_spider(current_target) then
       local spider_id = script.register_on_entity_destroyed(spider)
       local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]])
-      if target_is_active then
-        if not (spider_id == current_target_id) then
-          chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is active")
-          goto next_player
-        else
-          chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is the potential target")
-          goto next_player
-        end
+      if (spider_id == current_target_id) then
+        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is the potential target")
+        goto next_player
+      end
+      if waypoint_target_passes_inactivity_checks(player, current_target) then
+        local waypoints = create_waypoint(spider, player.index)
+        play_cutscene(waypoints, player.index)
       end
     end
-    chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] is idle and passed all inactivity checks")
-    local waypoints = create_waypoint(spider, player.index)
-    play_cutscene(waypoints, player.index)
     ::next_player::
   end
 end
