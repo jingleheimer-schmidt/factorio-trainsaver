@@ -861,6 +861,9 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
     if exceeds_driving or exceeds_station or exceeds_signal then
       chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
       bool = true
+    elseif always_accept_new_target_states[state] then
+      chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
+      bool = true
     else
       chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
       bool = false
