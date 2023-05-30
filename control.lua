@@ -138,9 +138,10 @@ local function chatty_target_entity_name(entity)
 end
 
 -- return a string with the name of the target, colored if possible with its color
----@param target LuaEntity|LuaUnitGroup|LuaTrain|LuaPlayer
+---@param target LuaEntity|LuaUnitGroup|LuaTrain|LuaPlayer|nil
 ---@return string
 local function get_chatty_name(target)
+  if not target then return "nil" end
   local object_name = target.object_name
   if object_name == "LuaTrain" then
     return chatty_target_train_name(target)
