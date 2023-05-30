@@ -631,6 +631,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
   local waypoint_target = created_waypoints[1].target
   local waypoint_position = created_waypoints[1].position
   local mod_settings = player.mod_settings
+  local chatty_name = get_chatty_name(player)
   -- local station_minimum = mod_settings["ts-station-minimum"].value * 60
   local driving_minimum = mod_settings["ts-driving-minimum"].value * 60 * 60
   local current_tick = game.tick
