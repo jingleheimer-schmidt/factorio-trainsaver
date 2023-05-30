@@ -1344,12 +1344,12 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
     if not waypoint_target_passes_inactivity_checks(player, current_target) then goto next_player end
     if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
       if remote.call("cc_check", "cc_status", player_index) == "active" then
-        return
+        goto next_player
       end
     end
     -- abort if the potential waypoint is on a different surface than the player
     if player.surface_index ~= silo.surface_index then
-      return
+      goto next_player
     end
     -- create the waypoints
     local created_waypoints = create_waypoint(silo, player_index)
