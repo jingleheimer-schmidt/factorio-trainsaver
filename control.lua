@@ -637,6 +637,17 @@ local function update_globals_new_cutscene(player, created_waypoints)
   -- update trainsaver status global
   global.trainsaver_status = global.trainsaver_status or {} ---@type table<uint, "active"|nil>
   global.trainsaver_status[player_index] = "active"
+  -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
+  if target_is_entity(waypoint_target) then
+    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
+    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
+  end
+  -- update the current_target global
+  global.current_target = global.current_target or {} ---@type table<uint, LuaEntity|LuaUnitGroup>
+  global.current_target[player_index] = waypoint_target
+  -- update number of waypoints global
+  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<uint, integer>
+  global.number_of_waypoints[player_index] = #created_waypoints
   -- update the followed_loco global
   if target_is_locomotive(waypoint_target) then
     local locomotive = waypoint_target --[[@as LuaEntity]]
@@ -678,17 +689,6 @@ local function update_globals_new_cutscene(player, created_waypoints)
     global.wait_station_until_tick = global.wait_station_until_tick or {}
     global.wait_station_until_tick[player_index] = nil
   end
-  -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
-  if target_is_entity(waypoint_target) then
-    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
-    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
-  end
-  -- update the current_target global
-  global.current_target = global.current_target or {} ---@type table<uint, LuaEntity|LuaUnitGroup>
-  global.current_target[player_index] = waypoint_target
-  -- update number of waypoints global
-  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<uint, integer>
-  global.number_of_waypoints[player_index] = #created_waypoints
 end
 
 -- play cutscene from given waypoints
