@@ -992,6 +992,24 @@ local function update_trainsaver_viewers(event)
   end
 end
 
+-- returns the total length of any remaining waypoints in a spidertron's autopilot_destinations queue
+---@param spidertron LuaEntity
+---@return number
+local function total_spider_path_remaining(spidertron)
+  local total_distance = 0
+  local autopilot_destinations = spidertron.autopilot_destinations
+  for index, waypoint in pairs(autopilot_destinations) do
+    if index == 1 then
+      local distance_to_first_waypoint = calculate_distance(spidertron.position, waypoint)
+      total_distance = total_distance + distance_to_first_waypoint
+    elseif autopilot_destinations[index - 1] then
+      local distance_from_previous_waypoint = calculate_distance(waypoint, autopilot_destinations[index - 1])
+      total_distance = total_distance + distance_from_previous_waypoint
+    end
+  end
+  return total_distance
+end
+
 -- when a spidertron is given a command, or reaches a waypoint destination, add it as a potential trainsaver target
 ---@param event EventData.on_spider_command_completed|EventData.on_player_used_spider_remote
 local function spidertron_changed_state(event)
@@ -1000,6 +1018,8 @@ local function spidertron_changed_state(event)
   if spider.name == "companion" then return end -- don't target klonan's companion drone mod spidertrons
   local destinations = spider.autopilot_destinations
   local chatty_target_name = get_chatty_name(spider)
+  local remaining_path_distance = total_spider_path_remaining(spider)
+  if destinations[1] and (remaining_path_distance < 100) then return end -- filter for spidertrons with at least 100 tiles of path remaining
   if destinations[1] then
     chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
   end
