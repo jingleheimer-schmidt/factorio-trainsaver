@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.23
+Date: 30MAY2023
+  Changes:
+    - non-train targets now also use the driving and station minimum mod settings for their equivalent states
+    - fixed that rocket launches could interrupt active spidertron targets
+    - limited new spidertron target requests to only spidertrons with more than 100 tiles remaining in their path
+    - simplified current trainsaver target state and condition handling
+    - added additional clarity to target names in verbose mode
+    - updated zoom mod setting description to reflect the new default value from version 0.0.21
+    - updated liscense copyright year
+---------------------------------------------------------------------------------------------------
 Version: 0.0.22
 Date: 27MAY2023
   Changes:
