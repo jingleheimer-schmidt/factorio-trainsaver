@@ -1030,6 +1030,9 @@ local function spidertron_changed_state(event)
     if target_is_locomotive(current_target) then
       if waypoint_target_passes_inactivity_checks(player, current_target) then
         local waypoints = create_waypoint(spider, player.index)
+        if waypoints[1].zoom then
+          waypoints[1].zoom = waypoints[1].zoom * 1.75
+        end
         play_cutscene(waypoints, player.index)
         goto next_player
       else
@@ -1043,6 +1046,9 @@ local function spidertron_changed_state(event)
         goto next_player
       elseif waypoint_target_passes_inactivity_checks(player, current_target) then
         local waypoints = create_waypoint(spider, player.index)
+        if waypoints[1].zoom then
+          waypoints[1].zoom = waypoints[1].zoom * 1.75
+        end
         play_cutscene(waypoints, player.index)
       end
     end
