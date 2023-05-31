@@ -897,7 +897,11 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
   if not waypoint_target then return true end
   local current_target_name = get_chatty_name(waypoint_target)
   local chatty_name = get_chatty_name(player)
-  if target_is_locomotive(waypoint_target) then
+  global.cutscene_ending = global.cutscene_ending or {}
+  if global.cutscene_ending[player.index] then
+    chatty_print(chatty_name .. "denied. trainsaver is ending")
+    bool = false
+  elseif target_is_locomotive(waypoint_target) then
     local locomotive = waypoint_target
     local state = locomotive.train.state
     local exceeds_driving = active_states[state] and exceeded_driving_minimum(player)
