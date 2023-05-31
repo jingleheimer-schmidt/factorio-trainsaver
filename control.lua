@@ -1435,11 +1435,11 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
       created_waypoints[1].transition_time = 0
     end
     created_waypoints[1].time_to_wait = 1
-    created_waypoints[1].zoom = 0.5
+    created_waypoints[1].zoom = 0.6
 
     -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
     created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
-    created_waypoints[2].zoom = 0.2
+    created_waypoints[2].zoom = 0.25
 
     local transfer_alt_mode = player.game_view_settings.show_entity_info
     player.set_controller(
