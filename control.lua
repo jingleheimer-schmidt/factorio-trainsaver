@@ -664,7 +664,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
     global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
     -- update driving minimum global
-    global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint>
+    global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
     global.driving_until_tick[player_index] = current_tick + driving_minimum
     chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
     global.wait_station_until_tick = global.wait_station_until_tick or {}
