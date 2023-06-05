@@ -984,11 +984,14 @@ local function update_trainsaver_viewers(event)
       goto next_player
     end
     ::spider_handling::
-    if not target_is_spider(current_target) then goto next_player end
+    if not target_is_spider(current_target) then goto rocket_handling end
     if waypoint_target_passes_inactivity_checks(player, current_target) then
       create_cutscene_next_tick(player_index, new_target)
       goto next_player
     end
+    ::rocket_handling::
+    if not target_is_rocket_silo(current_target) then goto next_player end
+    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     ::next_player::
   end
 end
@@ -1072,6 +1075,8 @@ local function spidertron_changed_state(event)
         end
         play_cutscene(waypoints, player.index)
       end
+    elseif target_is_rocket_silo(current_target) then
+      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     end
     ::next_player::
   end
