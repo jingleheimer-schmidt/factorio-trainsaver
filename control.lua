@@ -665,13 +665,22 @@ local function update_globals_new_cutscene(player, created_waypoints)
     global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
     -- update driving minimum global
-    global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
-    global.driving_until_tick[player_index] = current_tick + driving_minimum
-    chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
-    global.wait_station_until_tick = global.wait_station_until_tick or {}
-    global.wait_station_until_tick[player_index] = nil
-    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-    global.wait_signal_until_tick[player_index] = nil
+    local state = locomotive.train.state
+    if active_states[state] then
+      global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
+      global.driving_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
+    end
+    if wait_station_states[state] then
+      global.wait_station_until_tick = global.wait_station_until_tick or {} ---@type table<uint, uint|number>
+      global.wait_station_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_station_until_tick to [" .. global.wait_station_until_tick[player.index] .. "]")
+    end
+    if wait_signal_states[state] then
+      global.wait_signal_until_tick = global.wait_signal_until_tick or {} ---@type table<uint, uint|number>
+      global.wait_signal_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_signal_until_tick to [" .. global.wait_signal_until_tick[player.index] .. "]")
+    end
     global.spider_walking_until_tick = global.spider_walking_until_tick or {}
     global.spider_walking_until_tick[player_index] = nil
     global.spider_idle_until_tick = global.spider_idle_until_tick or {}
