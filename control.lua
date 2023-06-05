@@ -252,6 +252,7 @@ local function create_cutscene_next_tick(player_index, train, same_train)
   ---@field [1] LuaTrain
   ---@field [2] uint -- player index
   ---@field [3] "same train"?
+  ---@field [4] number -- attempts
   ---@type table<uint, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
   global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
@@ -1190,6 +1191,7 @@ local function cutscene_next_tick_function()
     local target_train = data[1]
     local player_index = data[2]
     local same_train = data[3]
+    local attempts = data[4]
     local player = game.get_player(player_index)
     if not player then goto next_player end
     local chatty_name = get_chatty_name(player)
@@ -1257,8 +1259,16 @@ local function cutscene_next_tick_function()
       play_cutscene(created_waypoints, player_index)
       global.create_cutscene_next_tick[player_index] = nil
     else
-      chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
-      -- global.create_cutscene_next_tick[player_index] = nil
+      attempts = attempts and attempts + 1 or 0
+      if attempts > 30 then
+        chatty_print(chatty_name .. "new target request accepted with state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
+        local created_waypoints = create_waypoint(target_train.carriages[1], player_index)
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      else
+        chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
+        global.create_cutscene_next_tick[player_index][4] = attempts
+      end
     end
     ::next_player::
   end
