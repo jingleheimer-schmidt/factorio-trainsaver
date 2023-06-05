@@ -252,6 +252,7 @@ local function create_cutscene_next_tick(player_index, train, same_train)
   ---@field [1] LuaTrain
   ---@field [2] uint -- player index
   ---@field [3] "same train"?
+  ---@field [4] number -- attempts
   ---@type table<uint, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
   global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
@@ -664,13 +665,22 @@ local function update_globals_new_cutscene(player, created_waypoints)
     global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
     global.followed_loco[player_index] = followed_locomotive_data
     -- update driving minimum global
-    global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
-    global.driving_until_tick[player_index] = current_tick + driving_minimum
-    chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
-    global.wait_station_until_tick = global.wait_station_until_tick or {}
-    global.wait_station_until_tick[player_index] = nil
-    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-    global.wait_signal_until_tick[player_index] = nil
+    local state = locomotive.train.state
+    if active_states[state] then
+      global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
+      global.driving_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
+    end
+    if wait_station_states[state] then
+      global.wait_station_until_tick = global.wait_station_until_tick or {} ---@type table<uint, uint|number>
+      global.wait_station_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_station_until_tick to [" .. global.wait_station_until_tick[player.index] .. "]")
+    end
+    if wait_signal_states[state] then
+      global.wait_signal_until_tick = global.wait_signal_until_tick or {} ---@type table<uint, uint|number>
+      global.wait_signal_until_tick[player_index] = current_tick + driving_minimum
+      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_signal_until_tick to [" .. global.wait_signal_until_tick[player.index] .. "]")
+    end
     global.spider_walking_until_tick = global.spider_walking_until_tick or {}
     global.spider_walking_until_tick[player_index] = nil
     global.spider_idle_until_tick = global.spider_idle_until_tick or {}
@@ -777,7 +787,7 @@ local function update_wait_at_station(event)
       -- local target_name = chatty_target_train_name(train)
       local target_name = get_chatty_name(global.followed_loco[player_index].loco)
       local chatty_name = get_chatty_name(player)
-      game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. station_minimum tick saved")
+      game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. wait_station_until_tick set to [" .. global.wait_station_until_tick[player_index] .. "]")
     end
     ::next_player::
   end
@@ -802,7 +812,7 @@ local function update_wait_at_signal(train_changed_state_event)
       if global.chatty then
         local target_name = get_chatty_name(train)
         local chatty_name = get_chatty_name(player)
-        chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal tick saved")
+        chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [" .. global.wait_signal_until_tick[player.index] .. "]")
       end
       ::next_player::
     end
@@ -820,7 +830,7 @@ local function update_wait_at_signal(train_changed_state_event)
       if global.chatty then
         local chatty_name = get_chatty_name(player)
         local target_name = get_chatty_name(train)
-        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal data cleared")
+        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [nil]")
       end
       ::next_player::
     end
@@ -983,11 +993,14 @@ local function update_trainsaver_viewers(event)
       goto next_player
     end
     ::spider_handling::
-    if not target_is_spider(current_target) then goto next_player end
+    if not target_is_spider(current_target) then goto rocket_handling end
     if waypoint_target_passes_inactivity_checks(player, current_target) then
       create_cutscene_next_tick(player_index, new_target)
       goto next_player
     end
+    ::rocket_handling::
+    if not target_is_rocket_silo(current_target) then goto next_player end
+    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     ::next_player::
   end
 end
@@ -1071,6 +1084,8 @@ local function spidertron_changed_state(event)
         end
         play_cutscene(waypoints, player.index)
       end
+    elseif target_is_rocket_silo(current_target) then
+      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     end
     ::next_player::
   end
@@ -1190,6 +1205,7 @@ local function cutscene_next_tick_function()
     local target_train = data[1]
     local player_index = data[2]
     local same_train = data[3]
+    local attempts = data[4]
     local player = game.get_player(player_index)
     if not player then goto next_player end
     local chatty_name = get_chatty_name(player)
@@ -1257,8 +1273,16 @@ local function cutscene_next_tick_function()
       play_cutscene(created_waypoints, player_index)
       global.create_cutscene_next_tick[player_index] = nil
     else
-      chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
-      -- global.create_cutscene_next_tick[player_index] = nil
+      attempts = attempts and attempts + 1 or 0
+      if attempts > 30 then
+        chatty_print(chatty_name .. "new target request accepted with state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
+        local created_waypoints = create_waypoint(target_train.carriages[1], player_index)
+        play_cutscene(created_waypoints, player_index)
+        global.create_cutscene_next_tick[player_index] = nil
+      else
+        chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
+        global.create_cutscene_next_tick[player_index][4] = attempts
+      end
     end
     ::next_player::
   end
