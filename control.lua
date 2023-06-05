@@ -787,7 +787,7 @@ local function update_wait_at_station(event)
       -- local target_name = chatty_target_train_name(train)
       local target_name = get_chatty_name(global.followed_loco[player_index].loco)
       local chatty_name = get_chatty_name(player)
-      game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. station_minimum tick saved")
+      game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. wait_station_until_tick set to [" .. global.wait_station_until_tick[player_index] .. "]")
     end
     ::next_player::
   end
@@ -812,7 +812,7 @@ local function update_wait_at_signal(train_changed_state_event)
       if global.chatty then
         local target_name = get_chatty_name(train)
         local chatty_name = get_chatty_name(player)
-        chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal tick saved")
+        chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [" .. global.wait_signal_until_tick[player.index] .. "]")
       end
       ::next_player::
     end
@@ -830,7 +830,7 @@ local function update_wait_at_signal(train_changed_state_event)
       if global.chatty then
         local chatty_name = get_chatty_name(player)
         local target_name = get_chatty_name(train)
-        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_at_signal data cleared")
+        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [nil]")
       end
       ::next_player::
     end
