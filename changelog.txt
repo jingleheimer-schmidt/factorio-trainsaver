@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.24
+Date: 05JUN2023
+  Changes:
+    - fixed that trainsaver could get stuck waiting for the target to start moving when targetting an idle train on startup
+    - driving_until_tick, wait_signal_until_tick, and wait_station_until_tick are now set on trainsaver startup as appropriate depending on train state
+    - added verbose mode update messages when new target request is denied by an active rocket launch
+    - added tick data to the wait_signal_until_tick and wait_station_until_tick verbose mode update messages
+---------------------------------------------------------------------------------------------------
 Version: 0.0.23
 Date: 30MAY2023
   Changes:
@@ -13,7 +21,7 @@ Date: 30MAY2023
 Version: 0.0.22
 Date: 27MAY2023
   Changes:
-    - resolve error when loaded with factorio version 1.1.81 or older
+    - resolved error when loaded with factorio version 1.1.81 or older
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.21
 Date: 26MAY2023
