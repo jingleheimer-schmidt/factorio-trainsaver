@@ -961,7 +961,7 @@ end
 
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
-local function update_trainsaver_viewers(event)
+local function train_changed_state(event)
   local new_target = event.train
   local old_state = event.old_state
   local new_state = event.train.state
@@ -1109,8 +1109,8 @@ script.on_event(defines.events.on_spider_command_completed, spider_command_compl
 
 -- when a train changes state, see if any players are eligable to transfer focus to it
 ---@param event EventData.on_train_changed_state
-local function train_changed_state(event)
-  update_trainsaver_viewers(event)
+local function on_train_changed_state(event)
+  train_changed_state(event)
   update_wait_at_signal(event)
   update_wait_at_station(event)
 end
@@ -1415,7 +1415,7 @@ script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_r
 -- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version. 
 
 -- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
-script.on_event(defines.events.on_train_changed_state, train_changed_state)
+script.on_event(defines.events.on_train_changed_state, on_train_changed_state)
 
 -- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available 
 local character_damaged_filter = {{filter = "type", type = "character"}}
