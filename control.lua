@@ -1406,23 +1406,23 @@ end
 -- afk autostart
 script.on_nth_tick(600, on_nth_tick)
 
--- create any requested cutscenes and update achievement progress 
+-- create any requested cutscenes and update achievement progress
 script.on_event(defines.events.on_tick, on_tick)
 
 -- deal with global data when a cutscene ends
 script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
 script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
--- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version. 
+-- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version.
 
--- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
+-- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met
 script.on_event(defines.events.on_train_changed_state, on_train_changed_state)
 
--- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available 
-local character_damaged_filter = {{filter = "type", type = "character"}}
+-- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available
+local character_damaged_filter = { { filter = "type", type = "character" } }
 script.on_event(defines.events.on_entity_damaged, character_damaged, character_damaged_filter)
 
 -- start a new cutscene if the followed locomotive dies or is mined or is destoryed
-local locomotive_filter = {{filter = "type", type = "locomotive"}}
+local locomotive_filter = { { filter = "type", type = "locomotive" } }
 script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
