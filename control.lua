@@ -186,7 +186,7 @@ local function target_is_entity(target)
   end
 end
 
--- returns true if the given entity is a locomotive
+-- returns true if the given target is a locomotive
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_locomotive(target)
@@ -197,7 +197,7 @@ local function target_is_locomotive(target)
   end
 end
 
--- returns true if the given entity is a spidertron
+-- returns true if the given target is a spidertron
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_spider(target)
@@ -208,7 +208,7 @@ local function target_is_spider(target)
   end
 end
 
--- returns true if the given entity is a rocket silo
+-- returns true if the given target is a rocket silo
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_rocket_silo(target)
