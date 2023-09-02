@@ -753,9 +753,12 @@ local function play_cutscene(created_waypoints, player_index)
   update_globals_new_cutscene(player, created_waypoints)
 
   -- unlock any achievements if possible
-  if created_waypoints[1].target and created_waypoints[1].target.train then
-    if created_waypoints[1].target.train.passengers then
-      for _, passenger in pairs(created_waypoints[1].target.train.passengers) do
+  local waypoint_target = created_waypoints[1].target
+  if waypoint_target and target_is_locomotive(waypoint_target) and waypoint_target.train then
+    local train = waypoint_target.train
+    local passengers = train and train.passengers
+    if passengers then
+      for _, passenger in pairs(passengers) do
         --[[
         if passenger.index == player.index then
           player.unlock_achievement("trainsaver-self-reflection")
@@ -768,7 +771,7 @@ local function play_cutscene(created_waypoints, player_index)
         end
       end
     end
-    local path = created_waypoints[1].target.train.path
+    local path = train and train.path
     if path then
       local remaining_path_distance = path.total_distance - path.travelled_distance
       if remaining_path_distance > 10000 then
