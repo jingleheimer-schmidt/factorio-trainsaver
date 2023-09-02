@@ -729,7 +729,7 @@ local function play_cutscene(created_waypoints, player_index)
   end
 
   -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-  if player.surface_index ~= created_waypoints[1].target.surface_index then
+  if player.surface_index ~= created_waypoints[1].target.surface.index then
     chatty_print(chatty_name.."abort: waypoint is on different surface than player")
     return
   end
