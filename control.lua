@@ -965,6 +965,7 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
       bool = false -- when would this happen??
     end
   elseif target_is_rocket_silo(waypoint_target) then
+    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     bool = false
   end
   return bool
@@ -1012,7 +1013,7 @@ local function train_changed_state(event)
     end
     ::rocket_handling::
     if not target_is_rocket_silo(current_target) then goto next_player end
-    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
+    -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     ::next_player::
   end
 end
@@ -1097,7 +1098,7 @@ local function spidertron_changed_state(event)
         play_cutscene(waypoints, player.index)
       end
     elseif target_is_rocket_silo(current_target) then
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
+      -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     end
     ::next_player::
   end
