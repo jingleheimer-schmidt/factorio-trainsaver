@@ -169,12 +169,14 @@ local function trainsaver_is_active(player)
 end
 
 -- returns the current trainsaver target for a given player, if any
--- not guaranteed to be valid, so check for that before using it
 ---@param player LuaPlayer
 ---@return LuaEntity|LuaUnitGroup|nil
 local function current_trainsaver_target(player)
   global.current_target = global.current_target or {}
-  return global.current_target[player.index]
+  local target = global.current_target[player.index]
+  if target.valid then
+    return target
+  end
 end
 
 -- returns true if the provided cutscene waypoint target is a valid entity
