@@ -178,6 +178,7 @@ end
 
 -- returns true if the provided cutscene waypoint target is an entity
 ---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
 local function target_is_entity(target)
   if target and target.valid and (target.object_name == "LuaEntity") then
     return true
@@ -302,7 +303,7 @@ local function convert_speed_into_time(speed_kmph, distance_in_meters)
   return time
 end
 -- create a waypoint for given waypoint_target using player mod settings
----@param waypoint_target LuaEntity
+---@param waypoint_target LuaEntity|LuaUnitGroup
 ---@param player_index uint
 ---@return CutsceneWaypoint[]
 local function create_waypoint(waypoint_target, player_index)
