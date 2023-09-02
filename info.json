@@ -1,6 +1,6 @@
 {
 	"name": "trainsaver",
-	"version": "0.0.24",
+	"version": "0.0.25",
 	"title": "trainsaver",
 	"description": "trainsaver creates a dynamic screensaver which follows trains as they drive around from station to station.",
 	"author": "asher_sky",
