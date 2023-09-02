@@ -219,6 +219,17 @@ local function target_is_rocket_silo(target)
   end
 end
 
+-- returns true if the given target is a unit group
+---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
+local function target_is_unit_group(target)
+  if target and (target.object_name == "LuaUnitGroup") then
+    return true
+  else
+    return false
+  end
+end
+
 -- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
 ---@param player LuaPlayer
 ---@return boolean
