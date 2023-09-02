@@ -179,7 +179,7 @@ end
 -- returns true if the provided cutscene waypoint target is an entity
 ---@param target LuaEntity|LuaUnitGroup|nil
 local function target_is_entity(target)
-  if target and (target.object_name == "LuaEntity") then
+  if target and target.valid and (target.object_name == "LuaEntity") then
     return true
   else
     return false
