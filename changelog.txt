@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.25
+Date: 02SEP2023
+  Changes:
+    - added extra protection against invalid target entities
+    - added preliminary support for LuaUnitGroup targets
+    - updated code annotations
+---------------------------------------------------------------------------------------------------
 Version: 0.0.24
 Date: 05JUN2023
   Changes:

@@ -4,17 +4,17 @@
 require "util"
 
 local verbose_states = { ---@type table<defines.train_state, string>
-  [defines.train_state.on_the_path] = "[color=green]on_the_path[/color]",                -- Normal state, following the path.
-  [defines.train_state.path_lost] = "[color=purple]path_lost[/color]",                   -- Had path and lost it, must stop.
-  [defines.train_state.no_schedule] = "[color=purple]no_schedule[/color]",               -- Doesn't have anywhere to go.
-  [defines.train_state.no_path] = "[color=purple]no_path[/color]",                       -- Has no path and is stopped.
-  [defines.train_state.arrive_signal] = "[color=yellow]arrive_signal[/color]",           -- Braking before a rail signal.
-  [defines.train_state.wait_signal] = "[color=orange]wait_signal[/color]",               -- Waiting at a signal.
-  [defines.train_state.arrive_station] = "[color=yellow]arrive_station[/color]",          -- Braking before a station.
-  [defines.train_state.wait_station] = "[color=red]wait_station[/color]",                -- Waiting at a station.
-  [defines.train_state.manual_control_stop] = "[color=pink]manual_control_stop[/color]", -- Switched to manual control and has to stop.
-  [defines.train_state.manual_control] = "[color=pink]manual_control[/color]",           -- Can move if user explicitly sits in and rides the train.
-  [defines.train_state.destination_full] = "[color=blue]destination_full[/color]",       -- Same as no_path but all candidate train stops are full.
+  [defines.train_state.on_the_path] = "[color=green]on_the_path[/color]",
+  [defines.train_state.path_lost] = "[color=purple]path_lost[/color]",
+  [defines.train_state.no_schedule] = "[color=purple]no_schedule[/color]",
+  [defines.train_state.no_path] = "[color=purple]no_path[/color]",
+  [defines.train_state.arrive_signal] = "[color=yellow]arrive_signal[/color]",
+  [defines.train_state.wait_signal] = "[color=orange]wait_signal[/color]",
+  [defines.train_state.arrive_station] = "[color=yellow]arrive_station[/color]",
+  [defines.train_state.wait_station] = "[color=red]wait_station[/color]",
+  [defines.train_state.manual_control_stop] = "[color=pink]manual_control_stop[/color]",
+  [defines.train_state.manual_control] = "[color=pink]manual_control[/color]",
+  [defines.train_state.destination_full] = "[color=blue]destination_full[/color]",
 }
 local active_states = { ---@type table<defines.train_state, boolean>
   [defines.train_state.on_the_path] = true,
@@ -173,20 +173,24 @@ end
 ---@return LuaEntity|LuaUnitGroup|nil
 local function current_trainsaver_target(player)
   global.current_target = global.current_target or {}
-  return global.current_target[player.index]
+  local target = global.current_target[player.index]
+  if target.valid then
+    return target
+  end
 end
 
--- returns true if the provided cutscene waypoint target is an entity
+-- returns true if the provided cutscene waypoint target is a valid entity
 ---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
 local function target_is_entity(target)
-  if target and (target.object_name == "LuaEntity") then
+  if target and target.valid and (target.object_name == "LuaEntity") then
     return true
   else
     return false
   end
 end
 
--- returns true if the given entity is a locomotive
+-- returns true if the given target is a valid locomotive
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_locomotive(target)
@@ -197,7 +201,7 @@ local function target_is_locomotive(target)
   end
 end
 
--- returns true if the given entity is a spidertron
+-- returns true if the given target is a valid spidertron
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_spider(target)
@@ -208,11 +212,22 @@ local function target_is_spider(target)
   end
 end
 
--- returns true if the given entity is a rocket silo
+-- returns true if the given target is a valid rocket silo
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_rocket_silo(target)
   if target and target_is_entity(target) and (target.type == "rocket-silo") then
+    return true
+  else
+    return false
+  end
+end
+
+-- returns true if the given target is a valid unit group
+---@param target LuaEntity|LuaUnitGroup|nil
+---@return boolean
+local function target_is_unit_group(target)
+  if target and target.valid and (target.object_name == "LuaUnitGroup") then
     return true
   else
     return false
@@ -291,7 +306,7 @@ local function convert_speed_into_time(speed_kmph, distance_in_meters)
   return time
 end
 -- create a waypoint for given waypoint_target using player mod settings
----@param waypoint_target LuaEntity
+---@param waypoint_target LuaEntity|LuaUnitGroup
 ---@param player_index uint
 ---@return CutsceneWaypoint[]
 local function create_waypoint(waypoint_target, player_index)
@@ -317,13 +332,14 @@ local function create_waypoint(waypoint_target, player_index)
 
   -- set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over
   local waypoint_2_start_entity = {} ---@type LuaEntity
-  if waypoint_target.train then
+  if target_is_locomotive(waypoint_target) then
     waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
-  end
-  if (waypoint_target.type == "spider-vehicle") then
+  elseif target_is_spider(waypoint_target) then
     if waypoint_target.autopilot_destinations then
       waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[#waypoint_target.autopilot_destinations]} or {}
     end
+  elseif target_is_unit_group(waypoint_target) then
+    waypoint_2_start_entity = waypoint_target.command and waypoint_target.command.target or {}
   end
   local waypoint_2_end_entity = player.cutscene_character or player.character or {}
   local waypoint_2_end_entity_name = waypoint_2_end_entity.name
@@ -717,7 +733,7 @@ local function play_cutscene(created_waypoints, player_index)
   end
 
   -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-  if player.surface_index ~= created_waypoints[1].target.surface_index then
+  if player.surface_index ~= created_waypoints[1].target.surface.index then
     chatty_print(chatty_name.."abort: waypoint is on different surface than player")
     return
   end
@@ -741,9 +757,12 @@ local function play_cutscene(created_waypoints, player_index)
   update_globals_new_cutscene(player, created_waypoints)
 
   -- unlock any achievements if possible
-  if created_waypoints[1].target and created_waypoints[1].target.train then
-    if created_waypoints[1].target.train.passengers then
-      for _, passenger in pairs(created_waypoints[1].target.train.passengers) do
+  local waypoint_target = created_waypoints[1].target
+  if waypoint_target and target_is_locomotive(waypoint_target) and waypoint_target.train then
+    local train = waypoint_target.train
+    local passengers = train and train.passengers
+    if passengers then
+      for _, passenger in pairs(passengers) do
         --[[
         if passenger.index == player.index then
           player.unlock_achievement("trainsaver-self-reflection")
@@ -756,7 +775,7 @@ local function play_cutscene(created_waypoints, player_index)
         end
       end
     end
-    local path = created_waypoints[1].target.train.path
+    local path = train and train.path
     if path then
       local remaining_path_distance = path.total_distance - path.travelled_distance
       if remaining_path_distance > 10000 then
@@ -953,6 +972,7 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
       bool = false -- when would this happen??
     end
   elseif target_is_rocket_silo(waypoint_target) then
+    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     bool = false
   end
   return bool
@@ -961,7 +981,7 @@ end
 
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
-local function update_trainsaver_viewers(event)
+local function train_changed_state(event)
   local new_target = event.train
   local old_state = event.old_state
   local new_state = event.train.state
@@ -1000,7 +1020,7 @@ local function update_trainsaver_viewers(event)
     end
     ::rocket_handling::
     if not target_is_rocket_silo(current_target) then goto next_player end
-    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
+    -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     ::next_player::
   end
 end
@@ -1085,7 +1105,7 @@ local function spidertron_changed_state(event)
         play_cutscene(waypoints, player.index)
       end
     elseif target_is_rocket_silo(current_target) then
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
+      -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     end
     ::next_player::
   end
@@ -1107,10 +1127,39 @@ end
 script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
 script.on_event(defines.events.on_spider_command_completed, spider_command_completed)
 
+-- when a group of biters finishes gathering adn beins execuring their command
+---@param event EventData.on_unit_group_finished_gathering
+local function on_unit_group_finished_gathering(event)
+  local group = event.group
+  local command = group.command
+  chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(group) .. "] has finished gathering")
+  if not command then return end
+  if not command.type == defines.command.attack then return end
+  chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(group) .. "] has begun an attack command")
+  for _, player in pairs(game.connected_players) do
+    if not trainsaver_is_active(player) then goto next_player end
+    if not (player.surface_index == group.surface.index) then
+      chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. group.surface.name .. "]")
+      goto next_player
+    end
+    local current_target = current_trainsaver_target(player)
+    local player_index = player.index
+    if waypoint_target_passes_inactivity_checks(player, current_target) then
+      local waypoints = create_waypoint(group, player_index)
+      waypoints[1].zoom = waypoints[1].zoom * 1.75
+      play_cutscene(waypoints, player_index)
+      goto next_player
+    end
+    ::next_player::
+  end
+end
+
+-- script.on_event(defines.events.on_unit_group_finished_gathering, on_unit_group_finished_gathering)
+
 -- when a train changes state, see if any players are eligable to transfer focus to it
 ---@param event EventData.on_train_changed_state
-local function train_changed_state(event)
-  update_trainsaver_viewers(event)
+local function on_train_changed_state(event)
+  train_changed_state(event)
   update_wait_at_signal(event)
   update_wait_at_station(event)
 end
@@ -1406,23 +1455,23 @@ end
 -- afk autostart
 script.on_nth_tick(600, on_nth_tick)
 
--- create any requested cutscenes and update achievement progress 
+-- create any requested cutscenes and update achievement progress
 script.on_event(defines.events.on_tick, on_tick)
 
 -- deal with global data when a cutscene ends
 script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
 script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
--- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version. 
+-- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version.
 
--- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met 
-script.on_event(defines.events.on_train_changed_state, train_changed_state)
+-- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met
+script.on_event(defines.events.on_train_changed_state, on_train_changed_state)
 
--- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available 
-local character_damaged_filter = {{filter = "type", type = "character"}}
+-- if cutscene character takes any damage, immediately end cutscene so player can deal with that or see death screen message. Also unlock any achievements if available
+local character_damaged_filter = { { filter = "type", type = "character" } }
 script.on_event(defines.events.on_entity_damaged, character_damaged, character_damaged_filter)
 
 -- start a new cutscene if the followed locomotive dies or is mined or is destoryed
-local locomotive_filter = {{filter = "type", type = "locomotive"}}
+local locomotive_filter = { { filter = "type", type = "locomotive" } }
 script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
