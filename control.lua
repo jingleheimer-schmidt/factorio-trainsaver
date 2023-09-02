@@ -169,6 +169,7 @@ local function trainsaver_is_active(player)
 end
 
 -- returns the current trainsaver target for a given player, if any
+-- not guaranteed to be valid, so check for that before using it
 ---@param player LuaPlayer
 ---@return LuaEntity|LuaUnitGroup|nil
 local function current_trainsaver_target(player)
@@ -176,7 +177,7 @@ local function current_trainsaver_target(player)
   return global.current_target[player.index]
 end
 
--- returns true if the provided cutscene waypoint target is an entity
+-- returns true if the provided cutscene waypoint target is a valid entity
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_entity(target)
@@ -187,7 +188,7 @@ local function target_is_entity(target)
   end
 end
 
--- returns true if the given target is a locomotive
+-- returns true if the given target is a valid locomotive
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_locomotive(target)
@@ -198,7 +199,7 @@ local function target_is_locomotive(target)
   end
 end
 
--- returns true if the given target is a spidertron
+-- returns true if the given target is a valid spidertron
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_spider(target)
@@ -209,7 +210,7 @@ local function target_is_spider(target)
   end
 end
 
--- returns true if the given target is a rocket silo
+-- returns true if the given target is a valid rocket silo
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_rocket_silo(target)
@@ -220,7 +221,7 @@ local function target_is_rocket_silo(target)
   end
 end
 
--- returns true if the given target is a unit group
+-- returns true if the given target is a valid unit group
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_unit_group(target)
