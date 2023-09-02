@@ -224,7 +224,7 @@ end
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_unit_group(target)
-  if target and (target.object_name == "LuaUnitGroup") then
+  if target and target.valid and (target.object_name == "LuaUnitGroup") then
     return true
   else
     return false
