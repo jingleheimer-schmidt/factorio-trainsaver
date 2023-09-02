@@ -335,6 +335,8 @@ local function create_waypoint(waypoint_target, player_index)
     if waypoint_target.autopilot_destinations then
       waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[#waypoint_target.autopilot_destinations]} or {}
     end
+  elseif target_is_unit_group(waypoint_target) then
+    waypoint_2_start_entity = waypoint_target.command and waypoint_target.command.target or {}
   end
   local waypoint_2_end_entity = player.cutscene_character or player.character or {}
   local waypoint_2_end_entity_name = waypoint_2_end_entity.name
@@ -1121,6 +1123,35 @@ end
 
 script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
 script.on_event(defines.events.on_spider_command_completed, spider_command_completed)
+
+-- when a group of biters finishes gathering adn beins execuring their command
+---@param event EventData.on_unit_group_finished_gathering
+local function on_unit_group_finished_gathering(event)
+  local group = event.group
+  local command = group.command
+  chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(group) .. "] has finished gathering")
+  if not command then return end
+  if not command.type == defines.command.attack then return end
+  chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(group) .. "] has begun an attack command")
+  for _, player in pairs(game.connected_players) do
+    if not trainsaver_is_active(player) then goto next_player end
+    if not (player.surface_index == group.surface.index) then
+      chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. group.surface.name .. "]")
+      goto next_player
+    end
+    local current_target = current_trainsaver_target(player)
+    local player_index = player.index
+    if waypoint_target_passes_inactivity_checks(player, current_target) then
+      local waypoints = create_waypoint(group, player_index)
+      waypoints[1].zoom = waypoints[1].zoom * 1.75
+      play_cutscene(waypoints, player_index)
+      goto next_player
+    end
+    ::next_player::
+  end
+end
+
+script.on_event(defines.events.on_unit_group_finished_gathering, on_unit_group_finished_gathering)
 
 -- when a train changes state, see if any players are eligable to transfer focus to it
 ---@param event EventData.on_train_changed_state
