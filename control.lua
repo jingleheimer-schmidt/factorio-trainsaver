@@ -3,7 +3,7 @@
 
 require "util"
 
-local constants = require("util/constants")
+local constants = require("util.constants")
 local verbose_states = constants.verbose_states
 local active_states = constants.active_states
 local idle_states = constants.idle_states
