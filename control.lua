@@ -39,20 +39,7 @@ local exceeded_station_minimum = status_util.exceeded_station_minimum
 local exceeded_signal_minimum = status_util.exceeded_signal_minimum
 local exceeded_spider_walking_minimum = status_util.exceeded_spider_walking_minimum
 local exceeded_spider_idle_minimum = status_util.exceeded_spider_idle_minimum
-
--- return true if trainsaver is active for given player, or false if not
----@param player LuaPlayer
----@return boolean
-local function trainsaver_is_active(player)
-  if not (player.controller_type == defines.controllers.cutscene) then
-    return false
-  end
-  if global.trainsaver_status and global.trainsaver_status[player.index] then
-    return true
-  else
-    return false
-  end
-end
+local trainsaver_is_active = status_util.trainsaver_is_active
 
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index uint

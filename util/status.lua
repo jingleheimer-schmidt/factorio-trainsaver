@@ -60,10 +60,25 @@ local function exceeded_spider_idle_minimum(player)
     end
 end
 
+-- return true if trainsaver is active for given player, or false if not
+---@param player LuaPlayer
+---@return boolean
+local function trainsaver_is_active(player)
+    if not (player.controller_type == defines.controllers.cutscene) then
+        return false
+    end
+    if global.trainsaver_status and global.trainsaver_status[player.index] then
+        return true
+    else
+        return false
+    end
+end
+
 return {
     exceeded_driving_minimum = exceeded_driving_minimum,
     exceeded_station_minimum = exceeded_station_minimum,
     exceeded_signal_minimum = exceeded_signal_minimum,
     exceeded_spider_walking_minimum = exceeded_spider_walking_minimum,
-    exceeded_spider_idle_minimum = exceeded_spider_idle_minimum
+    exceeded_spider_idle_minimum = exceeded_spider_idle_minimum,
+    trainsaver_is_active = trainsaver_is_active
 }
