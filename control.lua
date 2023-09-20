@@ -3,84 +3,13 @@
 
 require "util"
 
-local verbose_states = { ---@type table<defines.train_state, string>
-  [defines.train_state.on_the_path] = "[color=green]on_the_path[/color]",
-  [defines.train_state.path_lost] = "[color=purple]path_lost[/color]",
-  [defines.train_state.no_schedule] = "[color=purple]no_schedule[/color]",
-  [defines.train_state.no_path] = "[color=purple]no_path[/color]",
-  [defines.train_state.arrive_signal] = "[color=yellow]arrive_signal[/color]",
-  [defines.train_state.wait_signal] = "[color=orange]wait_signal[/color]",
-  [defines.train_state.arrive_station] = "[color=yellow]arrive_station[/color]",
-  [defines.train_state.wait_station] = "[color=red]wait_station[/color]",
-  [defines.train_state.manual_control_stop] = "[color=pink]manual_control_stop[/color]",
-  [defines.train_state.manual_control] = "[color=pink]manual_control[/color]",
-  [defines.train_state.destination_full] = "[color=blue]destination_full[/color]",
-}
-local active_states = { ---@type table<defines.train_state, boolean>
-  [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
-local idle_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  [defines.train_state.no_schedule] = true,
-  [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  [defines.train_state.destination_full] = true,
-}
-local wait_station_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  [defines.train_state.destination_full] = true,
-}
-local wait_signal_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
-local always_accept_new_target_states = {
-  -- [defines.train_state.on_the_path] = true,
-  [defines.train_state.path_lost] = true,
-  [defines.train_state.no_schedule] = true,
-  [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  [defines.train_state.manual_control_stop] = true,
-  [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
+local constants = require("util/constants")
+local verbose_states = constants.verbose_states
+local active_states = constants.active_states
+local idle_states = constants.idle_states
+local wait_station_states = constants.wait_station_states
+local wait_signal_states = constants.wait_signal_states
+local always_accept_new_target_states = constants.always_accept_new_target_states
 
 local function toggle_chatty()
   if not global.chatty then
