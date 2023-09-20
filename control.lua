@@ -18,6 +18,7 @@ local chatty_player_name = messages.chatty_player_name
 local chatty_target_train_name = messages.chatty_target_train_name
 local chatty_target_entity_name = messages.chatty_target_entity_name
 local get_chatty_name = messages.get_chatty_name
+local print_notable_event = messages.print_notable_event
 
 -- return true if trainsaver is active for given player, or false if not
 ---@param player LuaPlayer
@@ -136,16 +137,6 @@ local function create_cutscene_next_tick(player_index, train, same_train)
   ---@type table<uint, CreateCutsceneNextTickData>
   global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
   global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
-end
-
--- print a message to all players who have notable events enabled
----@param message string
-local function print_notable_event(message)
-  for _, player in pairs(game.connected_players) do
-    if player.mod_settings["ts-notable-events"].value == true then
-      player.print(message)
-    end
-  end
 end
 
 -- returns the distance between two map positions

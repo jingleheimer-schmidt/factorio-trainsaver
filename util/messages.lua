@@ -75,6 +75,16 @@ local function get_chatty_name(target)
     end
 end
 
+-- print a message to all players who have notable events enabled
+---@param message string
+local function print_notable_event(message)
+    for _, player in pairs(game.connected_players) do
+        if player.mod_settings["ts-notable-events"].value == true then
+            player.print(message)
+        end
+    end
+end
+
 return {
     toggle_chatty = toggle_chatty,
     chatty_print = chatty_print,
@@ -82,4 +92,5 @@ return {
     chatty_target_train_name = chatty_target_train_name,
     chatty_target_entity_name = chatty_target_entity_name,
     get_chatty_name = get_chatty_name,
+    print_notable_event = print_notable_event,
 }
