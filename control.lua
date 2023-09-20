@@ -29,6 +29,10 @@ local target_is_rocket_silo = target_util.target_is_rocket_silo
 local target_is_unit_group = target_util.target_is_unit_group
 local waypoint_target_has_idle_state = target_util.waypoint_target_has_idle_state
 
+local math_util = require("util.math")
+local calculate_distance = math_util.calculate_distance
+local convert_speed_into_time = math_util.convert_speed_into_time
+
 -- return true if trainsaver is active for given player, or false if not
 ---@param player LuaPlayer
 ---@return boolean
@@ -58,28 +62,6 @@ local function create_cutscene_next_tick(player_index, train, same_train)
   global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
 end
 
--- returns the distance between two map positions
----@param position_1 MapPosition
----@param position_2 MapPosition
----@return integer
-local function calculate_distance(position_1, position_2)
-  local distance = math.floor(((position_1.x - position_2.x) ^ 2 + (position_1.y - position_2.y) ^ 2) ^ 0.5)
-  return distance
-end
-
--- converts speed in kmph into time in ticks
----@param speed_kmph number
----@param distance_in_meters number
----@return number
-local function convert_speed_into_time(speed_kmph, distance_in_meters)
-  local speed = speed_kmph / 60 / 60 / 60    -- speed in km/tick
-  local distance = distance_in_meters / 1000 -- distance in kilometers
-  local time = 0
-  if speed ~= 0 then
-    time = distance / speed
-  end
-  return time
-end
 -- create a waypoint for given waypoint_target using player mod settings
 ---@param waypoint_target LuaEntity|LuaUnitGroup
 ---@param player_index uint
