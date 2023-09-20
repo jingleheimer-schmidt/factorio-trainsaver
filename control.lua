@@ -33,6 +33,13 @@ local math_util = require("util.math")
 local calculate_distance = math_util.calculate_distance
 local convert_speed_into_time = math_util.convert_speed_into_time
 
+local status_util = require("util.status")
+local exceeded_driving_minimum = status_util.exceeded_driving_minimum
+local exceeded_station_minimum = status_util.exceeded_station_minimum
+local exceeded_signal_minimum = status_util.exceeded_signal_minimum
+local exceeded_spider_walking_minimum = status_util.exceeded_spider_walking_minimum
+local exceeded_spider_idle_minimum = status_util.exceeded_spider_idle_minimum
+
 -- return true if trainsaver is active for given player, or false if not
 ---@param player LuaPlayer
 ---@return boolean
@@ -610,66 +617,6 @@ local function update_wait_at_signal(train_changed_state_event)
       end
       ::next_player::
     end
-  end
-end
-
--- return true if player has been watching an active train for longer than the driving minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_driving_minimum(player)
-  local driving_until_tick = global.driving_until_tick and global.driving_until_tick[player.index]
-  if driving_until_tick and (driving_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a stopped train at a station for longer than the station minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_station_minimum(player)
-  local stationed_until_tick = global.wait_station_until_tick and global.wait_station_until_tick[player.index]
-  if stationed_until_tick and (stationed_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a train that has been waiting at a signal for longer than the wait at signal minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_signal_minimum(player)
-  local wait_signal_until_tick = global.wait_signal_until_tick and global.wait_signal_until_tick[player.index]
-  if wait_signal_until_tick and (wait_signal_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a spidertron for longer than the driving minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_spider_walking_minimum(player)
-  local spider_walking_until_tick = global.spider_walking_until_tick and global.spider_walking_until_tick[player.index]
-  if spider_walking_until_tick and (spider_walking_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a stopped spidertron for longer than the station minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_spider_idle_minimum(player)
-  local spider_idle_until_tick = global.spider_idle_until_tick and global.spider_idle_until_tick[player.index]
-  if spider_idle_until_tick and (spider_idle_until_tick < game.tick) then
-    return true
-  else
-    return false
   end
 end
 
