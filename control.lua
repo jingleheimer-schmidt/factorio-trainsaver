@@ -47,6 +47,8 @@ local create_waypoint = waypoint_util.create_waypoint
 local controls_util = require("util.controls")
 local end_trainsaver = controls_util.end_trainsaver
 local start_trainsaver = controls_util.start_trainsaver
+local start_or_end_trainsaver = controls_util.start_or_end_trainsaver
+local end_trainsaver_on_command = controls_util.end_trainsaver_on_command
 
 local interface_util = require("util.interface")
 local interface_functions = interface_util.interface_functions
@@ -851,32 +853,6 @@ local function on_nth_tick()
     start_trainsaver(command)
     ::next_player::
   end
-end
-
----start or end trainsaver depending on player controller type
----@param event EventData.CustomInputEvent | EventData.on_console_command
-local function start_or_end_trainsaver(event)
-  local player = game.get_player(event.player_index)
-  if not player then return end
-  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
-    local command = {name = "trainsaver", player_index = event.player_index}
-    start_trainsaver(command)
-  elseif player.controller_type == defines.controllers.cutscene then
-    -- local command = {player_index = event.player_index, ending_transition = true}
-    local command = {player_index = event.player_index}
-    end_trainsaver(command, true)
-  end
-end
-
----end trainsaver when the /end-trainsaver command is used
----@param event EventData.on_console_command
-local function end_trainsaver_on_command(event)
-  local player = game.get_player(event.player_index)
-  if not player then return end
-  if not trainsaver_is_active(player) then return end
-  -- local command = {player_index = event.player_index, ending_transition = true}
-  local command = {player_index = event.player_index}
-  end_trainsaver(command, true)
 end
 
 ---end trainsaver when the game menu is opened

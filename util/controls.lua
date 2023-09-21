@@ -193,7 +193,35 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     chatty_print(chatty_name .. "chose a random train")
 end
 
+---start or end trainsaver depending on player controller type
+---@param event EventData.CustomInputEvent | EventData.on_console_command
+local function start_or_end_trainsaver(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
+        local command = { name = "trainsaver", player_index = event.player_index }
+        start_trainsaver(command)
+    elseif player.controller_type == defines.controllers.cutscene then
+        -- local command = {player_index = event.player_index, ending_transition = true}
+        local command = { player_index = event.player_index }
+        end_trainsaver(command, true)
+    end
+end
+
+---end trainsaver when the /end-trainsaver command is used
+---@param event EventData.on_console_command
+local function end_trainsaver_on_command(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if not trainsaver_is_active(player) then return end
+    -- local command = {player_index = event.player_index, ending_transition = true}
+    local command = { player_index = event.player_index }
+    end_trainsaver(command, true)
+end
+
 return {
     start_trainsaver = start_trainsaver,
     end_trainsaver = end_trainsaver,
+    start_or_end_trainsaver = start_or_end_trainsaver,
+    end_trainsaver_on_command = end_trainsaver_on_command,
 }
