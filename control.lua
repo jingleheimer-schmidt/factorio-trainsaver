@@ -1,7 +1,7 @@
 
 --[[ factorio mod trainsaver control script created by asher_sky --]]
 
-require "util"
+require("util")
 
 local constants = require("util.constants")
 local verbose_states = constants.verbose_states
