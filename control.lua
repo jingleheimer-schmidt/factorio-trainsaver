@@ -457,7 +457,13 @@ local function cutscene_next_tick_function()
       if attempts > 30 then
         chatty_print(chatty_name .. "new target request accepted with state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
         local created_waypoints = create_waypoint(target_train.carriages[1], player_index)
-        play_cutscene(created_waypoints, player_index)
+        local record_history = true
+        if same_train then
+          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
+          created_waypoints[1].zoom = nil
+          record_history = false
+        end
+        play_cutscene(created_waypoints, player_index, record_history)
         global.create_cutscene_next_tick[player_index] = nil
       else
         chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
