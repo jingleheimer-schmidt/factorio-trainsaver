@@ -28,7 +28,8 @@ end
 -- play cutscene from given waypoints
 ---@param created_waypoints CutsceneWaypoint[]
 ---@param player_index uint
-local function play_cutscene(created_waypoints, player_index)
+---@param register_history boolean
+local function play_cutscene(created_waypoints, player_index, register_history)
     local player = game.get_player(player_index)
     if not player then return end
     local chatty_name = get_chatty_name(player)
@@ -62,6 +63,15 @@ local function play_cutscene(created_waypoints, player_index)
     -- reset alt-mode to what it was before cutscene controller reset it
     player.game_view_settings.show_entity_info = transfer_alt_mode
     update_globals_new_cutscene(player, created_waypoints)
+
+    if register_history then
+        global.watch_history = global.watch_history or {}
+        global.watch_history[player_index] = global.watch_history[player_index] or {}
+        table.insert(global.watch_history[player_index], created_waypoints[1].target)
+        global.player_history_index = global.player_history_index or {}
+        global.player_history_index[player_index] = #global.watch_history[player_index]
+        chatty_print(chatty_name .. "added [ " .. get_chatty_name(created_waypoints[1].target) .. " ] to watch history [ " .. #global.watch_history[player_index] .. " of " .. #global.watch_history[player_index] .. " ]")
+    end
 
     -- unlock any achievements if possible
     local waypoint_target = created_waypoints[1].target

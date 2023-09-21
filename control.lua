@@ -50,6 +50,9 @@ local end_trainsaver = controls_util.end_trainsaver
 local start_trainsaver = controls_util.start_trainsaver
 local start_or_end_trainsaver = controls_util.start_or_end_trainsaver
 local end_trainsaver_on_command = controls_util.end_trainsaver_on_command
+local focus_new_target = controls_util.focus_new_target
+local focus_next_target = controls_util.focus_next_target
+local focus_previous_target = controls_util.focus_previous_target
 
 local cutscene_util = require("util.cutscene")
 local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
@@ -209,7 +212,7 @@ local function spidertron_changed_state(event)
         if waypoints[1].zoom then
           waypoints[1].zoom = waypoints[1].zoom * 1.75
         end
-        play_cutscene(waypoints, player.index)
+        play_cutscene(waypoints, player.index, true)
         goto next_player
       else
         goto next_player
@@ -225,7 +228,7 @@ local function spidertron_changed_state(event)
         if waypoints[1].zoom then
           waypoints[1].zoom = waypoints[1].zoom * 1.75
         end
-        play_cutscene(waypoints, player.index)
+        play_cutscene(waypoints, player.index, true)
       end
     elseif target_is_rocket_silo(current_target) then
       -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
@@ -270,7 +273,7 @@ local function on_unit_group_finished_gathering(event)
     if waypoint_target_passes_inactivity_checks(player, current_target) then
       local waypoints = create_waypoint(group, player_index)
       waypoints[1].zoom = waypoints[1].zoom * 1.75
-      play_cutscene(waypoints, player_index)
+      play_cutscene(waypoints, player_index, true)
       goto next_player
     end
     ::next_player::
@@ -435,14 +438,19 @@ local function cutscene_next_tick_function()
 
       local created_waypoints = create_waypoint(mover, player_index)
 
+      local record_history = true
+
       -- If the train is bi-directional and we're just switching from one end to the other,
-      -- set transition time to 15 ticks per carriage so it's nice and smooth. Also remove zoom so it stays the same
+      -- set transition time to 15 ticks per carriage so it's nice and smooth
+      -- also remove zoom so it stays the same
+      -- also don't add it to watch history
       if same_train then
         created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
         created_waypoints[1].zoom = nil
+        record_history = false
       end
 
-      play_cutscene(created_waypoints, player_index)
+      play_cutscene(created_waypoints, player_index, record_history)
       global.create_cutscene_next_tick[player_index] = nil
     else
       attempts = attempts and attempts + 1 or 0
@@ -591,6 +599,9 @@ script.on_event("move-left-trainsaver", game_control_pressed)
 script.on_event("toggle-map-trainsaver", game_control_pressed)
 script.on_event("shoot-enemy-trainsaver", game_control_pressed)
 script.on_event("toggle-menu-trainsaver", toggle_menu_pressed)
+
+script.on_event("next-target-trainsaver", focus_next_target)
+script.on_event("previous-target-trainsaver", focus_previous_target)
 
 --[[ s e c r e t s --]]
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)

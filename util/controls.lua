@@ -12,6 +12,14 @@ local convert_speed_into_time = math_util.convert_speed_into_time
 
 local cutscene_util = require("util.cutscene")
 local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
+local play_cutscene = cutscene_util.play_cutscene
+
+local target_util = require("util.target")
+local current_trainsaver_target = target_util.current_trainsaver_target
+local target_is_locomotive = target_util.target_is_locomotive
+
+local waypoint_util = require("util.waypoint")
+local create_waypoint = waypoint_util.create_waypoint
 
 -- end the screensaver
 ---@param command EventData.on_console_command
@@ -222,9 +230,106 @@ local function end_trainsaver_on_command(event)
     end_trainsaver(command, true)
 end
 
+---focus trainsaver on a new target
+---@param event EventData.CustomInputEvent
+local function focus_new_target(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    local current_target = current_trainsaver_target(player)
+    if not current_target then return end
+    if target_is_locomotive(current_target) then
+        local chatty_name = get_chatty_name(player)
+        chatty_print(chatty_name .. "focusing new target")
+        local command = { name = "trainsaver", player_index = event.player_index }
+        start_trainsaver(command, current_target.train, true)
+    else
+        local chatty_name = get_chatty_name(player)
+        chatty_print(chatty_name .. "focusing new target")
+        local command = { name = "trainsaver", player_index = event.player_index }
+        start_trainsaver(command, nil, true)
+    end
+end
+
+---focus trainsaver on the next target from watch history
+---@param event EventData.CustomInputEvent
+local function focus_next_target(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    local current_target = current_trainsaver_target(player)
+    if not current_target then return end
+    local watch_histories = global.watch_history
+    local watch_history = watch_histories and watch_histories[player.index]
+    if not watch_history then
+        focus_new_target(event)
+    else
+        global.player_history_index = global.player_history_index or {}
+        local player_history_index = global.player_history_index[player.index] or 1
+        local next_index = player_history_index + 1
+        if not watch_history[next_index] then
+            focus_new_target(event)
+        else
+            for i = player_history_index + 1, #watch_history do
+                local target = watch_history[i]
+                if target and target.valid then
+                    local chatty_name = get_chatty_name(player)
+                    chatty_print(chatty_name .. "focusing next target in watch history [" .. i .. " of " .. #watch_history .. "]")
+                    if target_is_locomotive(target) then
+                        local train = target.train
+                        target = train.speed < 0 and train.back_stock or train.front_stock
+                    end
+                    local waypoints = create_waypoint(target, player.index)
+                    play_cutscene(waypoints, player.index, false)
+                    global.player_history_index[player.index] = i
+                    player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
+                    return
+                end
+                if i == #watch_history then
+                    focus_new_target(event)
+                end
+            end
+        end
+    end
+end
+
+-- focus trainsaver on the previous target from watch history
+---@param event EventData.CustomInputEvent
+local function focus_previous_target(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    local current_target = current_trainsaver_target(player)
+    if not current_target then return end
+    local watch_histories = global.watch_history
+    local watch_history = watch_histories and watch_histories[player.index]
+    if not watch_history then
+        focus_new_target(event)
+    else
+        global.player_history_index = global.player_history_index or {}
+        local player_history_index = global.player_history_index[player.index] or 1
+        for i = player_history_index - 1, 1, -1 do
+            local target = watch_history[i]
+            if target and target.valid then
+                local chatty_name = get_chatty_name(player)
+                chatty_print(chatty_name .. "focusing previous target in watch history [" .. i .. " of " .. #watch_history .. "]")
+                if target_is_locomotive(target) then
+                    local train = target.train
+                    target = train.speed < 0 and train.back_stock or train.front_stock
+                end
+                local waypoints = create_waypoint(target, player.index)
+                play_cutscene(waypoints, player.index, false)
+                global.player_history_index[player.index] = i
+                player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
+                return
+            end
+        end
+    end
+end
+
 return {
     start_trainsaver = start_trainsaver,
     end_trainsaver = end_trainsaver,
     start_or_end_trainsaver = start_or_end_trainsaver,
     end_trainsaver_on_command = end_trainsaver_on_command,
+    focus_new_target = focus_new_target,
+    focus_next_target = focus_next_target,
+    focus_previous_target = focus_previous_target,
 }
