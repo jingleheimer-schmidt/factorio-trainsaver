@@ -68,9 +68,13 @@ local function play_cutscene(created_waypoints, player_index, register_history)
         global.watch_history = global.watch_history or {}
         global.watch_history[player_index] = global.watch_history[player_index] or {}
         table.insert(global.watch_history[player_index], created_waypoints[1].target)
+        local history_length = #global.watch_history[player_index]
         global.player_history_index = global.player_history_index or {}
-        global.player_history_index[player_index] = #global.watch_history[player_index]
-        chatty_print(chatty_name .. "added [ " .. get_chatty_name(created_waypoints[1].target) .. " ] to watch history [ " .. #global.watch_history[player_index] .. " of " .. #global.watch_history[player_index] .. " ]")
+        global.player_history_index[player_index] = history_length
+        chatty_print(chatty_name .. "added [ " .. get_chatty_name(created_waypoints[1].target) .. " ] to watch history [ " .. history_length .. " of " .. history_length .. " ]")
+        if history_length > 10000 then
+            table.remove(global.watch_history[player_index], 1)
+        end
     end
 
     -- unlock any achievements if possible
