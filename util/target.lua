@@ -17,55 +17,40 @@ end
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_entity(target)
-    if target and target.valid and (target.object_name == "LuaEntity") then
-        return true
-    else
-        return false
-    end
+    local entity = target and target.valid and (target.object_name == "LuaEntity")
+    return entity and true or false
 end
 
 -- returns true if the given target is a valid locomotive
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_locomotive(target)
-    if target and target_is_entity(target) and (target.type == "locomotive") then
-        return true
-    else
-        return false
-    end
+    local locomotive = target and target_is_entity(target) and (target.type == "locomotive")
+    return locomotive and true or false
 end
 
 -- returns true if the given target is a valid spidertron
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_spider(target)
-    if target and target_is_entity(target) and (target.type == "spider-vehicle") then
-        return true
-    else
-        return false
-    end
+    local spider = target and target_is_entity(target) and (target.type == "spider-vehicle")
+    return spider and true or false
 end
 
 -- returns true if the given target is a valid rocket silo
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_rocket_silo(target)
-    if target and target_is_entity(target) and (target.type == "rocket-silo") then
-        return true
-    else
-        return false
-    end
+    local silo = target and target_is_entity(target) and (target.type == "rocket-silo")
+    return silo and true or false
 end
 
 -- returns true if the given target is a valid unit group
 ---@param target LuaEntity|LuaUnitGroup|nil
 ---@return boolean
 local function target_is_unit_group(target)
-    if target and target.valid and (target.object_name == "LuaUnitGroup") then
-        return true
-    else
-        return false
-    end
+    local group = target and target.valid and (target.object_name == "LuaUnitGroup")
+    return group and true or false
 end
 
 -- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
