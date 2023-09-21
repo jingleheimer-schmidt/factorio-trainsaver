@@ -76,7 +76,8 @@ local function update_globals_new_cutscene(player, created_waypoints)
     local waypoint_position = created_waypoints[1].position
     local mod_settings = player.mod_settings
     local chatty_name = get_chatty_name(player)
-    -- local station_minimum = mod_settings["ts-station-minimum"].value * 60
+    local signal_minimum = mod_settings["ts-wait-at-signal"].value * 60
+    local station_minimum = mod_settings["ts-station-minimum"].value * 60
     local driving_minimum = mod_settings["ts-driving-minimum"].value * 60 * 60
     local current_tick = game.tick
     -- update trainsaver status global
@@ -121,7 +122,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
         end
         if wait_station_states[state] then
             global.wait_station_until_tick = global.wait_station_until_tick or {} ---@type table<uint, uint|number>
-            global.wait_station_until_tick[player_index] = current_tick + driving_minimum
+            global.wait_station_until_tick[player_index] = current_tick + station_minimum
             chatty_print(chatty_name ..
             "acquired new target [" ..
             get_chatty_name(current_trainsaver_target(player)) ..
@@ -129,7 +130,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
         end
         if wait_signal_states[state] then
             global.wait_signal_until_tick = global.wait_signal_until_tick or {} ---@type table<uint, uint|number>
-            global.wait_signal_until_tick[player_index] = current_tick + driving_minimum
+            global.wait_signal_until_tick[player_index] = current_tick + signal_minimum
             chatty_print(chatty_name ..
             "acquired new target [" ..
             get_chatty_name(current_trainsaver_target(player)) ..
@@ -144,12 +145,12 @@ local function update_globals_new_cutscene(player, created_waypoints)
     if target_is_spider(waypoint_target) then
         global.spider_walking_until_tick = global.spider_walking_until_tick or {} ---@type table<uint, uint>
         global.spider_walking_until_tick[player_index] = current_tick + driving_minimum
+        global.spider_idle_until_tick = global.spider_idle_until_tick or {}
+        global.spider_idle_until_tick[player_index] = current_tick + station_minimum
         chatty_print(chatty_name ..
         "acquired new target [" ..
         get_chatty_name(current_trainsaver_target(player)) ..
         "]. set spider_walking_until_tick to [" .. global.spider_walking_until_tick[player.index] .. "]")
-        global.spider_idle_until_tick = global.spider_idle_until_tick or {}
-        global.spider_idle_until_tick[player_index] = nil
         global.wait_signal_until_tick = global.wait_signal_until_tick or {}
         global.wait_signal_until_tick[player_index] = nil
         global.driving_until_tick = global.driving_until_tick or {}
