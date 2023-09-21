@@ -2,6 +2,7 @@
 Version: 0.0.26
 Date: ????
   Changes:
+    - added remote interface functions to navigate target history
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.25
 Date: 02SEP2023
