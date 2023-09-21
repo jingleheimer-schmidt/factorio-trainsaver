@@ -10,6 +10,9 @@ local math_util = require("util.math")
 local calculate_distance = math_util.calculate_distance
 local convert_speed_into_time = math_util.convert_speed_into_time
 
+local cutscene_util = require("util.cutscene")
+local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
+
 -- end the screensaver
 ---@param command EventData.on_console_command
 ---@param ending_transition boolean?
