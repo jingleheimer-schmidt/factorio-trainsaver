@@ -34,12 +34,12 @@ interface_functions.trainsaver_target = function(player_index)
 end
 
 interface_functions.focus_next_target = function(player_index)
-    local mock_event_data = { player_index = player_index }
+    local mock_event_data = { name = "trainsaver", player_index = player_index }
     focus_next_target(mock_event_data)
 end
 
 interface_functions.focus_previous_target = function(player_index)
-    local mock_event_data = { player_index = player_index }
+    local mock_event_data = { name = "trainsaver", player_index = player_index }
     focus_previous_target(mock_event_data)
 end
 
