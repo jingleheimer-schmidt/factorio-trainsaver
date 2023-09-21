@@ -27,15 +27,23 @@ Please report any issues or suggestions on the [Discussion](https://mods.factori
 trainsaver provides an interface for other mods to interact with. The interface is named `trainsaver` and includes the following functions:
 - trainsaver_status(player_index) --> returns the status of trainsaver for a given player, either "active" or "inactive"
 - trainsaver_target(player_index) --> returns the current target (LuaEntity | LuaUnitGroup) trainsaver is following for a given player or nil if none
+- start_trainsaver(player_index) --> starts trainsaver for a given player
+- end_trainsaver(player_index) --> ends trainsaver for a given player
+- toggle_trainsaver(player_index) --> toggles trainsaver for a given player
 - focus_next_target(player_index) --> tells trainsaver to go forward in history. finds a new target if current target is the newest in history
 - focus_previous_target(player_index) --> tells trainsaver to go backward in history. won't do anything the current target is the oldest in history
+- reset_player_history(player_index) --> clears the target history for a given player
 
 Example interface usage:
 - https://lua-api.factorio.com/latest/classes/LuaRemote.html#call
 - remote.call("trainsaver", "trainsaver_status", player_index)
 - remote.call("trainsaver", "trainsaver_target", player_index)
+- remote.call("trainsaver", "start_trainsaver", player_index)
+- remote.call("trainsaver", "end_trainsaver", player_index)
+- remote.call("trainsaver", "toggle_trainsaver", player_index)
 - remote.call("trainsaver", "focus_next_target", player_index)
 - remote.call("trainsaver", "focus_previous_target", player_index)
+- remote.call("trainsaver", "reset_player_history", player_index)
 
 ---------------------
 ##### Translation
