@@ -8,7 +8,7 @@ local idle_states = constants.idle_states
 local function current_trainsaver_target(player)
     global.current_target = global.current_target or {}
     local target = global.current_target[player.index]
-    if target.valid then
+    if target and target.valid then
         return target
     end
 end
