@@ -40,6 +40,7 @@ local exceeded_signal_minimum = status_util.exceeded_signal_minimum
 local exceeded_spider_walking_minimum = status_util.exceeded_spider_walking_minimum
 local exceeded_spider_idle_minimum = status_util.exceeded_spider_idle_minimum
 local trainsaver_is_active = status_util.trainsaver_is_active
+local waypoint_target_passes_inactivity_checks = status_util.waypoint_target_passes_inactivity_checks
 
 local waypoint_util = require("util.waypoint")
 local create_waypoint = waypoint_util.create_waypoint
@@ -297,7 +298,6 @@ local function play_cutscene(created_waypoints, player_index)
     end
   end
 end
-
 -- if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global
 ---@param event EventData.on_train_changed_state
 local function update_wait_at_station(event)
@@ -369,61 +369,6 @@ local function update_wait_at_signal(train_changed_state_event)
   end
 end
 
--- 
----@param player LuaPlayer
----@param waypoint_target LuaEntity|LuaUnitGroup?
----@return boolean
-local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
-  local bool = false
-  waypoint_target = waypoint_target or current_trainsaver_target(player)
-  if not waypoint_target then return true end
-  local current_target_name = get_chatty_name(waypoint_target)
-  local chatty_name = get_chatty_name(player)
-  global.cutscene_ending = global.cutscene_ending or {}
-  if global.cutscene_ending[player.index] then
-    chatty_print(chatty_name .. "denied. trainsaver is ending")
-    bool = false
-  elseif target_is_locomotive(waypoint_target) then
-    local locomotive = waypoint_target
-    local state = locomotive.train.state
-    local exceeds_driving = active_states[state] and exceeded_driving_minimum(player)
-    local exceeds_station = wait_station_states[state] and exceeded_station_minimum(player)
-    local exceeds_signal = wait_signal_states[state] and exceeded_signal_minimum(player)
-    if exceeds_driving or exceeds_station or exceeds_signal then
-      chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
-      bool = true
-    elseif always_accept_new_target_states[state] then
-      chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
-      bool = true
-    else
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
-      bool = false
-    end
-  elseif target_is_spider(waypoint_target) then
-    local next_destination = waypoint_target.autopilot_destinations[1]
-    local speed = waypoint_target.speed
-    local spider_is_walking = speed > 0
-    local spider_is_still = speed == 0
-    if spider_is_walking and next_destination then
-      if exceeded_spider_walking_minimum(player) then
-        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for walking spidertron")
-        bool = true
-      else
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for walking spidertron")
-        bool = false
-      end
-    elseif spider_is_still then
-      if exceeded_spider_idle_minimum(player) then
-        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
-        bool = true
-      else
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
-        bool = false
-      end
-    else
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is settling down")
-      bool = false -- when would this happen??
-    end
   elseif target_is_rocket_silo(waypoint_target) then
     chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
     bool = false
