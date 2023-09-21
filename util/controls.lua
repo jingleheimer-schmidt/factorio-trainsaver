@@ -322,8 +322,10 @@ local function focus_previous_target(event)
 end
 
 -- reset the watch history for a player
----@param player_index uint
-local function reset_player_history(player_index)
+---@param event EventData.on_console_command
+local function reset_player_history(event)
+    local player_index = event.player_index
+    if not player_index then return end
     global.watch_history = global.watch_history or {}
     global.watch_history[player_index] = nil
     global.player_history_index = global.player_history_index or {}

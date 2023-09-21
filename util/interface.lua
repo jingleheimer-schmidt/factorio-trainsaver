@@ -59,7 +59,8 @@ interface_functions.toggle_trainsaver = function(player_index)
 end
 
 interface_functions.reset_player_history = function(player_index)
-    reset_player_history(player_index)
+    local mock_event_data = { player_index = player_index }
+    reset_player_history(mock_event_data)
 end
 
 return {

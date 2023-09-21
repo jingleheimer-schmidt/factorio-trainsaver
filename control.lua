@@ -53,6 +53,7 @@ local end_trainsaver_on_command = controls_util.end_trainsaver_on_command
 local focus_new_target = controls_util.focus_new_target
 local focus_next_target = controls_util.focus_next_target
 local focus_previous_target = controls_util.focus_previous_target
+local reset_history = controls_util.reset_player_history
 
 local cutscene_util = require("util.cutscene")
 local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
@@ -676,6 +677,7 @@ local function add_commands()
   commands.add_command("trainsaver", "- toggles a dynamic screensaver that follows active trains.", start_or_end_trainsaver)
   commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
   commands.add_command("verbose-trainsaver","- toggles trainsaver console debug messages", toggle_chatty)
+  commands.add_command("reset-trainsaver-history", "- clears the history log", reset_history)
 end
 
 script.on_init(add_commands)
