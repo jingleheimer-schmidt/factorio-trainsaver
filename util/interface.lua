@@ -10,6 +10,7 @@ Example usage:
 local controls_util = require("util.controls")
 local focus_next_target = controls_util.focus_next_target
 local focus_previous_target = controls_util.focus_previous_target
+local reset_player_history = controls_util.reset_player_history
 
 local interface_functions = {}
 
@@ -37,6 +38,10 @@ end
 interface_functions.focus_previous_target = function(player_index)
     local mock_event_data = { player_index = player_index }
     focus_previous_target(mock_event_data)
+end
+
+interface_functions.reset_player_history = function(player_index)
+    reset_player_history(player_index)
 end
 
 return {

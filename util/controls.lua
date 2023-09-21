@@ -324,6 +324,15 @@ local function focus_previous_target(event)
     end
 end
 
+-- reset the watch history for a player
+---@param player_index uint
+local function reset_player_history(player_index)
+    global.watch_history = global.watch_history or {}
+    global.watch_history[player_index] = nil
+    global.player_history_index = global.player_history_index or {}
+    global.player_history_index[player_index] = nil
+end
+
 return {
     start_trainsaver = start_trainsaver,
     end_trainsaver = end_trainsaver,
@@ -332,4 +341,5 @@ return {
     focus_new_target = focus_new_target,
     focus_next_target = focus_next_target,
     focus_previous_target = focus_previous_target,
+    reset_player_history = reset_player_history,
 }
