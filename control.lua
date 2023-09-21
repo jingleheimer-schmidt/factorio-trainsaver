@@ -51,24 +51,13 @@ local start_trainsaver = controls_util.start_trainsaver
 local start_or_end_trainsaver = controls_util.start_or_end_trainsaver
 local end_trainsaver_on_command = controls_util.end_trainsaver_on_command
 
+local cutscene_util = require("util.cutscene")
+local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
+local play_cutscene = cutscene_util.play_cutscene
+
 local interface_util = require("util.interface")
 local interface_functions = interface_util.interface_functions
 remote.add_interface("trainsaver", interface_functions)
-
--- add data to global so a cutscene is created for a given player the following tick
----@param player_index uint
----@param train LuaTrain
----@param same_train "same train"?
-local function create_cutscene_next_tick(player_index, train, same_train)
-  ---@class CreateCutsceneNextTickData
-  ---@field [1] LuaTrain
-  ---@field [2] uint -- player index
-  ---@field [3] "same train"?
-  ---@field [4] number -- attempts
-  ---@type table<uint, CreateCutsceneNextTickData>
-  global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-  global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
-end
 
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index uint
@@ -232,72 +221,6 @@ local function update_globals_new_cutscene(player, created_waypoints)
   end
 end
 
--- play cutscene from given waypoints
----@param created_waypoints CutsceneWaypoint[]
----@param player_index uint
-local function play_cutscene(created_waypoints, player_index)
-  local player = game.get_player(player_index)
-  if not player then return end
-  local chatty_name = get_chatty_name(player)
-  -- chatty_print(chatty_name.."initiating cutscene")
-  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-    if remote.call("cc_check", "cc_status", player_index) == "active" then
-      return
-    end
-  end
-
-  -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-  if player.surface_index ~= created_waypoints[1].target.surface.index then
-    chatty_print(chatty_name.."abort: waypoint is on different surface than player")
-    return
-  end
-
-  -- save alt-mode so we can preserve it after cutscene controller resets it
-  local transfer_alt_mode = player.game_view_settings.show_entity_info
-
-  -- set the player controller to cutscene camera
-  player.set_controller(
-    {
-      type = defines.controllers.cutscene,
-      waypoints = created_waypoints,
-      start_position = player.position,
-      -- final_transition_time = tt
-    }
-  )
-  -- chatty_print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints")
-
-  -- reset alt-mode to what it was before cutscene controller reset it
-  player.game_view_settings.show_entity_info = transfer_alt_mode
-  update_globals_new_cutscene(player, created_waypoints)
-
-  -- unlock any achievements if possible
-  local waypoint_target = created_waypoints[1].target
-  if waypoint_target and target_is_locomotive(waypoint_target) and waypoint_target.train then
-    local train = waypoint_target.train
-    local passengers = train and train.passengers
-    if passengers then
-      for _, passenger in pairs(passengers) do
-        --[[
-        if passenger.index == player.index then
-          player.unlock_achievement("trainsaver-self-reflection")
-          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
-        end
-        --]]
-        if passenger.index ~= player.index then
-          player.unlock_achievement("trainsaver-find-a-friend")
-          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw "..passenger.name.." riding a train")
-        end
-      end
-    end
-    local path = train and train.path
-    if path then
-      local remaining_path_distance = path.total_distance - path.travelled_distance
-      if remaining_path_distance > 10000 then
-        player.unlock_achievement("trainsaver-long-haul")
-      end
-    end
-  end
-end
 -- if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global
 ---@param event EventData.on_train_changed_state
 local function update_wait_at_station(event)
@@ -368,14 +291,6 @@ local function update_wait_at_signal(train_changed_state_event)
     end
   end
 end
-
-  elseif target_is_rocket_silo(waypoint_target) then
-    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
-    bool = false
-  end
-  return bool
-end
-
 
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
