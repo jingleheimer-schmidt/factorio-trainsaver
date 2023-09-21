@@ -3,8 +3,6 @@ This mod creates a dynamic screensaver which follows trains as they drive around
 
 Please report any issues or suggestions on the [Discussion](https://mods.factorio.com/mod/trainsaver/discussion) page.
 
-Contribute to the project on [GitHub](https://github.com/jingleheimer-schmidt/factorio-trainsaver)
-
 ------------------------------------------
 # Features
 - *Easy Access:* start or stop trainsaver at any time with a configurable hotkey (default: cmd/ctrl + t) or use the /trainsaver command in chat console
@@ -48,6 +46,8 @@ Currently available locale:
 ------------------------------------------
 ##### Compatibility:
 There are currently no known mod compatibility issues. To report a compatibility issue, please make a post on the discussion page.
+
+If you have suggestions or bug fixes that you would like to contribute directly, feel free to open a pull request on [GitHub](https://github.com/jingleheimer-schmidt/factorio-trainsaver).
 
 ------------------------------------------
 ##### Other mods by asher_sky:
