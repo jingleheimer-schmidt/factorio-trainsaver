@@ -11,14 +11,14 @@ local wait_station_states = constants.wait_station_states
 local wait_signal_states = constants.wait_signal_states
 local always_accept_new_target_states = constants.always_accept_new_target_states
 
-local messages = require("util.messages")
-local toggle_chatty = messages.toggle_chatty
-local chatty_print = messages.chatty_print
-local chatty_player_name = messages.chatty_player_name
-local chatty_target_train_name = messages.chatty_target_train_name
-local chatty_target_entity_name = messages.chatty_target_entity_name
-local get_chatty_name = messages.get_chatty_name
-local print_notable_event = messages.print_notable_event
+local message = require("util.message")
+local toggle_chatty = message.toggle_chatty
+local chatty_print = message.chatty_print
+local chatty_player_name = message.chatty_player_name
+local chatty_target_train_name = message.chatty_target_train_name
+local chatty_target_entity_name = message.chatty_target_entity_name
+local get_chatty_name = message.get_chatty_name
+local print_notable_event = message.print_notable_event
 
 local target_util = require("util.target")
 local current_trainsaver_target = target_util.current_trainsaver_target

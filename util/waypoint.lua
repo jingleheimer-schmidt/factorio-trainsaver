@@ -1,5 +1,5 @@
 
-local message_util = require("util.messages")
+local message_util = require("util.message")
 local get_chatty_name = message_util.get_chatty_name
 local chatty_print = message_util.chatty_print
 
