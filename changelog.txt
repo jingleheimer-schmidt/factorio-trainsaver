@@ -2,7 +2,13 @@
 Version: 0.0.26
 Date: ????
   Changes:
+    - added target history tracking
+    - added hotkeys (default right/left arrow) to navigate target history
     - added remote interface functions to navigate target history
+    - added flying text at cursor when navigating target history
+    - added verbose mod messages for history navigation
+    - restructured control script again
+    - fixed that driving_until_tick, wait_signal_until_tick, and wait_station_until_tick all used driving_minimum instead of their respective minimums on trainsaver startup
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.25
 Date: 02SEP2023
