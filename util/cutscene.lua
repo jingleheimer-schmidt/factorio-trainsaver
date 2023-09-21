@@ -7,6 +7,9 @@ local print_notable_event = message_util.print_notable_event
 local target_util = require("util.target")
 local target_is_locomotive = target_util.target_is_locomotive
 
+local globals_util = require("util.globals")
+local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
+
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index uint
 ---@param train LuaTrain
