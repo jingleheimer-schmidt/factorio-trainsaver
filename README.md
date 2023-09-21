@@ -1,5 +1,5 @@
 ### Sit back, relax, and watch your trains drive around! 
-This mod creates a dynamic screensaver which follows trains as they drive around from station to station. The screensaver can be started or stopped at any time with cmd/ctrl + t or the /trainsaver chat command. The screensaver can also start automatically when a player is AFK. Most game-control keys will exit the screensaver and return control to the player, except the right/left arrow keys which navigate the history of previously viewed targets.
+This mod creates a dynamic screensaver which follows trains as they drive around from station to station. The screensaver can be started or stopped at any time with cmd/ctrl + t or the /trainsaver chat command. The screensaver can also start automatically when a player is AFK. Most game-control keys will exit the screensaver and return control to the player, except the right/left arrow keys which navigate a history of previously viewed targets.
 
 Please report any issues or suggestions on the [Discussion](https://mods.factorio.com/mod/trainsaver/discussion) page.
 
