@@ -22,5 +22,5 @@ interface_functions.trainsaver_target = function(player_index)
 end
 
 return {
-    interface_functions,
+    interface_functions = interface_functions,
 }
