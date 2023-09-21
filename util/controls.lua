@@ -300,26 +300,23 @@ local function focus_previous_target(event)
     if not current_target then return end
     local watch_histories = global.watch_history
     local watch_history = watch_histories and watch_histories[player.index]
-    if not watch_history then
-        focus_new_target(event)
-    else
-        global.player_history_index = global.player_history_index or {}
-        local player_history_index = global.player_history_index[player.index] or 1
-        for i = player_history_index - 1, 1, -1 do
-            local target = watch_history[i]
-            if target and target.valid then
-                local chatty_name = get_chatty_name(player)
-                chatty_print(chatty_name .. "focusing previous target in watch history [" .. i .. " of " .. #watch_history .. "]")
-                if target_is_locomotive(target) then
-                    local train = target.train
-                    target = train.speed < 0 and train.back_stock or train.front_stock
-                end
-                local waypoints = create_waypoint(target, player.index)
-                play_cutscene(waypoints, player.index, false)
-                global.player_history_index[player.index] = i
-                player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
-                return
+    if not watch_history then return end
+    global.player_history_index = global.player_history_index or {}
+    local player_history_index = global.player_history_index[player.index] or 1
+    for i = player_history_index - 1, 1, -1 do
+        local target = watch_history[i]
+        if target and target.valid then
+            local chatty_name = get_chatty_name(player)
+            chatty_print(chatty_name .. "focusing previous target in watch history [" .. i .. " of " .. #watch_history .. "]")
+            if target_is_locomotive(target) then
+                local train = target.train
+                target = train.speed < 0 and train.back_stock or train.front_stock
             end
+            local waypoints = create_waypoint(target, player.index)
+            play_cutscene(waypoints, player.index, false)
+            global.player_history_index[player.index] = i
+            player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
+            return
         end
     end
 end
