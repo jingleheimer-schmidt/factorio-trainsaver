@@ -1,607 +1,73 @@
 
 --[[ factorio mod trainsaver control script created by asher_sky --]]
 
-require "util"
+require("util")
 
-local verbose_states = { ---@type table<defines.train_state, string>
-  [defines.train_state.on_the_path] = "[color=green]on_the_path[/color]",
-  [defines.train_state.path_lost] = "[color=purple]path_lost[/color]",
-  [defines.train_state.no_schedule] = "[color=purple]no_schedule[/color]",
-  [defines.train_state.no_path] = "[color=purple]no_path[/color]",
-  [defines.train_state.arrive_signal] = "[color=yellow]arrive_signal[/color]",
-  [defines.train_state.wait_signal] = "[color=orange]wait_signal[/color]",
-  [defines.train_state.arrive_station] = "[color=yellow]arrive_station[/color]",
-  [defines.train_state.wait_station] = "[color=red]wait_station[/color]",
-  [defines.train_state.manual_control_stop] = "[color=pink]manual_control_stop[/color]",
-  [defines.train_state.manual_control] = "[color=pink]manual_control[/color]",
-  [defines.train_state.destination_full] = "[color=blue]destination_full[/color]",
-}
-local active_states = { ---@type table<defines.train_state, boolean>
-  [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
-local idle_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  [defines.train_state.no_schedule] = true,
-  [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  [defines.train_state.destination_full] = true,
-}
-local wait_station_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  [defines.train_state.destination_full] = true,
-}
-local wait_signal_states = { ---@type table<defines.train_state, boolean>
-  -- [defines.train_state.on_the_path] = true,
-  -- [defines.train_state.path_lost] = true,
-  -- [defines.train_state.no_schedule] = true,
-  -- [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  -- [defines.train_state.manual_control_stop] = true,
-  -- [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
-local always_accept_new_target_states = {
-  -- [defines.train_state.on_the_path] = true,
-  [defines.train_state.path_lost] = true,
-  [defines.train_state.no_schedule] = true,
-  [defines.train_state.no_path] = true,
-  -- [defines.train_state.arrive_signal] = true,
-  -- [defines.train_state.wait_signal] = true,
-  -- [defines.train_state.arrive_station] = true,
-  -- [defines.train_state.wait_station] = true,
-  [defines.train_state.manual_control_stop] = true,
-  [defines.train_state.manual_control] = true,
-  -- [defines.train_state.destination_full] = true,
-}
+local constants = require("util.constants")
+local verbose_states = constants.verbose_states
+local active_states = constants.active_states
+local idle_states = constants.idle_states
+local wait_station_states = constants.wait_station_states
+local wait_signal_states = constants.wait_signal_states
+local always_accept_new_target_states = constants.always_accept_new_target_states
 
-local function toggle_chatty()
-  if not global.chatty then
-    global.chatty = true
-    game.print("verbose trainsaver enabled")
-  else
-    global.chatty = false
-    game.print("verbose trainsaver disabled")
-  end
-end
+local message = require("util.message")
+local toggle_chatty = message.toggle_chatty
+local chatty_print = message.chatty_print
+local chatty_player_name = message.chatty_player_name
+local chatty_target_train_name = message.chatty_target_train_name
+local chatty_target_entity_name = message.chatty_target_entity_name
+local get_chatty_name = message.get_chatty_name
+local print_notable_event = message.print_notable_event
 
--- print a message to the game console if global.chatty is true
----@param message string
-local function chatty_print(message)
-  if global.chatty then
-    game.print(message)
-  end
-end
+local target_util = require("util.target")
+local current_trainsaver_target = target_util.current_trainsaver_target
+local target_is_entity = target_util.target_is_entity
+local target_is_locomotive = target_util.target_is_locomotive
+local target_is_spider = target_util.target_is_spider
+local target_is_rocket_silo = target_util.target_is_rocket_silo
+local target_is_unit_group = target_util.target_is_unit_group
+local waypoint_target_has_idle_state = target_util.waypoint_target_has_idle_state
 
--- return a string with the current game tick and the name of a player colored with the player's color;
--- i.e. "[123456] [[color=1,1,1]player_name[/color]]"
----@param player LuaPlayer
----@return string
-local function chatty_player_name(player)
-  return "["..game.tick.."] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
-end
+local math_util = require("util.math")
+local calculate_distance = math_util.calculate_distance
+local convert_speed_into_time = math_util.convert_speed_into_time
 
--- return a string with the name of the train, colored if possible with color of a locomotive on the train
----@param train LuaTrain
----@return string
-local function chatty_target_train_name(train)
-  local target_name = "train " .. train.id
-  local front_mover = train.locomotives["front_movers"][1]
-  local back_mover = train.locomotives["back_movers"][1]
-  if not ((front_mover and front_mover.color) or (back_mover and back_mover.color)) then return target_name end
-  local color = front_mover.color or back_mover.color
-  if color then
-    target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
-  end
-  return target_name
-end
+local status_util = require("util.status")
+local exceeded_driving_minimum = status_util.exceeded_driving_minimum
+local exceeded_station_minimum = status_util.exceeded_station_minimum
+local exceeded_signal_minimum = status_util.exceeded_signal_minimum
+local exceeded_spider_walking_minimum = status_util.exceeded_spider_walking_minimum
+local exceeded_spider_idle_minimum = status_util.exceeded_spider_idle_minimum
+local trainsaver_is_active = status_util.trainsaver_is_active
+local waypoint_target_passes_inactivity_checks = status_util.waypoint_target_passes_inactivity_checks
 
--- return a string with the name of the entity, colored if possible with its color
----@param entity LuaEntity
----@return string
-local function chatty_target_entity_name(entity)
-  local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
-  local target_name = entity.name .. " " .. id
-  if entity.train then target_name = "train " .. entity.train.id .. ": " .. id end
-  local color = entity.color
-  if color then
-    target_name = "[color=" .. color.r .. "," .. color.g .. "," .. color.b .. "]" .. target_name .. "[/color]"
-  end
-  return target_name
-end
+local waypoint_util = require("util.waypoint")
+local create_waypoint = waypoint_util.create_waypoint
 
--- return a string with the name of the target, colored if possible with its color
----@param target LuaEntity|LuaUnitGroup|LuaTrain|LuaPlayer|nil
----@return string
-local function get_chatty_name(target)
-  if not target then return "nil" end
-  local object_name = target.object_name
-  if object_name == "LuaTrain" then
-    return chatty_target_train_name(target)
-  elseif object_name == "LuaPlayer" then
-    return chatty_player_name(target)
-  elseif object_name == "LuaEntity" then
-    return chatty_target_entity_name(target)
-  else
-    return "LuaUnitGroup"
-  end
-end
+local controls_util = require("util.controls")
+local end_trainsaver = controls_util.end_trainsaver
+local start_trainsaver = controls_util.start_trainsaver
+local start_or_end_trainsaver = controls_util.start_or_end_trainsaver
+local end_trainsaver_on_command = controls_util.end_trainsaver_on_command
+local focus_new_target = controls_util.focus_new_target
+local focus_next_target = controls_util.focus_next_target
+local focus_previous_target = controls_util.focus_previous_target
+local reset_history = controls_util.reset_player_history
 
--- return true if trainsaver is active for given player, or false if not
----@param player LuaPlayer
----@return boolean
-local function trainsaver_is_active(player)
-  if not (player.controller_type == defines.controllers.cutscene) then
-    return false
-  end
-  if global.trainsaver_status and global.trainsaver_status[player.index] then
-    return true
-  else
-    return false
-  end
-end
+local cutscene_util = require("util.cutscene")
+local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
+local play_cutscene = cutscene_util.play_cutscene
 
--- returns the current trainsaver target for a given player, if any
----@param player LuaPlayer
----@return LuaEntity|LuaUnitGroup|nil
-local function current_trainsaver_target(player)
-  global.current_target = global.current_target or {}
-  local target = global.current_target[player.index]
-  if target.valid then
-    return target
-  end
-end
+local globals_util = require("util.globals")
+local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
+local cutscene_ended_nil_globals = globals_util.cutscene_ended_nil_globals
+local update_wait_at_signal = globals_util.update_wait_at_signal
+local update_wait_at_station = globals_util.update_wait_at_station
 
--- returns true if the provided cutscene waypoint target is a valid entity
----@param target LuaEntity|LuaUnitGroup|nil
----@return boolean
-local function target_is_entity(target)
-  if target and target.valid and (target.object_name == "LuaEntity") then
-    return true
-  else
-    return false
-  end
-end
-
--- returns true if the given target is a valid locomotive
----@param target LuaEntity|LuaUnitGroup|nil
----@return boolean
-local function target_is_locomotive(target)
-  if target and target_is_entity(target) and (target.type == "locomotive") then
-    return true
-  else
-    return false
-  end
-end
-
--- returns true if the given target is a valid spidertron
----@param target LuaEntity|LuaUnitGroup|nil
----@return boolean
-local function target_is_spider(target)
-  if target and target_is_entity(target) and (target.type == "spider-vehicle") then
-    return true
-  else
-    return false
-  end
-end
-
--- returns true if the given target is a valid rocket silo
----@param target LuaEntity|LuaUnitGroup|nil
----@return boolean
-local function target_is_rocket_silo(target)
-  if target and target_is_entity(target) and (target.type == "rocket-silo") then
-    return true
-  else
-    return false
-  end
-end
-
--- returns true if the given target is a valid unit group
----@param target LuaEntity|LuaUnitGroup|nil
----@return boolean
-local function target_is_unit_group(target)
-  if target and target.valid and (target.object_name == "LuaUnitGroup") then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if the current trainsaver target is a locomotive and the train has an idle state, or the current target is a spidertron and it is not moving
----@param player LuaPlayer
----@return boolean
-local function waypoint_target_has_idle_state(player)
-  local bool = false
-  local current_target = current_trainsaver_target(player)
-  if current_target and target_is_locomotive(current_target) then
-    local locomotive = current_target --[[@as LuaEntity]]
-    local state = locomotive.train.state
-    if idle_states[state] then
-      bool = true
-    end
-  elseif current_target and target_is_spider(current_target) then
-    local spider = current_target --[[@as LuaEntity]]
-    local speed = spider.speed
-    if speed == 0 then
-      bool = true
-    end
-  elseif current_target and target_is_rocket_silo(current_target) then
-    bool = false
-  end
-  return bool
-end
-
--- add data to global so a cutscene is created for a given player the following tick
----@param player_index uint
----@param train LuaTrain
----@param same_train "same train"?
-local function create_cutscene_next_tick(player_index, train, same_train)
-  ---@class CreateCutsceneNextTickData
-  ---@field [1] LuaTrain
-  ---@field [2] uint -- player index
-  ---@field [3] "same train"?
-  ---@field [4] number -- attempts
-  ---@type table<uint, CreateCutsceneNextTickData>
-  global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-  global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
-end
-
--- print a message to all players who have notable events enabled
----@param message string
-local function print_notable_event(message)
-  for _, player in pairs(game.connected_players) do
-    if player.mod_settings["ts-notable-events"].value == true then
-      player.print(message)
-    end
-  end
-end
-
--- returns the distance between two map positions
----@param position_1 MapPosition
----@param position_2 MapPosition
----@return integer
-local function calculate_distance(position_1, position_2)
-  local distance = math.floor(((position_1.x - position_2.x) ^ 2 + (position_1.y - position_2.y) ^ 2) ^ 0.5)
-  return distance
-end
-
--- converts speed in kmph into time in ticks
----@param speed_kmph number
----@param distance_in_meters number
----@return number
-local function convert_speed_into_time(speed_kmph, distance_in_meters)
-  local speed = speed_kmph / 60 / 60 / 60    -- speed in km/tick
-  local distance = distance_in_meters / 1000 -- distance in kilometers
-  local time = 0
-  if speed ~= 0 then
-    time = distance / speed
-  end
-  return time
-end
--- create a waypoint for given waypoint_target using player mod settings
----@param waypoint_target LuaEntity|LuaUnitGroup
----@param player_index uint
----@return CutsceneWaypoint[]
-local function create_waypoint(waypoint_target, player_index)
-  local player = game.get_player(player_index) --[[@as LuaPlayer]]
-  local mod_settings = player.mod_settings
-  local chatty_name = get_chatty_name(player)
-  local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
-  local transition_time_2 = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
-  local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
-  local zoom = mod_settings["ts-zoom"].value --[[@as number]]
-  local time_to_wait = mod_settings["ts-time-wait"].value * 60 * 60 --[[@as number]] --[[ convert minutes to ticks --]]
-
-  -- we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time
-  if transition_time > 0 then
-    local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-    transition_time = convert_speed_into_time(transition_time, distance_in_meters)
-  end
-
-  -- if variable zoom is enabled, then we will randomly zoom in or out by 20%
-  if variable_zoom == true then
-    zoom = (math.random(((zoom - (zoom * .20)) * 1000), (((zoom + (zoom * .20))) * 1000))) / 1000
-  end
-
-  -- set transition time for final waypoint based on where we think the waypoint target will be when the cutscene is over
-  local waypoint_2_start_entity = {} ---@type LuaEntity
-  if target_is_locomotive(waypoint_target) then
-    waypoint_2_start_entity = waypoint_target.train.path_end_stop or waypoint_target.train.path_end_rail or {}
-  elseif target_is_spider(waypoint_target) then
-    if waypoint_target.autopilot_destinations then
-      waypoint_2_start_entity = {position = waypoint_target.autopilot_destinations[#waypoint_target.autopilot_destinations]} or {}
-    end
-  elseif target_is_unit_group(waypoint_target) then
-    waypoint_2_start_entity = waypoint_target.command and waypoint_target.command.target or {}
-  end
-  local waypoint_2_end_entity = player.cutscene_character or player.character or {}
-  local waypoint_2_end_entity_name = waypoint_2_end_entity.name
-  if player.cutscene_character then waypoint_2_end_entity_name = "cutscene character" end
-  if transition_time_2 > 0 then
-    local waypoint_2_start_position = waypoint_2_start_entity.position or waypoint_target.position
-    local waypoint_2_end_position = waypoint_2_end_entity.position or player.position
-    local waypoint_2_distance_in_meters = calculate_distance(waypoint_2_start_position, waypoint_2_end_position)
-    transition_time_2 = convert_speed_into_time(transition_time_2, waypoint_2_distance_in_meters)
-  end
-
-  -- finally let's assemble our waypints table!
-  local created_waypoints = {
-    {
-      target = waypoint_target,
-      transition_time = transition_time,
-      time_to_wait = time_to_wait,
-      zoom = zoom
-    },
-  }
-  local message = chatty_name .. "created waypoint to [" .. get_chatty_name(waypoint_target) .. "] with no return waypoint"
-
-  -- use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to
-  if waypoint_2_end_entity.valid and (waypoint_2_end_entity.surface_index == player.surface_index) then
-    local waypoint_2 = {
-      target = waypoint_2_end_entity,
-      transition_time = transition_time_2,
-      time_to_wait = 60,
-      zoom = zoom
-    }
-    table.insert(created_waypoints, waypoint_2)
-    message = chatty_name .. "created waypoint to [" .. get_chatty_name(waypoint_target) .. "] with return waypoint to " .. waypoint_2_end_entity_name
-  end
-  chatty_print(message)
-  return created_waypoints
-end
-
--- end the screensaver
----@param command EventData.on_console_command
----@param ending_transition boolean?
-local function end_trainsaver(command, ending_transition)
-  local player_index = command.player_index
-  if not player_index then return end
-  local player = game.get_player(player_index)
-  if not player then return end
-  if not trainsaver_is_active(player) then return end
-  local chatty_name = get_chatty_name(player)
-  -- if the cutscene creator mod created the cutscene, don't cancel it
-  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-    if remote.call("cc_check", "cc_status", player_index) == "active" then return end
-  end
-  -- if we're not doing a transition, then just exit the cutscene immediately
-  if not ending_transition then
-    chatty_print(chatty_name .. "exit trainsaver (instant) requested")
-    player.exit_cutscene()
-    return
-  end
-  -- if we're already in the process of exiting, then just exit immediately
-  if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
-    chatty_print(chatty_name .. "trainsaver is currently exiting. immediate exit requested")
-    player.exit_cutscene()
-    return
-  end
-  -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
-  if not (player.cutscene_character or player.character) then
-    chatty_print(chatty_name .. "has no character or cutscene_character. immediate exit requested")
-    player.exit_cutscene()
-    return
-  end
-  -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
-  chatty_print(chatty_name .. "exit trainsaver (transition) requested")
-  local mod_settings = player.mod_settings
-  local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
-  local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
-  local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
-  local zoom = mod_settings["ts-zoom"].value --[[@as number]]
-  local wait_time = 30
-  if transition_time > 0 then
-    local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-    transition_time = convert_speed_into_time(transition_time, distance_in_meters)
-  end
-  if variable_zoom then
-    zoom = (math.random(((zoom - (zoom * .20)) * 1000), (((zoom + (zoom * .20))) * 1000))) / 1000
-  end
-  local created_waypoints = {
-    {
-      target = waypoint_target,
-      transition_time = transition_time,
-      time_to_wait = wait_time,
-      zoom = zoom
-    },
-  }
-  local character_name = player.character and player.character.name or "cutscene character"
-  chatty_print(chatty_name.."created ending transition waypoints to " .. character_name)
-  if player.surface_index ~= created_waypoints[1].target.surface_index then
-    chatty_print(chatty_name.."ending transition target on different surface than player. immediate exit requested")
-    player.exit_cutscene()
-    return
-  end
-  local transfer_alt_mode = player.game_view_settings.show_entity_info
-  player.set_controller(
-    {
-      type = defines.controllers.cutscene,
-      waypoints = created_waypoints,
-      start_position = player.position,
-    }
-  )
-  player.game_view_settings.show_entity_info = transfer_alt_mode
-  -- update globals for a cutscene ending
-  ---@type table<uint, boolean>
-  global.cutscene_ending = global.cutscene_ending or {}
-  global.cutscene_ending[player_index] = true
-  ---@type table<uint, number|uint>
-  global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-  global.wait_signal_until_tick[player_index] = nil
-  ---@type table<uint, number|uint>
-  global.wait_station_until_tick = global.wait_station_until_tick or {}
-  global.wait_station_until_tick[player_index] = nil
-  ---@type table<uint, number|uint>
-  global.driving_until_tick = global.driving_until_tick or {}
-  global.driving_until_tick[player_index] = nil
-
-  -- these ones aren't used any more, but we'll keep them around for a while just because
-  global.driving_since_tick = global.driving_since_tick or {}
-  global.driving_since_tick[player_index] = nil
-  global.wait_station_since_tick = global.wait_station_since_tick or {}
-  global.wait_station_since_tick[player_index] = nil
-  global.wait_at_signal = global.wait_at_signal or {}
-  global.wait_at_signal[player_index] = nil
-end
-
--- start the screensaver :D
----@param command EventData.on_console_command
----@param train_to_ignore LuaTrain?
----@param entity_gone_restart boolean?
-local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
-  local chatty = global.chatty
-  local player_index = command.player_index
-  if not player_index then return end
-  local player = game.get_player(player_index)
-  if not player then return end
-  local chatty_name = get_chatty_name(player)
-  local name = command.name
-  chatty_print(chatty_name .. "starting trainsaver")
-  local controller_type = player.controller_type
-  local allowed_controller_types = {
-    [defines.controllers.character] = true,
-    [defines.controllers.god] = true,
-  }
-  if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
-
-  -- create a table of all trains
-  local all_trains = player.surface.get_trains()
-
-  -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
-  local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]
-  if not train_to_ignore then train_to_ignore = { id = -999999 } end
-  for _, train in pairs(all_trains) do
-    if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
-      table.insert(eligable_trains_with_movers, train)
-    end
-  end
-  chatty_print(chatty_name .. "created table of trains [" .. #eligable_trains_with_movers .. " total]")
-
-  -- if there's no eligable trains, exit trainsaver
-  if not eligable_trains_with_movers[1] then
-    chatty_print(chatty_name .. "no eligable trains found")
-    end_trainsaver(command)
-    return
-  end
-
-  -- if there are any trains, make a table of all the active (on_the_path) ones
-  local active_trains = {} --[=[@type LuaTrain[]]=]
-  for _, train in pairs(eligable_trains_with_movers) do
-    if train.state == defines.train_state.on_the_path then
-      table.insert(active_trains, train)
-    end
-  end
-  chatty_print(chatty_name .. "created table of active trains [" .. #active_trains .. " total]")
-
-  -- sort the table of active trains by how much of their path is remaining so we can focus on the one with the longest remaining path
-  if active_trains[1] then
-    local active_trains_sorted_by_remaining_path_length = util.table.deepcopy(active_trains)
-    table.sort(active_trains_sorted_by_remaining_path_length, function(a,b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
-    create_cutscene_next_tick(player_index, active_trains_sorted_by_remaining_path_length[1])
-    chatty_print(chatty_name.."requested cutscene for " .. player.name .. ", following train with longest remaining path")
-    return
-  end
-
-  -- if there are no trains on_the_path then make a table of trains waiting at stations
-  chatty_print(chatty_name .. "no trains are on_the_path")
-  local trains_at_stations = {} --[=[@type LuaTrain[]]=]
-  for _, train in pairs(eligable_trains_with_movers) do
-    if train.state == defines.train_state.wait_station then
-      table.insert(trains_at_stations, train)
-    end
-  end
-  chatty_print(chatty_name .. "created table of trains waiting at stations [" .. #trains_at_stations .. " total]")
-
-  -- if there are any trains waiting at stations, pick a random one to request a cutscene with
-  if trains_at_stations[1] then
-    local random_train_index = math.random(table_size(trains_at_stations))
-    local waypoint_target = trains_at_stations[random_train_index]
-    create_cutscene_next_tick(player_index, waypoint_target)
-    chatty_print(chatty_name .. "chose a random train waiting at a station")
-    return
-  end
-
-  -- if there are no trains on_the_path or waiting at stations, then pick a random train from the eligible ones to request a cutscene with
-  chatty_print(chatty_name .. "no trains on_the_path or waiting at stations")
-  local random_train_index = math.random(table_size(eligable_trains_with_movers))
-  local waypoint_target = eligable_trains_with_movers[random_train_index]
-  create_cutscene_next_tick(player_index, waypoint_target)
-  chatty_print(chatty_name .. "chose a random train")
-end
-
--- remove any globals we saved for the player when trainsaver ends
----@param player_index uint
-local function cutscene_ended_nil_globals(player_index)
-  global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-  global.create_cutscene_next_tick[player_index] = nil
-  global.wait_at_signal = global.wait_at_signal or {}
-  global.wait_at_signal[player_index] = nil
-  global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {}
-  global.entity_destroyed_registration_numbers[player_index] = nil
-  global.rocket_positions = global.rocket_positions or {}
-  global.rocket_positions[player_index] = nil
-  global.trainsaver_status = global.trainsaver_status or {}
-  global.trainsaver_status[player_index] = nil
-  global.current_continuous_duration = global.current_continuous_duration or {}
-  global.current_continuous_duration[player_index] = nil
-  global.current_target = global.current_target or {}
-  global.current_target[player_index] = nil
-  global.cutscene_ending = global.cutscene_ending or {}
-  global.cutscene_ending[player_index] = nil
-  global.number_of_waypoints = global.number_of_waypoints or {}
-  global.number_of_waypoints[player_index] = nil
-  global.driving_until_tick = global.driving_until_tick or {}
-  global.driving_until_tick[player_index] = nil
-  global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-  global.wait_signal_until_tick[player_index] = nil
-  global.wait_station_until_tick = global.wait_station_until_tick or {}
-  global.wait_station_until_tick[player_index] = nil
-  global.wait_station_since_tick = global.wait_station_since_tick or {}
-  global.wait_station_since_tick[player_index] = nil
-  global.spider_idle_until_tick = global.spider_idle_until_tick or {}
-  global.spider_idle_until_tick[player_index] = nil
-  global.spider_walking_until_tick = global.spider_walking_until_tick or {}
-  global.spider_walking_until_tick[player_index] = nil
-
-  -- gobals that aren't supposed to be used any more, but might still exist from older versions of the mod
-  global.followed_loco = global.followed_loco or {}
-  global.followed_loco[player_index] = nil
-  global.driving_since_tick = global.driving_since_tick or {}
-  global.driving_since_tick[player_index] = nil
-  global.wait_signal_since_tick = global.wait_signal_since_tick or {}
-  global.wait_signal_since_tick[player_index] = nil
-  global.station_minimum = global.station_minimum or {}
-  global.station_minimum[player_index] = nil
-  global.driving_minimum = global.driving_minimum or {}
-  global.driving_minimum[player_index] = nil
-end
+local interface_util = require("util.interface")
+local interface_functions = interface_util.interface_functions
+remote.add_interface("trainsaver", interface_functions)
 
 -- when a cutscene is cancelled with player.exit_cutscene(), nil out any globals we saved for them
 ---@param event EventData.on_cutscene_cancelled
@@ -639,345 +105,6 @@ end
 local function sync_color(player_index)
   game.players[player_index].character.color = game.players[player_index].color
 end
-
--- update all the globals for a newly created cutscene
----@param player LuaPlayer
----@param created_waypoints CutsceneWaypoint[]
-local function update_globals_new_cutscene(player, created_waypoints)
-  local player_index = player.index
-  local waypoint_target = created_waypoints[1].target
-  local waypoint_position = created_waypoints[1].position
-  local mod_settings = player.mod_settings
-  local chatty_name = get_chatty_name(player)
-  -- local station_minimum = mod_settings["ts-station-minimum"].value * 60
-  local driving_minimum = mod_settings["ts-driving-minimum"].value * 60 * 60
-  local current_tick = game.tick
-  -- update trainsaver status global
-  global.trainsaver_status = global.trainsaver_status or {} ---@type table<uint, "active"|nil>
-  global.trainsaver_status[player_index] = "active"
-  -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
-  if target_is_entity(waypoint_target) then
-    global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
-    global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
-  end
-  -- update the current_target global
-  global.current_target = global.current_target or {} ---@type table<uint, LuaEntity|LuaUnitGroup>
-  global.current_target[player_index] = waypoint_target
-  -- update number of waypoints global
-  global.number_of_waypoints = global.number_of_waypoints or {} ---@type table<uint, integer>
-  global.number_of_waypoints[player_index] = #created_waypoints
-  -- update the followed_loco global
-  if target_is_locomotive(waypoint_target) then
-    local locomotive = waypoint_target --[[@as LuaEntity]]
-    ---@class FollowedLocomotiveData
-    ---@field unit_number uint
-    ---@field train_id uint
-    ---@field loco LuaEntity
-    local followed_locomotive_data = {
-      unit_number = locomotive.unit_number,
-      train_id = locomotive.train.id,
-      loco = locomotive,
-    }
-    global.followed_loco = global.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
-    global.followed_loco[player_index] = followed_locomotive_data
-    -- update driving minimum global
-    local state = locomotive.train.state
-    if active_states[state] then
-      global.driving_until_tick = global.driving_until_tick or {} ---@type table<uint, uint|number>
-      global.driving_until_tick[player_index] = current_tick + driving_minimum
-      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set driving_until_tick to [" .. global.driving_until_tick[player.index] .. "]")
-    end
-    if wait_station_states[state] then
-      global.wait_station_until_tick = global.wait_station_until_tick or {} ---@type table<uint, uint|number>
-      global.wait_station_until_tick[player_index] = current_tick + driving_minimum
-      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_station_until_tick to [" .. global.wait_station_until_tick[player.index] .. "]")
-    end
-    if wait_signal_states[state] then
-      global.wait_signal_until_tick = global.wait_signal_until_tick or {} ---@type table<uint, uint|number>
-      global.wait_signal_until_tick[player_index] = current_tick + driving_minimum
-      chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set wait_signal_until_tick to [" .. global.wait_signal_until_tick[player.index] .. "]")
-    end
-    global.spider_walking_until_tick = global.spider_walking_until_tick or {}
-    global.spider_walking_until_tick[player_index] = nil
-    global.spider_idle_until_tick = global.spider_idle_until_tick or {}
-    global.spider_idle_until_tick[player_index] = nil
-  end
-  -- update the spider_walking_until_tick global
-  if target_is_spider(waypoint_target) then
-    global.spider_walking_until_tick = global.spider_walking_until_tick or {} ---@type table<uint, uint>
-    global.spider_walking_until_tick[player_index] = current_tick + driving_minimum
-    chatty_print(chatty_name .. "acquired new target [" .. get_chatty_name(current_trainsaver_target(player)) .. "]. set spider_walking_until_tick to [" .. global.spider_walking_until_tick[player.index] .. "]")
-    global.spider_idle_until_tick = global.spider_idle_until_tick or {}
-    global.spider_idle_until_tick[player_index] = nil
-    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-    global.wait_signal_until_tick[player_index] = nil
-    global.driving_until_tick = global.driving_until_tick or {}
-    global.driving_until_tick[player_index] = nil
-    global.wait_station_until_tick = global.wait_station_until_tick or {}
-    global.wait_station_until_tick[player_index] = nil
-  end
-end
-
--- play cutscene from given waypoints
----@param created_waypoints CutsceneWaypoint[]
----@param player_index uint
-local function play_cutscene(created_waypoints, player_index)
-  local player = game.get_player(player_index)
-  if not player then return end
-  local chatty_name = get_chatty_name(player)
-  -- chatty_print(chatty_name.."initiating cutscene")
-  if remote.interfaces["cc_check"] and remote.interfaces["cc_check"]["cc_status"] then
-    if remote.call("cc_check", "cc_status", player_index) == "active" then
-      return
-    end
-  end
-
-  -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-  if player.surface_index ~= created_waypoints[1].target.surface.index then
-    chatty_print(chatty_name.."abort: waypoint is on different surface than player")
-    return
-  end
-
-  -- save alt-mode so we can preserve it after cutscene controller resets it
-  local transfer_alt_mode = player.game_view_settings.show_entity_info
-
-  -- set the player controller to cutscene camera
-  player.set_controller(
-    {
-      type = defines.controllers.cutscene,
-      waypoints = created_waypoints,
-      start_position = player.position,
-      -- final_transition_time = tt
-    }
-  )
-  -- chatty_print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints")
-
-  -- reset alt-mode to what it was before cutscene controller reset it
-  player.game_view_settings.show_entity_info = transfer_alt_mode
-  update_globals_new_cutscene(player, created_waypoints)
-
-  -- unlock any achievements if possible
-  local waypoint_target = created_waypoints[1].target
-  if waypoint_target and target_is_locomotive(waypoint_target) and waypoint_target.train then
-    local train = waypoint_target.train
-    local passengers = train and train.passengers
-    if passengers then
-      for _, passenger in pairs(passengers) do
-        --[[
-        if passenger.index == player.index then
-          player.unlock_achievement("trainsaver-self-reflection")
-          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw themself riding a train")
-        end
-        --]]
-        if passenger.index ~= player.index then
-          player.unlock_achievement("trainsaver-find-a-friend")
-          print_notable_event("[color=orange]trainsaver:[/color] "..player.name.." saw "..passenger.name.." riding a train")
-        end
-      end
-    end
-    local path = train and train.path
-    if path then
-      local remaining_path_distance = path.total_distance - path.travelled_distance
-      if remaining_path_distance > 10000 then
-        player.unlock_achievement("trainsaver-long-haul")
-      end
-    end
-  end
-end
-
--- if the train that just changed state was the train the camera is following, and it just stopped at a station, then update the station_minimum global
----@param event EventData.on_train_changed_state
-local function update_wait_at_station(event)
-  local train = event.train
-  local new_state = event.train.state
-  local old_state = event.old_state
-  if not wait_station_states[new_state] then return end
-  -- if not active_states[old_state] then return end
-  for _, player in pairs(game.connected_players) do
-    if not trainsaver_is_active(player) then goto next_player end
-    local player_index = player.index
-    local current_target = current_trainsaver_target(player)
-    if not target_is_locomotive(current_target) then goto next_player end
-    local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
-    if not (train.id == current_target_train.id)then goto next_player end
-    global.wait_station_until_tick = global.wait_station_until_tick or {}
-    global.wait_station_until_tick[player_index] = game.tick + player.mod_settings["ts-station-minimum"].value * 60
-    if global.chatty then
-      -- local target_name = chatty_target_train_name(train)
-      local target_name = get_chatty_name(global.followed_loco[player_index].loco)
-      local chatty_name = get_chatty_name(player)
-      game.print(chatty_name.."current target [".. target_name .."] changed to state ["..verbose_states[train.state].."]. wait_station_until_tick set to [" .. global.wait_station_until_tick[player_index] .. "]")
-    end
-    ::next_player::
-  end
-end
-
--- update the wait_at_signal global
----@param train_changed_state_event EventData.on_train_changed_state
-local function update_wait_at_signal(train_changed_state_event)
-  local train = train_changed_state_event.train
-  local old_state = train_changed_state_event.old_state
-  local new_state = train_changed_state_event.train.state
-  -- if camera train is waiting at signal, update the global.wait_at_signal global if necessary, then continue creating the cutscene (cutscene will not be constructed next tick if untill_tick is greater than current tick)
-  if --[[(old_state == defines.train_state.arrive_signal) and --]](new_state == defines.train_state.wait_signal) then
-    for _, player in pairs(game.connected_players) do
-      if not trainsaver_is_active(player) then goto next_player end
-      local current_target = current_trainsaver_target(player)
-      if not target_is_locomotive(current_target) then goto next_player end
-      local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
-      if not (train.id == current_target_train.id) then goto next_player end
-      global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-      global.wait_signal_until_tick[player.index] = game.tick + (player.mod_settings["ts-wait-at-signal"].value * 60)
-      if global.chatty then
-        local target_name = get_chatty_name(train)
-        local chatty_name = get_chatty_name(player)
-        chatty_print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [" .. global.wait_signal_until_tick[player.index] .. "]")
-      end
-      ::next_player::
-    end
-  end
-  -- if camera train has switched from waiting at a signal to moving on the path, nil out the waiting at signal global timer thing
-  if (old_state == defines.train_state.wait_signal) --[[and ((new_state == defines.train_state.on_the_path) or (new_state == defines.train_state.arrive_signal) or (new_state == defines.train_state.arrive_station))]] then
-    for _, player in pairs(game.connected_players) do
-      if not trainsaver_is_active(player) then goto next_player end
-      local current_target = current_trainsaver_target(player)
-      if not target_is_locomotive(current_target) then goto next_player end
-      local current_target_train = current_target and current_target.train --[[@as LuaTrain]]
-      if not (train.id == current_target_train.id) then goto next_player end
-      global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-      global.wait_signal_until_tick[player.index] = nil
-      if global.chatty then
-        local chatty_name = get_chatty_name(player)
-        local target_name = get_chatty_name(train)
-        game.print(chatty_name.."current target [" .. target_name .. "] changed to state [" .. verbose_states[train.state] .. "]. wait_signal_until_tick set to [nil]")
-      end
-      ::next_player::
-    end
-  end
-end
-
--- return true if player has been watching an active train for longer than the driving minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_driving_minimum(player)
-  local driving_until_tick = global.driving_until_tick and global.driving_until_tick[player.index]
-  if driving_until_tick and (driving_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a stopped train at a station for longer than the station minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_station_minimum(player)
-  local stationed_until_tick = global.wait_station_until_tick and global.wait_station_until_tick[player.index]
-  if stationed_until_tick and (stationed_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a train that has been waiting at a signal for longer than the wait at signal minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_signal_minimum(player)
-  local wait_signal_until_tick = global.wait_signal_until_tick and global.wait_signal_until_tick[player.index]
-  if wait_signal_until_tick and (wait_signal_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a spidertron for longer than the driving minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_spider_walking_minimum(player)
-  local spider_walking_until_tick = global.spider_walking_until_tick and global.spider_walking_until_tick[player.index]
-  if spider_walking_until_tick and (spider_walking_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- return true if player has been watching a stopped spidertron for longer than the station minimum
----@param player LuaPlayer
----@return boolean
-local function exceeded_spider_idle_minimum(player)
-  local spider_idle_until_tick = global.spider_idle_until_tick and global.spider_idle_until_tick[player.index]
-  if spider_idle_until_tick and (spider_idle_until_tick < game.tick) then
-    return true
-  else
-    return false
-  end
-end
-
--- 
----@param player LuaPlayer
----@param waypoint_target LuaEntity|LuaUnitGroup?
----@return boolean
-local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
-  local bool = false
-  waypoint_target = waypoint_target or current_trainsaver_target(player)
-  if not waypoint_target then return true end
-  local current_target_name = get_chatty_name(waypoint_target)
-  local chatty_name = get_chatty_name(player)
-  global.cutscene_ending = global.cutscene_ending or {}
-  if global.cutscene_ending[player.index] then
-    chatty_print(chatty_name .. "denied. trainsaver is ending")
-    bool = false
-  elseif target_is_locomotive(waypoint_target) then
-    local locomotive = waypoint_target
-    local state = locomotive.train.state
-    local exceeds_driving = active_states[state] and exceeded_driving_minimum(player)
-    local exceeds_station = wait_station_states[state] and exceeded_station_minimum(player)
-    local exceeds_signal = wait_signal_states[state] and exceeded_signal_minimum(player)
-    if exceeds_driving or exceeds_station or exceeds_signal then
-      chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
-      bool = true
-    elseif always_accept_new_target_states[state] then
-      chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
-      bool = true
-    else
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
-      bool = false
-    end
-  elseif target_is_spider(waypoint_target) then
-    local next_destination = waypoint_target.autopilot_destinations[1]
-    local speed = waypoint_target.speed
-    local spider_is_walking = speed > 0
-    local spider_is_still = speed == 0
-    if spider_is_walking and next_destination then
-      if exceeded_spider_walking_minimum(player) then
-        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for walking spidertron")
-        bool = true
-      else
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for walking spidertron")
-        bool = false
-      end
-    elseif spider_is_still then
-      if exceeded_spider_idle_minimum(player) then
-        chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
-        bool = true
-      else
-        chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
-        bool = false
-      end
-    else
-      chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is settling down")
-      bool = false -- when would this happen??
-    end
-  elseif target_is_rocket_silo(waypoint_target) then
-    chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
-    bool = false
-  end
-  return bool
-end
-
 
 -- update the trainsaver cutscene target to the train that just became active for any players that meet the inactivity requirements
 ---@param event EventData.on_train_changed_state
@@ -1086,7 +213,7 @@ local function spidertron_changed_state(event)
         if waypoints[1].zoom then
           waypoints[1].zoom = waypoints[1].zoom * 1.75
         end
-        play_cutscene(waypoints, player.index)
+        play_cutscene(waypoints, player.index, true)
         goto next_player
       else
         goto next_player
@@ -1102,7 +229,7 @@ local function spidertron_changed_state(event)
         if waypoints[1].zoom then
           waypoints[1].zoom = waypoints[1].zoom * 1.75
         end
-        play_cutscene(waypoints, player.index)
+        play_cutscene(waypoints, player.index, true)
       end
     elseif target_is_rocket_silo(current_target) then
       -- chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
@@ -1147,7 +274,7 @@ local function on_unit_group_finished_gathering(event)
     if waypoint_target_passes_inactivity_checks(player, current_target) then
       local waypoints = create_waypoint(group, player_index)
       waypoints[1].zoom = waypoints[1].zoom * 1.75
-      play_cutscene(waypoints, player_index)
+      play_cutscene(waypoints, player_index, true)
       goto next_player
     end
     ::next_player::
@@ -1312,21 +439,32 @@ local function cutscene_next_tick_function()
 
       local created_waypoints = create_waypoint(mover, player_index)
 
+      local record_history = true
+
       -- If the train is bi-directional and we're just switching from one end to the other,
-      -- set transition time to 15 ticks per carriage so it's nice and smooth. Also remove zoom so it stays the same
+      -- set transition time to 15 ticks per carriage so it's nice and smooth
+      -- also remove zoom so it stays the same
+      -- also don't add it to watch history
       if same_train then
         created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
         created_waypoints[1].zoom = nil
+        record_history = false
       end
 
-      play_cutscene(created_waypoints, player_index)
+      play_cutscene(created_waypoints, player_index, record_history)
       global.create_cutscene_next_tick[player_index] = nil
     else
       attempts = attempts and attempts + 1 or 0
       if attempts > 30 then
         chatty_print(chatty_name .. "new target request accepted with state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
         local created_waypoints = create_waypoint(target_train.carriages[1], player_index)
-        play_cutscene(created_waypoints, player_index)
+        local record_history = true
+        if same_train then
+          created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
+          created_waypoints[1].zoom = nil
+          record_history = false
+        end
+        play_cutscene(created_waypoints, player_index, record_history)
         global.create_cutscene_next_tick[player_index] = nil
       else
         chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
@@ -1402,32 +540,6 @@ local function on_nth_tick()
   end
 end
 
----start or end trainsaver depending on player controller type
----@param event EventData.CustomInputEvent | EventData.on_console_command
-local function start_or_end_trainsaver(event)
-  local player = game.get_player(event.player_index)
-  if not player then return end
-  if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
-    local command = {name = "trainsaver", player_index = event.player_index}
-    start_trainsaver(command)
-  elseif player.controller_type == defines.controllers.cutscene then
-    -- local command = {player_index = event.player_index, ending_transition = true}
-    local command = {player_index = event.player_index}
-    end_trainsaver(command, true)
-  end
-end
-
----end trainsaver when the /end-trainsaver command is used
----@param event EventData.on_console_command
-local function end_trainsaver_on_command(event)
-  local player = game.get_player(event.player_index)
-  if not player then return end
-  if not trainsaver_is_active(player) then return end
-  -- local command = {player_index = event.player_index, ending_transition = true}
-  local command = {player_index = event.player_index}
-  end_trainsaver(command, true)
-end
-
 ---end trainsaver when the game menu is opened
 ---@param event EventData.CustomInputEvent
 local function toggle_menu_pressed(event)
@@ -1494,6 +606,9 @@ script.on_event("move-left-trainsaver", game_control_pressed)
 script.on_event("toggle-map-trainsaver", game_control_pressed)
 script.on_event("shoot-enemy-trainsaver", game_control_pressed)
 script.on_event("toggle-menu-trainsaver", toggle_menu_pressed)
+
+script.on_event("next-target-trainsaver", focus_next_target)
+script.on_event("previous-target-trainsaver", focus_previous_target)
 
 --[[ s e c r e t s --]]
 script.on_event(defines.events.on_rocket_launch_ordered, function(event)
@@ -1562,31 +677,8 @@ local function add_commands()
   commands.add_command("trainsaver", "- toggles a dynamic screensaver that follows active trains.", start_or_end_trainsaver)
   commands.add_command("end-trainsaver","- ends the screensaver and immediately returns control to the player", end_trainsaver)
   commands.add_command("verbose-trainsaver","- toggles trainsaver console debug messages", toggle_chatty)
+  commands.add_command("reset-trainsaver-history", "- clears the history log", reset_history)
 end
 
 script.on_init(add_commands)
 script.on_load(add_commands)
-
---[[
-Remote Interface:
-  remote.call("trainsaver", "trainsaver_status", player_index) --> returns the status of trainsaver for a given player, either "active" or "inactive"
-  remote.call("trainsaver", "trainsaver_target", player_index) --> returns the current target (locomotive or other entity) trainsaver is following for a given player or nil if none
---]]
-
-local interface_functions = {}
-interface_functions.trainsaver_status = function(player_index)
-  if global.trainsaver_status and global.trainsaver_status[player_index] then
-    return global.trainsaver_status[player_index]
-  else
-    return "inactive"
-  end
-end
-interface_functions.trainsaver_target = function(player_index)
-  if global.current_target and global.current_target[player_index] then
-    return global.current_target[player_index]
-  else
-    return nil
-  end
-end
-
-remote.add_interface("trainsaver", interface_functions)

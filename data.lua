@@ -142,6 +142,24 @@ local shootEnemyTrainsaverKey = {
   action = "lua",
 }
 
+local nextTargetTrainsaverKey = {
+  type = "custom-input",
+  name = "next-target-trainsaver",
+  key_sequence = "RIGHT",
+  linked_game_control = "",
+  enabled_while_in_cutscene = true,
+  action = "lua",
+}
+
+local previousTargetTrainsaverKey = {
+  type = "custom-input",
+  name = "previous-target-trainsaver",
+  key_sequence = "LEFT",
+  linked_game_control = "",
+  enabled_while_in_cutscene = true,
+  action = "lua",
+}
+
 local selfReflectionAchievement = {
   type = "achievement",
   name = "trainsaver-self-reflection",
@@ -267,6 +285,8 @@ data:extend({
   moveLeftTrainsaverKey,
   toggleMapTrainsaverKey,
   shootEnemyTrainsaverKey,
+  nextTargetTrainsaverKey,
+  previousTargetTrainsaverKey,
   -- selfReflectionAchievement,
   findAFriendAchievement,
   continuousTenMinutesAchievement,
