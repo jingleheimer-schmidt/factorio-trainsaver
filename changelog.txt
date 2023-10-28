@@ -2,6 +2,8 @@
 Version: 0.0.27
 Date: 28OCT2023
   Changes:
+    - added localisation for next/previous target hotkeys
+    - added a sort order to the hotkeys
     - all mod gui elements are now hidden while trainsaver is active
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.26
