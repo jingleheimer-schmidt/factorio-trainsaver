@@ -10,6 +10,9 @@ local target_is_locomotive = target_util.target_is_locomotive
 local globals_util = require("util.globals")
 local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 
+local gui_util = require("util.gui")
+local toggle_gui = gui_util.toggle_gui
+
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index uint
 ---@param train LuaTrain
@@ -62,6 +65,7 @@ local function play_cutscene(created_waypoints, player_index, register_history)
 
     -- reset alt-mode to what it was before cutscene controller reset it
     player.game_view_settings.show_entity_info = transfer_alt_mode
+    toggle_gui(player, false)
     update_globals_new_cutscene(player, created_waypoints)
 
     if register_history then
