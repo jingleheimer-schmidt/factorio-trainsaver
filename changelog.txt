@@ -3,6 +3,7 @@ Version: 0.0.28
 Date: 03AUG2024
   Changes:
     - removed modification of gui elements to avoid conflict with mods that assume gui elements are always visible
+    - standardized code formatting
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.27
 Date: 28OCT2023
