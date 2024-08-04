@@ -68,8 +68,7 @@ local function create_waypoint(waypoint_target, player_index)
             zoom = zoom
         },
     }
-    local message = chatty_name ..
-    "created waypoint to [" .. get_chatty_name(waypoint_target) .. "] with no return waypoint"
+    local message = chatty_name .. "created waypoint to [" .. get_chatty_name(waypoint_target) .. "] with no return waypoint"
 
     -- use the player character or cutscene character as the final waypoint so transition goes back to there instead of where cutscene started if trainsaver ends due to no new train activity, but if there isn't a cutscene_character or player.character then don't add the final waypoint because the player was probably in god mode when it started so character is on a different surface or doesn't even exist, meaning there's nowhere to "go back" to
     if waypoint_2_end_entity.valid and (waypoint_2_end_entity.surface_index == player.surface_index) then
@@ -80,9 +79,7 @@ local function create_waypoint(waypoint_target, player_index)
             zoom = zoom
         }
         table.insert(created_waypoints, waypoint_2)
-        message = chatty_name ..
-        "created waypoint to [" ..
-        get_chatty_name(waypoint_target) .. "] with return waypoint to " .. waypoint_2_end_entity_name
+        message = chatty_name .. "created waypoint to [" .. get_chatty_name(waypoint_target) .. "] with return waypoint to " .. waypoint_2_end_entity_name
     end
     chatty_print(message)
     return created_waypoints

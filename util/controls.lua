@@ -59,8 +59,7 @@ local function end_trainsaver(command, ending_transition)
     -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
     chatty_print(chatty_name .. "exit trainsaver (transition) requested")
     local mod_settings = player.mod_settings
-    local waypoint_target = player.cutscene_character or
-    player.character --[[@as LuaEntity because it was already checked earlier]]
+    local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
     local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
@@ -173,11 +172,9 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     if active_trains[1] then
         local active_trains_sorted_by_remaining_path_length = util.table.deepcopy(active_trains)
         table.sort(active_trains_sorted_by_remaining_path_length,
-            function(a, b) return (a.path.total_distance - a.path.travelled_distance) >
-                (b.path.total_distance - b.path.travelled_distance) end)
+            function(a, b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
         create_cutscene_next_tick(player_index, active_trains_sorted_by_remaining_path_length[1])
-        chatty_print(chatty_name ..
-        "requested cutscene for " .. player.name .. ", following train with longest remaining path")
+        chatty_print(chatty_name .. "requested cutscene for " .. player.name .. ", following train with longest remaining path")
         return
     end
 
