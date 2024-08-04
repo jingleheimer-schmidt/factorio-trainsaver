@@ -65,6 +65,9 @@ local cutscene_ended_nil_globals = globals_util.cutscene_ended_nil_globals
 local update_wait_at_signal = globals_util.update_wait_at_signal
 local update_wait_at_station = globals_util.update_wait_at_station
 
+local gui_util = require("util.gui")
+local toggle_gui = gui_util.toggle_gui
+
 local interface_util = require("util.interface")
 local interface_functions = interface_util.interface_functions
 remote.add_interface("trainsaver", interface_functions)
@@ -73,11 +76,19 @@ remote.add_interface("trainsaver", interface_functions)
 ---@param event EventData.on_cutscene_cancelled
 local function cutscene_cancelled(event)
   cutscene_ended_nil_globals(event.player_index)
+  local player = game.get_player(event.player_index)
+  if not player then return end
+  toggle_gui(player, true)
+  -- chatty_print(chatty_player_name(player) .. "cutscene cancelled")
 end
 
 ---@param event EventData.on_cutscene_finished
 local function cutscene_finished(event)
   cutscene_ended_nil_globals(event.player_index)
+  local player = game.get_player(event.player_index)
+  if not player then return end
+  toggle_gui(player, true)
+  -- chatty_print(chatty_player_name(player) .. "cutscene finished")
 end
 
 -- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
@@ -573,7 +584,7 @@ script.on_event(defines.events.on_tick, on_tick)
 -- deal with global data when a cutscene ends
 script.on_event(defines.events.on_cutscene_cancelled, cutscene_cancelled)
 script.on_event(defines.events.on_cutscene_waypoint_reached, cutscene_waypoint_reached)
--- script.on_event(defines.events.on_cutscene_finished, cutscene_finished) -- gotta wait until factorio 1.1.82 becomes stable, and then release a version of trainsaver that makes that as minimum version.
+script.on_event(defines.events.on_cutscene_finished, cutscene_finished)
 
 -- when any train changes state, check a whole bunch of stuff and tell trainsaver to focus on it depending on if various conditions are met
 script.on_event(defines.events.on_train_changed_state, on_train_changed_state)

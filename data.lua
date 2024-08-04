@@ -5,6 +5,7 @@ local toggleTrainsaverKey = {
   alternative_key_sequence = "CONTROL + T",
   enabled_while_in_cutscene = true,
   action = "lua",
+  order = "[1][A]",
 }
 
 local startTrainsaverKey = {
@@ -14,6 +15,7 @@ local startTrainsaverKey = {
   alternative_key_sequence = "",
   enabled_while_in_cutscene = true,
   action = "lua",
+  order = "[2][A]",
 }
 
 local endTrainsaverKey = {
@@ -23,6 +25,7 @@ local endTrainsaverKey = {
   alternative_key_sequence = "",
   enabled_while_in_cutscene = true,
   action = "lua",
+  order = "[1][B]",
 }
 
 local openInventoryTrainsaverKey = {
@@ -149,6 +152,7 @@ local nextTargetTrainsaverKey = {
   linked_game_control = "",
   enabled_while_in_cutscene = true,
   action = "lua",
+  order = "[3][A]",
 }
 
 local previousTargetTrainsaverKey = {
@@ -158,6 +162,7 @@ local previousTargetTrainsaverKey = {
   linked_game_control = "",
   enabled_while_in_cutscene = true,
   action = "lua",
+  order = "[3][B]",
 }
 
 local selfReflectionAchievement = {

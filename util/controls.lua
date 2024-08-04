@@ -21,6 +21,9 @@ local target_is_locomotive = target_util.target_is_locomotive
 local waypoint_util = require("util.waypoint")
 local create_waypoint = waypoint_util.create_waypoint
 
+local gui_util = require("util.gui")
+local toggle_gui = gui_util.toggle_gui
+
 -- end the screensaver
 ---@param command EventData.on_console_command
 ---@param ending_transition boolean?
@@ -92,6 +95,7 @@ local function end_trainsaver(command, ending_transition)
             start_position = player.position,
         }
     )
+    toggle_gui(player, false)
     player.game_view_settings.show_entity_info = transfer_alt_mode
     -- update globals for a cutscene ending
     ---@type table<uint, boolean>
