@@ -110,18 +110,13 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
         local exceeds_station = wait_station_states[state] and exceeded_station_minimum(player)
         local exceeds_signal = wait_signal_states[state] and exceeded_signal_minimum(player)
         if exceeds_driving or exceeds_station or exceeds_signal then
-            chatty_print(chatty_name ..
-            "accepted. current target [" ..
-            current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
+            chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
             bool = true
         elseif always_accept_new_target_states[state] then
-            chatty_print(chatty_name ..
-            "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
+            chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
             bool = true
         else
-            chatty_print(chatty_name ..
-            "denied. current target [" ..
-            current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
+            chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
             bool = false
         end
     elseif target_is_spider(waypoint_target) then
@@ -131,24 +126,18 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
         local spider_is_still = speed == 0
         if spider_is_walking and next_destination then
             if exceeded_spider_walking_minimum(player) then
-                chatty_print(chatty_name ..
-                "accepted. current target [" ..
-                current_target_name .. "] has exceeded the minimum for walking spidertron")
+                chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for walking spidertron")
                 bool = true
             else
-                chatty_print(chatty_name ..
-                "denied. current target [" ..
-                current_target_name .. "] has not exceeded the minimum for walking spidertron")
+                chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for walking spidertron")
                 bool = false
             end
         elseif spider_is_still then
             if exceeded_spider_idle_minimum(player) then
-                chatty_print(chatty_name ..
-                "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
+                chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
                 bool = true
             else
-                chatty_print(chatty_name ..
-                "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
+                chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
                 bool = false
             end
         else

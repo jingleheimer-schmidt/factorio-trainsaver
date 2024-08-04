@@ -22,10 +22,7 @@ end
 ---@param player LuaPlayer
 ---@return string
 local function chatty_player_name(player)
-    return "[" ..
-    game.tick ..
-    "] [[color=" ..
-    player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
+    return "[" .. game.tick .. "] [[color=" .. player.color.r .. "," .. player.color.g .. "," .. player.color.b .. "]" .. player.name .. "[/color]]: "
 end
 
 -- return a string with the name of the train, colored if possible with color of a locomotive on the train
@@ -47,8 +44,7 @@ end
 ---@param entity LuaEntity
 ---@return string
 local function chatty_target_entity_name(entity)
-    local id = entity.entity_label or entity.backer_name or entity.unit_number or
-    script.register_on_entity_destroyed(entity)
+    local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
     local target_name = entity.name .. " " .. id
     if entity.train then target_name = "train " .. entity.train.id .. ": " .. id end
     local color = entity.color
