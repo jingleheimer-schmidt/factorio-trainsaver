@@ -43,20 +43,10 @@ Example interface usage:
 ##### Translation
 Help translate trainsaver to more languages: https://crowdin.com/project/factorio-mods-localization
 Currently available locale:
-- English (en)
+🇺🇸 English (en), 🇷🇺 Russian (ru), 🇺🇦 Ukrainian (uk)
 
 ------------------------------------------
 ##### Compatibility:
 There are currently no known mod compatibility issues. To report a compatibility issue, please make a post on the discussion page.
 
 If you have suggestions or bug fixes that you would like to contribute directly, feel free to open a pull request on [GitHub](https://github.com/jingleheimer-schmidt/factorio-trainsaver).
-
-------------------------------------------
-##### Other mods by asher_sky:
-
-- [Cooked fish](https://mods.factorio.com/mod/factorio-cooked-fish) Allows raw fish to be cooked in a furnace.
-- [Auto Color Lamps](https://mods.factorio.com/mod/auto-color-lamps) Automatically colors lamps according to the color of item and fluid signals passed to them.
-- [Chorus fruit](https://mods.factorio.com/mod/factorio-chorus-fruit) Adds chorus fruit you can eat to teleport randomly, just like minecraft.
-- [Apples](https://mods.factorio.com/mod/factorio-apples) Adds apples you can eat to regenerate health, just like minecraft.
-- [Ender Pearl](https://mods.factorio.com/mod/factorio-ender-pearl) Adds an ender pearl you can throw to teleport, just like minecraft.
-- [Cutscene Creator](https://mods.factorio.com/mod/cutscene-creator) Adds a command to create custom cutscenes. 
