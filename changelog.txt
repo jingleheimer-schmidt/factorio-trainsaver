@@ -5,6 +5,8 @@ Date: ????
     - updated mod description
   Locale:
     - added localised strings for mod name and description
+    - added Russian (ru) locale from Crowdin
+    - added Ukrainian (uk) locale from Crowdin
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.28
 Date: 03AUG2024
