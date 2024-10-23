@@ -6,8 +6,8 @@ local idle_states = constants.idle_states
 ---@param player LuaPlayer
 ---@return LuaEntity|LuaUnitGroup|nil
 local function current_trainsaver_target(player)
-    global.current_target = global.current_target or {}
-    local target = global.current_target[player.index]
+    storage.current_target = storage.current_target or {}
+    local target = storage.current_target[player.index]
     if target and target.valid then
         return target
     end

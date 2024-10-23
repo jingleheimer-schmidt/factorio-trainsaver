@@ -20,7 +20,7 @@ local current_trainsaver_target = target_util.current_trainsaver_target
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_driving_minimum(player)
-    local driving_until_tick = global.driving_until_tick and global.driving_until_tick[player.index]
+    local driving_until_tick = storage.driving_until_tick and storage.driving_until_tick[player.index]
     if driving_until_tick and (driving_until_tick < game.tick) then
         return true
     else
@@ -32,7 +32,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_station_minimum(player)
-    local stationed_until_tick = global.wait_station_until_tick and global.wait_station_until_tick[player.index]
+    local stationed_until_tick = storage.wait_station_until_tick and storage.wait_station_until_tick[player.index]
     if stationed_until_tick and (stationed_until_tick < game.tick) then
         return true
     else
@@ -44,7 +44,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_signal_minimum(player)
-    local wait_signal_until_tick = global.wait_signal_until_tick and global.wait_signal_until_tick[player.index]
+    local wait_signal_until_tick = storage.wait_signal_until_tick and storage.wait_signal_until_tick[player.index]
     if wait_signal_until_tick and (wait_signal_until_tick < game.tick) then
         return true
     else
@@ -56,7 +56,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_spider_walking_minimum(player)
-    local spider_walking_until_tick = global.spider_walking_until_tick and global.spider_walking_until_tick[player.index]
+    local spider_walking_until_tick = storage.spider_walking_until_tick and storage.spider_walking_until_tick[player.index]
     if spider_walking_until_tick and (spider_walking_until_tick < game.tick) then
         return true
     else
@@ -68,7 +68,7 @@ end
 ---@param player LuaPlayer
 ---@return boolean
 local function exceeded_spider_idle_minimum(player)
-    local spider_idle_until_tick = global.spider_idle_until_tick and global.spider_idle_until_tick[player.index]
+    local spider_idle_until_tick = storage.spider_idle_until_tick and storage.spider_idle_until_tick[player.index]
     if spider_idle_until_tick and (spider_idle_until_tick < game.tick) then
         return true
     else
@@ -83,7 +83,7 @@ local function trainsaver_is_active(player)
     if not (player.controller_type == defines.controllers.cutscene) then
         return false
     end
-    if global.trainsaver_status and global.trainsaver_status[player.index] then
+    if storage.trainsaver_status and storage.trainsaver_status[player.index] then
         return true
     else
         return false
@@ -99,8 +99,8 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
     if not waypoint_target then return true end
     local current_target_name = get_chatty_name(waypoint_target)
     local chatty_name = get_chatty_name(player)
-    global.cutscene_ending = global.cutscene_ending or {}
-    if global.cutscene_ending[player.index] then
+    storage.cutscene_ending = storage.cutscene_ending or {}
+    if storage.cutscene_ending[player.index] then
         chatty_print(chatty_name .. "denied. trainsaver is ending")
         bool = false
     elseif target_is_locomotive(waypoint_target) then

@@ -24,8 +24,8 @@ local function create_cutscene_next_tick(player_index, train, same_train)
     ---@field [3] "same train"?
     ---@field [4] number -- attempts
     ---@type table<uint, CreateCutsceneNextTickData>
-    global.create_cutscene_next_tick = global.create_cutscene_next_tick or {}
-    global.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
+    storage.create_cutscene_next_tick = storage.create_cutscene_next_tick or {}
+    storage.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
 end
 
 -- play cutscene from given waypoints
@@ -69,15 +69,15 @@ local function play_cutscene(created_waypoints, player_index, register_history)
     update_globals_new_cutscene(player, created_waypoints)
 
     if register_history then
-        global.watch_history = global.watch_history or {}
-        global.watch_history[player_index] = global.watch_history[player_index] or {}
-        table.insert(global.watch_history[player_index], created_waypoints[1].target)
-        local history_length = #global.watch_history[player_index]
-        global.player_history_index = global.player_history_index or {}
-        global.player_history_index[player_index] = history_length
+        storage.watch_history = storage.watch_history or {}
+        storage.watch_history[player_index] = storage.watch_history[player_index] or {}
+        table.insert(storage.watch_history[player_index], created_waypoints[1].target)
+        local history_length = #storage.watch_history[player_index]
+        storage.player_history_index = storage.player_history_index or {}
+        storage.player_history_index[player_index] = history_length
         chatty_print(chatty_name .. "added [ " .. get_chatty_name(created_waypoints[1].target) .. " ] to watch history [ " .. history_length .. " of " .. history_length .. " ]")
         if history_length > 10000 then
-            table.remove(global.watch_history[player_index], 1)
+            table.remove(storage.watch_history[player_index], 1)
         end
     end
 

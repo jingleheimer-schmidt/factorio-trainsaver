@@ -45,7 +45,7 @@ local function end_trainsaver(command, ending_transition)
         return
     end
     -- if we're already in the process of exiting, then just exit immediately
-    if (global.cutscene_ending and (global.cutscene_ending[player_index] and (global.cutscene_ending[player_index] == true))) then
+    if (storage.cutscene_ending and (storage.cutscene_ending[player_index] and (storage.cutscene_ending[player_index] == true))) then
         chatty_print(chatty_name .. "trainsaver is currently exiting. immediate exit requested")
         player.exit_cutscene()
         return
@@ -98,25 +98,25 @@ local function end_trainsaver(command, ending_transition)
     player.game_view_settings.show_entity_info = transfer_alt_mode
     -- update globals for a cutscene ending
     ---@type table<uint, boolean>
-    global.cutscene_ending = global.cutscene_ending or {}
-    global.cutscene_ending[player_index] = true
+    storage.cutscene_ending = storage.cutscene_ending or {}
+    storage.cutscene_ending[player_index] = true
     ---@type table<uint, number|uint>
-    global.wait_signal_until_tick = global.wait_signal_until_tick or {}
-    global.wait_signal_until_tick[player_index] = nil
+    storage.wait_signal_until_tick = storage.wait_signal_until_tick or {}
+    storage.wait_signal_until_tick[player_index] = nil
     ---@type table<uint, number|uint>
-    global.wait_station_until_tick = global.wait_station_until_tick or {}
-    global.wait_station_until_tick[player_index] = nil
+    storage.wait_station_until_tick = storage.wait_station_until_tick or {}
+    storage.wait_station_until_tick[player_index] = nil
     ---@type table<uint, number|uint>
-    global.driving_until_tick = global.driving_until_tick or {}
-    global.driving_until_tick[player_index] = nil
+    storage.driving_until_tick = storage.driving_until_tick or {}
+    storage.driving_until_tick[player_index] = nil
 
     -- these ones aren't used any more, but we'll keep them around for a while just because
-    global.driving_since_tick = global.driving_since_tick or {}
-    global.driving_since_tick[player_index] = nil
-    global.wait_station_since_tick = global.wait_station_since_tick or {}
-    global.wait_station_since_tick[player_index] = nil
-    global.wait_at_signal = global.wait_at_signal or {}
-    global.wait_at_signal[player_index] = nil
+    storage.driving_since_tick = storage.driving_since_tick or {}
+    storage.driving_since_tick[player_index] = nil
+    storage.wait_station_since_tick = storage.wait_station_since_tick or {}
+    storage.wait_station_since_tick[player_index] = nil
+    storage.wait_at_signal = storage.wait_at_signal or {}
+    storage.wait_at_signal[player_index] = nil
 end
 
 -- start the screensaver :D
@@ -124,7 +124,7 @@ end
 ---@param train_to_ignore LuaTrain?
 ---@param entity_gone_restart boolean?
 local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
-    local chatty = global.chatty
+    local chatty = storage.chatty
     local player_index = command.player_index
     if not player_index then return end
     local player = game.get_player(player_index)
@@ -258,13 +258,13 @@ local function focus_next_target(event)
     if not player then return end
     local current_target = current_trainsaver_target(player)
     if not current_target then return end
-    local watch_histories = global.watch_history
+    local watch_histories = storage.watch_history
     local watch_history = watch_histories and watch_histories[player.index]
     if not watch_history then
         focus_new_target(event)
     else
-        global.player_history_index = global.player_history_index or {}
-        local player_history_index = global.player_history_index[player.index] or 1
+        storage.player_history_index = storage.player_history_index or {}
+        local player_history_index = storage.player_history_index[player.index] or 1
         local next_index = player_history_index + 1
         if not watch_history[next_index] then
             focus_new_target(event)
@@ -280,7 +280,7 @@ local function focus_next_target(event)
                     end
                     local waypoints = create_waypoint(target, player.index)
                     play_cutscene(waypoints, player.index, false)
-                    global.player_history_index[player.index] = i
+                    storage.player_history_index[player.index] = i
                     player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
                     return
                 end
@@ -299,11 +299,11 @@ local function focus_previous_target(event)
     if not player then return end
     local current_target = current_trainsaver_target(player)
     if not current_target then return end
-    local watch_histories = global.watch_history
+    local watch_histories = storage.watch_history
     local watch_history = watch_histories and watch_histories[player.index]
     if not watch_history then return end
-    global.player_history_index = global.player_history_index or {}
-    local player_history_index = global.player_history_index[player.index] or 1
+    storage.player_history_index = storage.player_history_index or {}
+    local player_history_index = storage.player_history_index[player.index] or 1
     for i = player_history_index - 1, 1, -1 do
         local target = watch_history[i]
         if target and target.valid then
@@ -315,7 +315,7 @@ local function focus_previous_target(event)
             end
             local waypoints = create_waypoint(target, player.index)
             play_cutscene(waypoints, player.index, false)
-            global.player_history_index[player.index] = i
+            storage.player_history_index[player.index] = i
             player.create_local_flying_text({ text = "[ " .. i .. " / " .. #watch_history .. " ]", create_at_cursor = true })
             return
         end
@@ -327,10 +327,10 @@ end
 local function reset_player_history(event)
     local player_index = event.player_index
     if not player_index then return end
-    global.watch_history = global.watch_history or {}
-    global.watch_history[player_index] = nil
-    global.player_history_index = global.player_history_index or {}
-    global.player_history_index[player_index] = nil
+    storage.watch_history = storage.watch_history or {}
+    storage.watch_history[player_index] = nil
+    storage.player_history_index = storage.player_history_index or {}
+    storage.player_history_index[player_index] = nil
 end
 
 return {

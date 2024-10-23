@@ -94,16 +94,16 @@ end
 -- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
 ---@param event EventData.on_cutscene_waypoint_reached
 local function cutscene_waypoint_reached(event)
-    if global.chatty then
+    if storage.chatty then
         local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
         local chatty_name = get_chatty_name(player)
         game.print(chatty_name .. "arrived at waypoint [index " .. event.waypoint_index .. "]")
     end
     local player_index = event.player_index
-    global.cutscene_ending = global.cutscene_ending or {}
-    local cutscene_ending = global.cutscene_ending[player_index]
-    global.number_of_waypoints = global.number_of_waypoints or {}
-    local number_of_waypoints = global.number_of_waypoints[player_index]
+    storage.cutscene_ending = storage.cutscene_ending or {}
+    local cutscene_ending = storage.cutscene_ending[player_index]
+    storage.number_of_waypoints = storage.number_of_waypoints or {}
+    local number_of_waypoints = storage.number_of_waypoints[player_index]
     if cutscene_ending then
         cutscene_ended_nil_globals(player_index)
     elseif number_of_waypoints and (number_of_waypoints == event.waypoint_index) then
@@ -205,9 +205,9 @@ local function spidertron_changed_state(event)
             local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]]) -- carefull... might be a unitgroup
             local spider_id = script.register_on_entity_destroyed(spider --[[@as LuaEntity]])
             if current_target_id == spider_id then
-                global.spider_idle_until_tick = global.spider_idle_until_tick or {}
-                global.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
-                chatty_print(chatty_name .. "current target [" .. chatty_target_name .. "] reached its final destination. set spider_idle_until_tick to [" .. global.spider_idle_until_tick[player.index] .. "]")
+                storage.spider_idle_until_tick = storage.spider_idle_until_tick or {}
+                storage.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
+                chatty_print(chatty_name .. "current target [" .. chatty_target_name .. "] reached its final destination. set spider_idle_until_tick to [" .. storage.spider_idle_until_tick[player.index] .. "]")
             end
             goto next_player
         end
@@ -309,7 +309,7 @@ local function character_damaged(event)
     for _, player in pairs(game.connected_players) do
         if (trainsaver_is_active(player) and player.cutscene_character == damaged_entity) then
             player.unlock_achievement("trainsaver-character-damaged")
-            if event.cause and event.cause.train and event.cause.train.id and global.followed_loco[player.index] and global.followed_loco[player.index].train_id and (event.cause.train.id == global.followed_loco[player.index].train_id) then
+            if event.cause and event.cause.train and event.cause.train.id and storage.followed_loco[player.index] and storage.followed_loco[player.index].train_id and (event.cause.train.id == storage.followed_loco[player.index].train_id) then
                 player.unlock_achievement("trainsaver-damaged-by-followed-train")
                 print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " was hit by the train they were watching")
             elseif event.cause and event.cause.name then
@@ -330,8 +330,8 @@ local function locomotive_gone(event)
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
         local player_index = player.index
-        if not (global.followed_loco and global.followed_loco[player_index]) then goto next_player end
-        if not (global.followed_loco[player_index].unit_number == locomotive.unit_number) then goto next_player end
+        if not (storage.followed_loco and storage.followed_loco[player_index]) then goto next_player end
+        if not (storage.followed_loco[player_index].unit_number == locomotive.unit_number) then goto next_player end
         local command = {
             name = "trainsaver",
             player_index = player_index,
@@ -348,8 +348,8 @@ end
 ---@param event EventData.on_entity_destroyed
 local function entity_destroyed(event)
     local registration_number = event.registration_number
-    if not global.entity_destroyed_registration_numbers then return end
-    for player_index, current_target_registration_number in pairs(global.entity_destroyed_registration_numbers) do
+    if not storage.entity_destroyed_registration_numbers then return end
+    for player_index, current_target_registration_number in pairs(storage.entity_destroyed_registration_numbers) do
         if not (current_target_registration_number == registration_number) then goto next_player end
         if event.unit_number then
             local simulated_event = {
@@ -368,8 +368,8 @@ local function entity_destroyed(event)
             if not trainsaver_is_active(player) then goto next_player end
             --[[
             local rocket_destroyed_location_index = game.tick - 1
-            player.teleport(global.rocket_positions[player_index][rocket_destroyed_location_index])
-            global.rocket_positions[player_index] = nil
+            player.teleport(storage.rocket_positions[player_index][rocket_destroyed_location_index])
+            storage.rocket_positions[player_index] = nil
             --]]
             player.unlock_achievement("trainsaver-a-spectacular-view")
             print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
@@ -387,8 +387,8 @@ end
 -- create a new cutscene for any players that need one. cutscenes need to be delayed one tick because trains that change state don't have a speed yet so we need to wait one tick for them to start moving so we can determine which locomotive is the "leader".
 local function cutscene_next_tick_function()
     -- check if any players need a new cutscene
-    if not global.create_cutscene_next_tick then return end
-    for _, data in pairs(global.create_cutscene_next_tick) do
+    if not storage.create_cutscene_next_tick then return end
+    for _, data in pairs(storage.create_cutscene_next_tick) do
         local target_train = data[1]
         local player_index = data[2]
         local same_train = data[3]
@@ -398,25 +398,25 @@ local function cutscene_next_tick_function()
         local chatty_name = get_chatty_name(player)
 
         -- don't create the cutscene if they've requested to end and we're going back to their character
-        if global.cutscene_ending and global.cutscene_ending[player_index] and global.cutscene_ending[player_index] == true then
+        if storage.cutscene_ending and storage.cutscene_ending[player_index] and storage.cutscene_ending[player_index] == true then
             chatty_print(chatty_name .. "new target request denied by ending_transition")
-            global.create_cutscene_next_tick[player_index] = nil
+            storage.create_cutscene_next_tick[player_index] = nil
             goto next_player
         end
 
         -- make sure the player is still connected
         if not player.connected then
             chatty_print(chatty_name .. "new target request denied by disconnected player")
-            global.create_cutscene_next_tick[player_index] = nil
+            storage.create_cutscene_next_tick[player_index] = nil
             goto next_player
         end
 
         -- make sure things are still valid. restart trainsaver if target was invalid
         if not target_train.valid then
-            global.create_cutscene_next_tick[player_index] = nil
+            storage.create_cutscene_next_tick[player_index] = nil
             local command = { name = "trainsaver", player_index = player_index }
             chatty_print(chatty_name .. "new target is invalid, restarting trainsaver")
-            global.create_cutscene_next_tick[player_index] = nil
+            storage.create_cutscene_next_tick[player_index] = nil
             start_trainsaver(command, nil, true)
             goto next_player
         end
@@ -444,7 +444,7 @@ local function cutscene_next_tick_function()
             -- Abort if the potential waypoint is on a different surface than the player
             if player.surface_index ~= mover.surface_index then
                 chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
-                global.create_cutscene_next_tick[player_index] = nil
+                storage.create_cutscene_next_tick[player_index] = nil
                 goto next_player
             end
 
@@ -463,7 +463,7 @@ local function cutscene_next_tick_function()
             end
 
             play_cutscene(created_waypoints, player_index, record_history)
-            global.create_cutscene_next_tick[player_index] = nil
+            storage.create_cutscene_next_tick[player_index] = nil
         else
             attempts = attempts and attempts + 1 or 0
             if attempts > 30 then
@@ -476,10 +476,10 @@ local function cutscene_next_tick_function()
                     record_history = false
                 end
                 play_cutscene(created_waypoints, player_index, record_history)
-                global.create_cutscene_next_tick[player_index] = nil
+                storage.create_cutscene_next_tick[player_index] = nil
             else
                 chatty_print(chatty_name .. "new target request delayed by state [" .. verbose_states[state] .. "] and speed [" .. speed .. "]")
-                global.create_cutscene_next_tick[player_index][4] = attempts
+                storage.create_cutscene_next_tick[player_index][4] = attempts
             end
         end
         ::next_player::
@@ -488,15 +488,15 @@ end
 
 -- while trainsaver is active, update current and total duration player has been viewing the screensaver, and unlock achievements as needed
 local function check_achievements()
-    if not global.trainsaver_status then return end
-    for player_index, status in pairs(global.trainsaver_status) do
+    if not storage.trainsaver_status then return end
+    for player_index, status in pairs(storage.trainsaver_status) do
         if not (status == "active") then goto next_player end
         local player = game.get_player(player_index)
         if not (player and player.connected) then goto next_player end
         -- update continuous duration timer global data
-        global.current_continuous_duration = global.current_continuous_duration or {}
-        global.current_continuous_duration[player_index] = global.current_continuous_duration[player_index] or 0
-        local continuous_duration = global.current_continuous_duration[player_index]
+        storage.current_continuous_duration = storage.current_continuous_duration or {}
+        storage.current_continuous_duration[player_index] = storage.current_continuous_duration[player_index] or 0
+        local continuous_duration = storage.current_continuous_duration[player_index]
         continuous_duration = continuous_duration + 1
         if continuous_duration == (60 * 60 * 10) then
             player.unlock_achievement("trainsaver-continuous-10-minutes")
@@ -508,9 +508,9 @@ local function check_achievements()
             player.unlock_achievement("trainsaver-continuous-60-minutes")
         end
         -- update total duration timer global data
-        global.total_duration = global.total_duration or {}
-        global.total_duration[player_index] = global.total_duration[player_index] or 0
-        local total_duration = global.total_duration[player_index]
+        storage.total_duration = storage.total_duration or {}
+        storage.total_duration[player_index] = storage.total_duration[player_index] or 0
+        local total_duration = storage.total_duration[player_index]
         total_duration = total_duration + 1
         if total_duration == (60 * 60 * 60 * 1) then
             player.unlock_achievement("trainsaver-1-hours-total")
@@ -672,14 +672,14 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             }
         )
         player.game_view_settings.show_entity_info = transfer_alt_mode
-        global.trainsaver_status = global.trainsaver_status or {}
-        global.trainsaver_status[player_index] = "active"
-        global.followed_loco = global.followed_loco or {}
-        global.followed_loco[player_index] = nil
-        global.current_target = global.current_target or {}
-        global.current_target[player_index] = created_waypoints[1].target
-        global.entity_destroyed_registration_numbers = global.entity_destroyed_registration_numbers or {}
-        global.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
+        storage.trainsaver_status = storage.trainsaver_status or {}
+        storage.trainsaver_status[player_index] = "active"
+        storage.followed_loco = storage.followed_loco or {}
+        storage.followed_loco[player_index] = nil
+        storage.current_target = storage.current_target or {}
+        storage.current_target[player_index] = created_waypoints[1].target
+        storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
+        storage.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
         ::next_player::
     end
 end)

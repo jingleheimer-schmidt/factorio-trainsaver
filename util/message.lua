@@ -1,18 +1,18 @@
 
 local function toggle_chatty()
-    if not global.chatty then
-        global.chatty = true
+    if not storage.chatty then
+        storage.chatty = true
         game.print("verbose trainsaver enabled")
     else
-        global.chatty = false
+        storage.chatty = false
         game.print("verbose trainsaver disabled")
     end
 end
 
--- print a message to the game console if global.chatty is true
+-- print a message to the game console if storage.chatty is true
 ---@param message string
 local function chatty_print(message)
-    if global.chatty then
+    if storage.chatty then
         game.print(message)
     end
 end
