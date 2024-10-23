@@ -1,7 +1,6 @@
 
 local verbose_states = { ---@type table<defines.train_state, string>
     [defines.train_state.on_the_path] = "[color=green]on_the_path[/color]",
-    [defines.train_state.path_lost] = "[color=purple]path_lost[/color]",
     [defines.train_state.no_schedule] = "[color=purple]no_schedule[/color]",
     [defines.train_state.no_path] = "[color=purple]no_path[/color]",
     [defines.train_state.arrive_signal] = "[color=yellow]arrive_signal[/color]",
@@ -66,7 +65,6 @@ local wait_signal_states = { ---@type table<defines.train_state, boolean>
 }
 local always_accept_new_target_states = {
     -- [defines.train_state.on_the_path] = true,
-    [defines.train_state.path_lost] = true,
     [defines.train_state.no_schedule] = true,
     [defines.train_state.no_path] = true,
     -- [defines.train_state.arrive_signal] = true,
