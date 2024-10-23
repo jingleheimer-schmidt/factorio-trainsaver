@@ -182,7 +182,7 @@ local function total_spider_path_remaining(spidertron)
 end
 
 -- when a spidertron is given a command, or reaches a waypoint destination, add it as a potential trainsaver target
----@param event EventData.on_spider_command_completed|EventData.on_player_used_spider_remote
+---@param event EventData.on_spider_command_completed
 local function spidertron_changed_state(event)
     local spider = event.vehicle
     -- if not spider.autopilot_destinations[1] then return end -- filter for spidertrons with at least one more waypoint to go to
@@ -255,14 +255,14 @@ local function spider_command_completed(event)
     spidertron_changed_state(event)
 end
 
---
----@param event EventData.on_player_used_spider_remote
-local function player_used_spider_remote(event)
-    if not event.success then return end
-    spidertron_changed_state(event)
-end
+-- --
+-- ---@param event EventData.on_player_used_spider_remote
+-- local function player_used_spider_remote(event)
+--     if not event.success then return end
+--     spidertron_changed_state(event)
+-- end
 
-script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
+-- script.on_event(defines.events.on_player_used_spider_remote, player_used_spider_remote)
 script.on_event(defines.events.on_spider_command_completed, spider_command_completed)
 
 -- when a group of biters finishes gathering adn beins execuring their command
