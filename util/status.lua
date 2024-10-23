@@ -91,7 +91,7 @@ local function trainsaver_is_active(player)
 end
 
 ---@param player LuaPlayer
----@param waypoint_target LuaEntity|LuaUnitGroup?
+---@param waypoint_target LuaEntity|LuaCommandable?
 ---@return boolean
 local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
     local bool = false

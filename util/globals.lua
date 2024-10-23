@@ -89,7 +89,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
         storage.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
     end
     -- update the current_target global
-    storage.current_target = storage.current_target or {} ---@type table<uint, LuaEntity|LuaUnitGroup>
+    storage.current_target = storage.current_target or {} ---@type table<uint, LuaEntity|LuaCommandable>
     storage.current_target[player_index] = waypoint_target
     -- update number of waypoints global
     storage.number_of_waypoints = storage.number_of_waypoints or {} ---@type table<uint, integer>

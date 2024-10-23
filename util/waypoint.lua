@@ -13,7 +13,7 @@ local target_is_spider = target_util.target_is_spider
 local target_is_unit_group = target_util.target_is_unit_group
 
 -- create a waypoint for given waypoint_target using player mod settings
----@param waypoint_target LuaEntity|LuaUnitGroup
+---@param waypoint_target LuaEntity|LuaCommandable
 ---@param player_index uint
 ---@return CutsceneWaypoint[]
 local function create_waypoint(waypoint_target, player_index)
