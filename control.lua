@@ -202,8 +202,8 @@ local function spidertron_changed_state(event)
         if not destinations[1] then
             local current_target = current_trainsaver_target(player)
             if not current_target then goto next_player end
-            local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]]) -- carefull... might be a unitgroup
-            local spider_id = script.register_on_entity_destroyed(spider --[[@as LuaEntity]])
+            local current_target_id = script.register_on_object_destroyed(current_target --[[@as LuaEntity]]) -- carefull... might be a unitgroup
+            local spider_id = script.register_on_object_destroyed(spider --[[@as LuaEntity]])
             if current_target_id == spider_id then
                 storage.spider_idle_until_tick = storage.spider_idle_until_tick or {}
                 storage.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
@@ -230,8 +230,8 @@ local function spidertron_changed_state(event)
                 goto next_player
             end
         elseif target_is_spider(current_target) then
-            local spider_id = script.register_on_entity_destroyed(spider)
-            local current_target_id = script.register_on_entity_destroyed(current_target --[[@as LuaEntity]])
+            local spider_id = script.register_on_object_destroyed(spider)
+            local current_target_id = script.register_on_object_destroyed(current_target --[[@as LuaEntity]])
             if (spider_id == current_target_id) then
                 chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is the potential target")
                 goto next_player
@@ -345,16 +345,16 @@ local function locomotive_gone(event)
 end
 
 -- restart trainsaver when the currently followed cutscene target is destroyed
----@param event EventData.on_entity_destroyed
+---@param event EventData.on_object_destroyed
 local function entity_destroyed(event)
     local registration_number = event.registration_number
     if not storage.entity_destroyed_registration_numbers then return end
     for player_index, current_target_registration_number in pairs(storage.entity_destroyed_registration_numbers) do
         if not (current_target_registration_number == registration_number) then goto next_player end
-        if event.unit_number then
+        if event.useful_id then
             local simulated_event = {
                 entity = {
-                    unit_number = event.unit_number,
+                    unit_number = event.useful_id,
                     train = {
                         id = -999999
                     },
@@ -598,7 +598,7 @@ local locomotive_filter = { { filter = "type", type = "locomotive" } }
 script.on_event(defines.events.on_entity_died, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_player_mined_entity, locomotive_gone, locomotive_filter)
 script.on_event(defines.events.on_robot_mined_entity, locomotive_gone, locomotive_filter)
-script.on_event(defines.events.on_entity_destroyed, entity_destroyed)
+script.on_event(defines.events.on_object_destroyed, entity_destroyed)
 
 -- start or end trainsaver based on various hotkeys and settings
 script.on_event("toggle-trainsaver", start_or_end_trainsaver)
@@ -679,7 +679,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         storage.current_target = storage.current_target or {}
         storage.current_target[player_index] = created_waypoints[1].target
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
-        storage.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(rocket)
+        storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(rocket)
         ::next_player::
     end
 end)

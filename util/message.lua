@@ -44,7 +44,7 @@ end
 ---@param entity LuaEntity
 ---@return string
 local function chatty_target_entity_name(entity)
-    local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
+    local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_object_destroyed(entity)
     local target_name = entity.name .. " " .. id
     if entity.train then target_name = "train " .. entity.train.id .. ": " .. id end
     local color = entity.color

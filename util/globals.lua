@@ -86,7 +86,7 @@ local function update_globals_new_cutscene(player, created_waypoints)
     -- register the followed target so we get an event if it's destroyed, then save the registration number in global so we can know if the destroyed event is for our target or not
     if target_is_entity(waypoint_target) then
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {} ---@type table<uint, uint64>
-        storage.entity_destroyed_registration_numbers[player_index] = script.register_on_entity_destroyed(waypoint_target --[[@as LuaEntity]])
+        storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(waypoint_target --[[@as LuaEntity]])
     end
     -- update the current_target global
     storage.current_target = storage.current_target or {} ---@type table<uint, LuaEntity|LuaCommandable>
