@@ -4,17 +4,17 @@ local idle_states = constants.idle_states
 
 -- returns the current trainsaver target for a given player, if any
 ---@param player LuaPlayer
----@return LuaEntity|LuaUnitGroup|nil
+---@return LuaEntity|LuaCommandable|nil
 local function current_trainsaver_target(player)
-    global.current_target = global.current_target or {}
-    local target = global.current_target[player.index]
+    storage.current_target = storage.current_target or {}
+    local target = storage.current_target[player.index]
     if target and target.valid then
         return target
     end
 end
 
 -- returns true if the provided cutscene waypoint target is a valid entity
----@param target LuaEntity|LuaUnitGroup|nil
+---@param target LuaEntity|LuaCommandable|nil
 ---@return boolean
 local function target_is_entity(target)
     local entity = target and target.valid and (target.object_name == "LuaEntity")
@@ -22,7 +22,7 @@ local function target_is_entity(target)
 end
 
 -- returns true if the given target is a valid locomotive
----@param target LuaEntity|LuaUnitGroup|nil
+---@param target LuaEntity|LuaCommandable|nil
 ---@return boolean
 local function target_is_locomotive(target)
     local locomotive = target and target_is_entity(target) and (target.type == "locomotive")
@@ -30,7 +30,7 @@ local function target_is_locomotive(target)
 end
 
 -- returns true if the given target is a valid spidertron
----@param target LuaEntity|LuaUnitGroup|nil
+---@param target LuaEntity|LuaCommandable|nil
 ---@return boolean
 local function target_is_spider(target)
     local spider = target and target_is_entity(target) and (target.type == "spider-vehicle")
@@ -38,7 +38,7 @@ local function target_is_spider(target)
 end
 
 -- returns true if the given target is a valid rocket silo
----@param target LuaEntity|LuaUnitGroup|nil
+---@param target LuaEntity|LuaCommandable|nil
 ---@return boolean
 local function target_is_rocket_silo(target)
     local silo = target and target_is_entity(target) and (target.type == "rocket-silo")
@@ -46,7 +46,7 @@ local function target_is_rocket_silo(target)
 end
 
 -- returns true if the given target is a valid unit group
----@param target LuaEntity|LuaUnitGroup|nil
+---@param target LuaEntity|LuaCommandable|nil
 ---@return boolean
 local function target_is_unit_group(target)
     local group = target and target.valid and (target.object_name == "LuaUnitGroup")

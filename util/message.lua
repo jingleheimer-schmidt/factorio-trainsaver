@@ -1,18 +1,18 @@
 
 local function toggle_chatty()
-    if not global.chatty then
-        global.chatty = true
+    if not storage.chatty then
+        storage.chatty = true
         game.print("verbose trainsaver enabled")
     else
-        global.chatty = false
+        storage.chatty = false
         game.print("verbose trainsaver disabled")
     end
 end
 
--- print a message to the game console if global.chatty is true
+-- print a message to the game console if storage.chatty is true
 ---@param message string
 local function chatty_print(message)
-    if global.chatty then
+    if storage.chatty then
         game.print(message)
     end
 end
@@ -44,7 +44,7 @@ end
 ---@param entity LuaEntity
 ---@return string
 local function chatty_target_entity_name(entity)
-    local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_entity_destroyed(entity)
+    local id = entity.entity_label or entity.backer_name or entity.unit_number or script.register_on_object_destroyed(entity)
     local target_name = entity.name .. " " .. id
     if entity.train then target_name = "train " .. entity.train.id .. ": " .. id end
     local color = entity.color
@@ -55,7 +55,7 @@ local function chatty_target_entity_name(entity)
 end
 
 -- return a string with the name of the target, colored if possible with its color
----@param target LuaEntity|LuaUnitGroup|LuaTrain|LuaPlayer|nil
+---@param target LuaEntity|LuaCommandable|LuaTrain|LuaPlayer|nil
 ---@return string
 local function get_chatty_name(target)
     if not target then return "nil" end

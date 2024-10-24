@@ -18,16 +18,16 @@ local reset_player_history = controls_util.reset_player_history
 local interface_functions = {}
 
 interface_functions.trainsaver_status = function(player_index)
-    if global.trainsaver_status and global.trainsaver_status[player_index] then
-        return global.trainsaver_status[player_index]
+    if storage.trainsaver_status and storage.trainsaver_status[player_index] then
+        return storage.trainsaver_status[player_index]
     else
         return "inactive"
     end
 end
 
 interface_functions.trainsaver_target = function(player_index)
-    if global.current_target and global.current_target[player_index] then
-        return global.current_target[player_index]
+    if storage.current_target and storage.current_target[player_index] then
+        return storage.current_target[player_index]
     else
         return nil
     end
