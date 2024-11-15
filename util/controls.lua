@@ -92,6 +92,7 @@ local function end_trainsaver(command, ending_transition)
             type = defines.controllers.cutscene,
             waypoints = created_waypoints,
             start_position = player.position,
+            start_zoom = zoom, -- temporary until zoom issue is fixed
         }
     )
     toggle_gui(player, false)

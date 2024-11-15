@@ -79,7 +79,7 @@ local function cutscene_cancelled(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     toggle_gui(player, true)
-    -- chatty_print(chatty_player_name(player) .. "cutscene cancelled")
+    chatty_print(chatty_player_name(player) .. "cutscene cancelled")
 end
 
 ---@param event EventData.on_cutscene_finished
@@ -88,7 +88,7 @@ local function cutscene_finished(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     toggle_gui(player, true)
-    -- chatty_print(chatty_player_name(player) .. "cutscene finished")
+    chatty_print(chatty_player_name(player) .. "cutscene finished")
 end
 
 -- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
@@ -454,11 +454,11 @@ local function cutscene_next_tick_function()
 
             -- If the train is bi-directional and we're just switching from one end to the other,
             -- set transition time to 15 ticks per carriage so it's nice and smooth
-            -- also remove zoom so it stays the same
+            -- also remove zoom so it stays the same (not anymore since in 2.0 nil zooms the camera way in)
             -- also don't add it to watch history
             if same_train then
                 created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-                created_waypoints[1].zoom = nil
+                -- created_waypoints[1].zoom = nil -- temporary until zoom issue is fixed
                 record_history = false
             end
 
@@ -472,7 +472,7 @@ local function cutscene_next_tick_function()
                 local record_history = true
                 if same_train then
                     created_waypoints[1].transition_time = table_size(target_train.carriages) * 15
-                    created_waypoints[1].zoom = nil
+                    -- created_waypoints[1].zoom = nil -- temporary until zoom issue is fixed
                     record_history = false
                 end
                 play_cutscene(created_waypoints, player_index, record_history)

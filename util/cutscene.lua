@@ -58,6 +58,7 @@ local function play_cutscene(created_waypoints, player_index, register_history)
             type = defines.controllers.cutscene,
             waypoints = created_waypoints,
             start_position = player.position,
+            start_zoom = created_waypoints[1].zoom, -- temporary until zoom issue is fixed
             -- final_transition_time = tt
         }
     )
