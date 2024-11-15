@@ -1,7 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
-Date: ????
-  Changes:
+Date: 14NOV2024
+  Bugfixes:
+    - added "temporary" fix for the camera zooming way in when switching targets on the same train or returning to the player character
+  Locale:
+    - updated ru and uk locale from Crowdin
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.30
 Date: 28OCT2024
