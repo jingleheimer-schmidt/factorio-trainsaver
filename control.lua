@@ -79,7 +79,7 @@ local function cutscene_cancelled(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     toggle_gui(player, true)
-    -- chatty_print(chatty_player_name(player) .. "cutscene cancelled")
+    chatty_print(chatty_player_name(player) .. "cutscene cancelled")
 end
 
 ---@param event EventData.on_cutscene_finished
@@ -88,7 +88,7 @@ local function cutscene_finished(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     toggle_gui(player, true)
-    -- chatty_print(chatty_player_name(player) .. "cutscene finished")
+    chatty_print(chatty_player_name(player) .. "cutscene finished")
 end
 
 -- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
