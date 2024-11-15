@@ -1,4 +1,5 @@
 
+---@type data.ModDoubleSettingPrototype
 local transitionSpeedSetting = {
     type = "double-setting",
     name = "ts-transition-speed",
@@ -8,6 +9,7 @@ local transitionSpeedSetting = {
     order = "ts-a-a"
 }
 
+---@type data.ModDoubleSettingPrototype
 local transitionTimeSetting = {
     type = "double-setting",
     name = "ts-transition-time",
@@ -19,6 +21,7 @@ local transitionTimeSetting = {
     hidden = true,
 }
 
+---@type data.ModIntSettingPrototype
 local waitAtSignalSetting = {
     type = "int-setting",
     name = "ts-wait-at-signal",
@@ -28,6 +31,7 @@ local waitAtSignalSetting = {
     order = "ts-b-1"
 }
 
+---@type data.ModIntSettingPrototype
 local stationMinimumlSetting = {
     type = "int-setting",
     name = "ts-station-minimum",
@@ -37,6 +41,7 @@ local stationMinimumlSetting = {
     order = "ts-b-2"
 }
 
+---@type data.ModIntSettingPrototype
 local drivingMinimumlSetting = {
     type = "int-setting",
     name = "ts-driving-minimum",
@@ -46,6 +51,7 @@ local drivingMinimumlSetting = {
     order = "ts-b-3"
 }
 
+---@type data.ModDoubleSettingPrototype
 local timeWaitSetting = {
     type = "double-setting",
     name = "ts-time-wait",
@@ -56,6 +62,7 @@ local timeWaitSetting = {
     hidden = true,
 }
 
+---@type data.ModDoubleSettingPrototype
 local afkAutoStartSetting = {
     type = "double-setting",
     name = "ts-afk-auto-start",
@@ -65,6 +72,7 @@ local afkAutoStartSetting = {
     order = "ts-d"
 }
 
+---@type data.ModDoubleSettingPrototype
 local zoomSetting = {
     type = "double-setting",
     name = "ts-zoom",
@@ -75,6 +83,7 @@ local zoomSetting = {
     order = "ts-e"
 }
 
+---@type data.ModBoolSettingPrototype
 local variableZoomSetting = {
     type = "bool-setting",
     name = "ts-variable-zoom",
@@ -84,6 +93,7 @@ local variableZoomSetting = {
     hidden = true,
 }
 
+---@type data.ModBoolSettingPrototype
 local autoStartWhileGuiIsOpenSetting = {
     type = "bool-setting",
     name = "ts-autostart-while-gui-is-open",
@@ -92,6 +102,7 @@ local autoStartWhileGuiIsOpenSetting = {
     order = "ts-g"
 }
 
+---@type data.ModBoolSettingPrototype
 local autoStartWhileViewingMapSetting = {
     type = "bool-setting",
     name = "ts-autostart-while-viewing-map",
@@ -100,6 +111,7 @@ local autoStartWhileViewingMapSetting = {
     order = "ts-h"
 }
 
+---@type data.ModBoolSettingPrototype
 local menuEndsTrainsaverSetting = {
     type = "bool-setting",
     name = "ts-menu-hotkey",
@@ -109,6 +121,7 @@ local menuEndsTrainsaverSetting = {
     hidden = true,
 }
 
+---@type data.ModBoolSettingPrototype
 local linkedGameControlEndsTrainsaverSetting = {
     type = "bool-setting",
     name = "ts-linked-game-control-hotkey",
@@ -117,6 +130,7 @@ local linkedGameControlEndsTrainsaverSetting = {
     order = "ts-j"
 }
 
+---@type data.ModBoolSettingPrototype
 local notableEventAlerts = {
     type = "bool-setting",
     name = "ts-notable-events",
@@ -125,6 +139,7 @@ local notableEventAlerts = {
     order = "ts-k"
 }
 
+---@type data.ModBoolSettingPrototype
 local hiddenSecretsSetting = {
     type = "bool-setting",
     name = "ts-secrets",
