@@ -91,6 +91,7 @@ local variableZoomSetting = {
     default_value = true,
     order = "ts-f",
     hidden = true,
+    forced_value = false, -- temporary until zoom issue is fixed
 }
 
 ---@type data.ModBoolSettingPrototype
