@@ -1,3 +1,5 @@
+![Factorio Mod Portal mod version](https://img.shields.io/factorio-mod-portal/v/trainsaver) ![Factorio Mod Portal last updated](https://img.shields.io/factorio-mod-portal/last-updated/trainsaver) ![Factorio Mod Portal downloads](https://img.shields.io/factorio-mod-portal/dt/trainsaver)
+
 ### Sit back, relax, and watch your trains drive around! 
 This mod creates a dynamic screensaver which follows trains as they drive around from station to station. The screensaver can be started or stopped at any time with cmd/ctrl + t or the /trainsaver chat command. The screensaver can also start automatically when a player is AFK. Most game-control keys will exit the screensaver and return control to the player, except the right/left arrow keys which navigate a history of previously viewed targets.
 
