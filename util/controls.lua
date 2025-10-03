@@ -50,16 +50,18 @@ local function end_trainsaver(command, ending_transition)
         player.exit_cutscene()
         return
     end
-    -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
-    if not (player.cutscene_character or player.character) then
+    -- if player doesn't have a character to return to, then just exit immediately
+    -- Note: for cross-surface cutscenes, prefer player.character over cutscene_character 
+    -- because cutscene_character is created on the target surface, not the original surface
+    local waypoint_target = player.character or player.cutscene_character
+    if not waypoint_target then
         chatty_print(chatty_name .. "has no character or cutscene_character. immediate exit requested")
         player.exit_cutscene()
         return
     end
-    -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
+    -- create a new cutscene from current position back to character position so the exit is nice and smooth
     chatty_print(chatty_name .. "exit trainsaver (transition) requested")
     local mod_settings = player.mod_settings
-    local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
     local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
@@ -81,6 +83,28 @@ local function end_trainsaver(command, ending_transition)
     }
     local character_name = player.character and player.character.name or "cutscene character"
     chatty_print(chatty_name .. "created ending transition waypoints to " .. character_name)
+    
+    -- check if this is a cross-surface return
+    local is_cross_surface = waypoint_target.surface.name ~= player.surface.name
+    if is_cross_surface then
+        -- store player data for cross-surface ending transition
+        storage.player_data = storage.player_data or {}
+        storage.player_data[player_index] = {
+            position = player.position,
+            physical_position = player.physical_position,
+            surface = player.surface_index,
+            physical_surface = player.physical_surface_index,
+            zoom = player.zoom,
+            controller_type = player.controller_type,
+            character = player.character,
+        }
+        chatty_print(chatty_name .. "cross-surface ending: player on " .. player.surface.name .. ", returning to " .. waypoint_target.surface.name)
+        -- set player to spectator and teleport to target surface
+        player.set_controller { type = defines.controllers.spectator }
+        player.teleport(player.position, waypoint_target.surface.name, true)
+        player.zoom = storage.player_data[player_index].zoom
+    end
+    
     local transfer_alt_mode = player.game_view_settings.show_entity_info
     player.set_controller(
         {
