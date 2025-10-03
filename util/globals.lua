@@ -23,6 +23,38 @@ local trainsaver_is_active = status_util.trainsaver_is_active
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index uint
 local function cutscene_ended_nil_globals(player_index)
+    -- restore player data for cross-surface cutscenes
+    storage.player_data = storage.player_data or {}
+    local player_data = storage.player_data[player_index]
+    if player_data then
+        local player = game.get_player(player_index)
+        if player and player.valid then
+            -- teleport player back to their original surface
+            player.teleport(player_data.physical_position, player_data.physical_surface, true)
+            -- restore original controller type
+            local character = player_data.character
+            if character and character.valid then
+                player.set_controller {
+                    type = defines.controllers.character,
+                    character = character,
+                }
+            else
+                player.set_controller {
+                    type = defines.controllers.ghost,
+                }
+            end
+            if not (player_data.controller_type == defines.controllers.character) then
+                player.set_controller {
+                    type = player_data.controller_type,
+                    position = player_data.position,
+                    surface = player_data.surface,
+                }
+                player.zoom = player_data.zoom
+            end
+        end
+        storage.player_data[player_index] = nil
+    end
+    
     storage.create_cutscene_next_tick = storage.create_cutscene_next_tick or {}
     storage.create_cutscene_next_tick[player_index] = nil
     storage.wait_at_signal = storage.wait_at_signal or {}

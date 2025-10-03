@@ -81,11 +81,6 @@ local function end_trainsaver(command, ending_transition)
     }
     local character_name = player.character and player.character.name or "cutscene character"
     chatty_print(chatty_name .. "created ending transition waypoints to " .. character_name)
-    if player.surface_index ~= created_waypoints[1].target.surface_index then
-        chatty_print(chatty_name .. "ending transition target on different surface than player. immediate exit requested")
-        player.exit_cutscene()
-        return
-    end
     local transfer_alt_mode = player.game_view_settings.show_entity_info
     player.set_controller(
         {
@@ -140,9 +135,8 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     }
     if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
-    -- create a table of all trains
-    local train_filter = { surface = player.surface }
-    local all_trains = game.train_manager.get_trains(train_filter)
+    -- create a table of all trains from all surfaces
+    local all_trains = game.train_manager.get_trains()
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
     local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]

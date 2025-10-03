@@ -13,6 +13,43 @@ local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
 
+---@class player_data
+---@field position MapPosition
+---@field physical_position MapPosition
+---@field surface SurfaceIdentification
+---@field physical_surface SurfaceIdentification
+---@field zoom number
+---@field controller_type defines.controllers
+---@field character LuaEntity?
+
+-- get the intended cutscene surface from waypoints (most common surface among waypoints)
+---@param waypoints CutsceneWaypoint[]
+---@return SurfaceIdentification
+local function get_intended_cutscene_surface(waypoints)
+    local surface_names = {}
+    for _, waypoint in pairs(waypoints) do
+        local surface_name = nil
+        if waypoint.target and waypoint.target.valid then
+            surface_name = waypoint.target.surface.name
+        end
+        if surface_name then
+            surface_names[surface_name] = (surface_names[surface_name] or 0) + 1
+        end
+    end
+    local max_count, surface_name = 0, nil
+    for name, count in pairs(surface_names) do
+        if count > max_count then
+            max_count = count
+            surface_name = name
+        end
+    end
+    -- if no surface was found in waypoints, return the first waypoint's target surface
+    if not surface_name and waypoints[1] and waypoints[1].target and waypoints[1].target.valid then
+        surface_name = waypoints[1].target.surface.name
+    end
+    return surface_name
+end
+
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index uint
 ---@param train LuaTrain
@@ -43,10 +80,27 @@ local function play_cutscene(created_waypoints, player_index, register_history)
         end
     end
 
-    -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-    if player.surface_index ~= created_waypoints[1].target.surface.index then
-        chatty_print(chatty_name .. "abort: waypoint is on different surface than player")
-        return
+    -- check if cutscene is on a different surface than the player
+    local intended_surface = get_intended_cutscene_surface(created_waypoints)
+    local is_cross_surface = intended_surface and (player.surface.name ~= intended_surface)
+    
+    if is_cross_surface then
+        -- store player data for cross-surface cutscene
+        storage.player_data = storage.player_data or {}
+        storage.player_data[player_index] = {
+            position = player.position,
+            physical_position = player.physical_position,
+            surface = player.surface_index,
+            physical_surface = player.physical_surface_index,
+            zoom = player.zoom,
+            controller_type = player.controller_type,
+            character = player.character,
+        }
+        chatty_print(chatty_name .. "cross-surface cutscene: player on " .. player.surface.name .. ", target on " .. intended_surface)
+        -- set player to spectator and teleport to target surface
+        player.set_controller { type = defines.controllers.spectator }
+        player.teleport(player.position, intended_surface, true)
+        player.zoom = storage.player_data[player_index].zoom
     end
 
     -- save alt-mode so we can preserve it after cutscene controller resets it

@@ -128,10 +128,6 @@ local function train_changed_state(event)
     chatty_print("[" .. game.tick .. "] potential target [" .. new_target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
-        if not (player.surface_index == new_target.carriages[1].surface_index) then
-            chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. new_target.carriages[1].surface.name .. "]")
-            goto next_player
-        end
         local current_target = current_trainsaver_target(player)
         if not (current_target and target_is_entity(current_target)) then goto next_player end
         local chatty_name = get_chatty_name(player)
@@ -214,10 +210,6 @@ local function spidertron_changed_state(event)
         local current_target = current_trainsaver_target(player)
         if not current_target then goto next_player end
         local current_target_name = get_chatty_name(current_target)
-        if not (spider.surface_index == player.surface_index) then
-            chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
-            goto next_player
-        end
         if target_is_locomotive(current_target) then
             if waypoint_target_passes_inactivity_checks(player, current_target) then
                 local waypoints = create_waypoint(spider, player.index)
@@ -276,10 +268,6 @@ local function on_unit_group_finished_gathering(event)
     chatty_print("[" .. game.tick .. "] potential target [" .. get_chatty_name(group) .. "] has begun an attack command")
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
-        if not (player.surface_index == group.surface.index) then
-            chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. group.surface.name .. "]")
-            goto next_player
-        end
         local current_target = current_trainsaver_target(player)
         local player_index = player.index
         if waypoint_target_passes_inactivity_checks(player, current_target) then
@@ -441,13 +429,6 @@ local function cutscene_next_tick_function()
         end
 
         if mover then
-            -- Abort if the potential waypoint is on a different surface than the player
-            if player.surface_index ~= mover.surface_index then
-                chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
-                storage.create_cutscene_next_tick[player_index] = nil
-                goto next_player
-            end
-
             local created_waypoints = create_waypoint(mover, player_index)
 
             local record_history = true
@@ -638,10 +619,6 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
             if remote.call("cc_check", "cc_status", player_index) == "active" then
                 goto next_player
             end
-        end
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface_index ~= silo.surface_index then
-            goto next_player
         end
         -- create the waypoints
         local created_waypoints = create_waypoint(silo, player_index)
