@@ -63,7 +63,7 @@ local wait_signal_states = { ---@type table<defines.train_state, boolean>
     -- [defines.train_state.manual_control] = true,
     -- [defines.train_state.destination_full] = true,
 }
-local always_accept_new_target_states = {
+local always_accept_new_target_states = { ---@type table<defines.train_state, boolean>
     -- [defines.train_state.on_the_path] = true,
     [defines.train_state.no_schedule] = true,
     [defines.train_state.no_path] = true,
