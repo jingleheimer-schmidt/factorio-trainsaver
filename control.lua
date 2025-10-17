@@ -44,6 +44,7 @@ local waypoint_target_passes_inactivity_checks = status_util.waypoint_target_pas
 
 local waypoint_util = require("util.waypoint")
 local create_waypoint = waypoint_util.create_waypoint
+local get_intended_cutscene_surface = waypoint_util.get_intended_cutscene_surface
 
 local controls_util = require("util.controls")
 local end_trainsaver = controls_util.end_trainsaver
@@ -64,6 +65,8 @@ local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 local cutscene_ended_nil_globals = globals_util.cutscene_ended_nil_globals
 local update_wait_at_signal = globals_util.update_wait_at_signal
 local update_wait_at_station = globals_util.update_wait_at_station
+local reset_player_data = globals_util.reset_player_data
+local update_player_data = globals_util.update_player_data
 
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
@@ -123,15 +126,15 @@ local function train_changed_state(event)
     local new_target = event.train
     local old_state = event.old_state
     local new_state = event.train.state
-    if not (wait_station_states[old_state] and active_states[new_state]) then return end
+    if not ((wait_station_states[old_state] or (wait_signal_states[old_state])) and active_states[new_state]) then return end
     local new_target_name = get_chatty_name(new_target)
     chatty_print("[" .. game.tick .. "] potential target [" .. new_target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
-        if not (player.surface_index == new_target.carriages[1].surface_index) then
-            chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. new_target.carriages[1].surface.name .. "]")
-            goto next_player
-        end
+        -- if not (player.surface_index == new_target.carriages[1].surface_index) then
+        --     chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. new_target.carriages[1].surface.name .. "]")
+        --     goto next_player
+        -- end
         local current_target = current_trainsaver_target(player)
         if not (current_target and target_is_entity(current_target)) then goto next_player end
         local chatty_name = get_chatty_name(player)
@@ -214,10 +217,10 @@ local function spidertron_changed_state(event)
         local current_target = current_trainsaver_target(player)
         if not current_target then goto next_player end
         local current_target_name = get_chatty_name(current_target)
-        if not (spider.surface_index == player.surface_index) then
-            chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
-            goto next_player
-        end
+        -- if not (spider.surface_index == player.surface_index) then
+        --     chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
+        --     goto next_player
+        -- end
         if target_is_locomotive(current_target) then
             if waypoint_target_passes_inactivity_checks(player, current_target) then
                 local waypoints = create_waypoint(spider, player.index)
@@ -441,12 +444,12 @@ local function cutscene_next_tick_function()
         end
 
         if mover then
-            -- Abort if the potential waypoint is on a different surface than the player
-            if player.surface_index ~= mover.surface_index then
-                chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
-                storage.create_cutscene_next_tick[player_index] = nil
-                goto next_player
-            end
+            -- -- Abort if the potential waypoint is on a different surface than the player
+            -- if player.surface_index ~= mover.surface_index then
+            --     chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
+            --     storage.create_cutscene_next_tick[player_index] = nil
+            --     goto next_player
+            -- end
 
             local created_waypoints = create_waypoint(mover, player_index)
 
@@ -535,7 +538,7 @@ end
 local function on_nth_tick()
     for _, player in pairs(game.connected_players) do
         local controller_type = player.controller_type
-        if not ((controller_type == defines.controllers.character) or (controller_type == defines.controllers.god)) then goto next_player end
+        if not ((controller_type == defines.controllers.character) or (controller_type == defines.controllers.god) or (controller_type == defines.controllers.remote)) then goto next_player end
         local mod_settings = player.mod_settings
         local auto_start = mod_settings["ts-afk-auto-start"].value
         local auto_start_while_viewing_map = mod_settings["ts-autostart-while-viewing-map"].value
@@ -639,10 +642,10 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
                 goto next_player
             end
         end
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface_index ~= silo.surface_index then
-            goto next_player
-        end
+        -- -- abort if the potential waypoint is on a different surface than the player
+        -- if player.surface_index ~= silo.surface_index then
+        --     goto next_player
+        -- end
         -- create the waypoints
         local created_waypoints = create_waypoint(silo, player_index)
         local silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
@@ -659,6 +662,12 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
         created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
         created_waypoints[2].zoom = 0.25
+
+        update_player_data(player, created_waypoints)
+        local player_data = storage.player_data[player_index]
+        player.set_controller { type = defines.controllers.spectator }
+        player.teleport(player.position, get_intended_cutscene_surface(created_waypoints), true)
+        storage.player_data[player_index] = player_data
 
         local transfer_alt_mode = player.game_view_settings.show_entity_info
         player.set_controller(

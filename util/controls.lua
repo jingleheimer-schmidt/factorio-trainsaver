@@ -24,6 +24,10 @@ local create_waypoint = waypoint_util.create_waypoint
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
 
+local globals_util = require("util.globals")
+local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
+local reset_player_data = globals_util.reset_player_data
+
 -- end the screensaver
 ---@param command EventData.on_console_command
 ---@param ending_transition boolean?
@@ -50,8 +54,9 @@ local function end_trainsaver(command, ending_transition)
         player.exit_cutscene()
         return
     end
+    local character = player.cutscene_character or player.character or (storage.player_data[player_index] and storage.player_data[player_index].character)
     -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
-    if not (player.cutscene_character or player.character) then
+    if not (character and character.valid) then
         chatty_print(chatty_name .. "has no character or cutscene_character. immediate exit requested")
         player.exit_cutscene()
         return
@@ -59,7 +64,7 @@ local function end_trainsaver(command, ending_transition)
     -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
     chatty_print(chatty_name .. "exit trainsaver (transition) requested")
     local mod_settings = player.mod_settings
-    local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
+    local waypoint_target = character
     local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
@@ -81,18 +86,20 @@ local function end_trainsaver(command, ending_transition)
     }
     local character_name = player.character and player.character.name or "cutscene character"
     chatty_print(chatty_name .. "created ending transition waypoints to " .. character_name)
-    if player.surface_index ~= created_waypoints[1].target.surface_index then
+    if player.physical_surface_index ~= created_waypoints[1].target.surface_index then
         chatty_print(chatty_name .. "ending transition target on different surface than player. immediate exit requested")
         player.exit_cutscene()
         return
     end
     local transfer_alt_mode = player.game_view_settings.show_entity_info
+    local player_position = player.position
+
     player.set_controller(
         {
             type = defines.controllers.cutscene,
             waypoints = created_waypoints,
-            start_position = player.position,
-            start_zoom = zoom, -- temporary until zoom issue is fixed
+            start_position = player_position,
+            start_zoom = player.zoom, -- temporary until zoom issue is fixed
         }
     )
     toggle_gui(player, false)
@@ -137,11 +144,12 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     local allowed_controller_types = {
         [defines.controllers.character] = true,
         [defines.controllers.god] = true,
+        [defines.controllers.remote] = true,
     }
     if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
     -- create a table of all trains
-    local train_filter = { surface = player.surface }
+    local train_filter = { force = player.force }
     local all_trains = game.train_manager.get_trains(train_filter)
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
@@ -212,7 +220,7 @@ end
 local function start_or_end_trainsaver(event)
     local player = game.get_player(event.player_index)
     if not player then return end
-    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
+    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god) or (player.controller_type == defines.controllers.remote)) then
         local command = { name = "trainsaver", player_index = event.player_index }
         start_trainsaver(command)
     elseif player.controller_type == defines.controllers.cutscene then

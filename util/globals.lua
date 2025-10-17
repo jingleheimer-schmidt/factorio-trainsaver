@@ -19,10 +19,77 @@ local current_trainsaver_target = target_util.current_trainsaver_target
 local status_util = require("util.status")
 local trainsaver_is_active = status_util.trainsaver_is_active
 
+---@param player LuaPlayer
+---@param waypoints CutsceneWaypoint[]
+---@return player_data
+local function update_player_data(player, waypoints)
+    local player_index = player.index
+    storage.player_data = storage.player_data or {}
+    ---@type table<integer, player_data>
+    storage.player_data = storage.player_data or {}
+    storage.player_data[player_index] = storage.player_data[player_index] or {}
+    local player_data = storage.player_data[player_index]
+    player_data.position = player_data.position or player.position
+    player_data.physical_position = player_data.physical_position or player.physical_position
+    player_data.surface = player_data.surface or player.surface
+    player_data.physical_surface = player_data.physical_surface or player.physical_surface_index
+    player_data.zoom = player_data.zoom or player.zoom
+    player_data.controller_type = player_data.controller_type or player.controller_type
+    player_data.character = player_data.character or player.character
+    player_data.waypoint_count = player_data.waypoint_count or #waypoints
+    storage.player_data[player_index] = player_data
+    return player_data
+end
+
+---@class player_data
+---@field position MapPosition
+---@field physical_position MapPosition
+---@field surface SurfaceIdentification
+---@field physical_surface SurfaceIdentification
+---@field zoom number
+---@field controller_type defines.controllers
+---@field character LuaEntity?
+---@field waypoint_count integer
+
+---@param player LuaPlayer
+---@param player_data player_data
+local function reset_player_data(player, player_data)
+    player.teleport(player_data.physical_position, player_data.physical_surface, true)
+    local character = player_data.character
+    if character and character.valid then
+        player.set_controller {
+            type = defines.controllers.character,
+            character = character,
+        }
+    else
+        player.set_controller {
+            type = defines.controllers.ghost,
+        }
+    end
+    if not (player_data.controller_type == defines.controllers.character) then
+        player.set_controller {
+            type = player_data.controller_type,
+            position = player_data.position,
+            surface = player_data.surface,
+        }
+        player.zoom = player_data.zoom
+    end
+    storage.player_data[player.index] = nil
+end
 
 -- remove any globals we saved for the player when trainsaver ends
 ---@param player_index uint
 local function cutscene_ended_nil_globals(player_index)
+
+    storage.player_data = storage.player_data or {}
+    local player_data = storage.player_data[player_index]
+    if player_data then
+        local player = game.get_player(player_index)
+        if player and player.valid then
+            reset_player_data(player, player_data)
+        end
+    end
+
     storage.create_cutscene_next_tick = storage.create_cutscene_next_tick or {}
     storage.create_cutscene_next_tick[player_index] = nil
     storage.wait_at_signal = storage.wait_at_signal or {}
@@ -222,4 +289,6 @@ return {
     update_globals_new_cutscene = update_globals_new_cutscene,
     update_wait_at_station = update_wait_at_station,
     update_wait_at_signal = update_wait_at_signal,
+    reset_player_data = reset_player_data,
+    update_player_data = update_player_data,
 }
