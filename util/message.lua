@@ -61,11 +61,11 @@ local function get_chatty_name(target)
     if not target then return "nil" end
     local object_name = target.object_name
     if object_name == "LuaTrain" then
-        return chatty_target_train_name(target)
+        return chatty_target_train_name(target --[[@as LuaTrain]])
     elseif object_name == "LuaPlayer" then
-        return chatty_player_name(target)
+        return chatty_player_name(target --[[@as LuaPlayer]])
     elseif object_name == "LuaEntity" then
-        return chatty_target_entity_name(target)
+        return chatty_target_entity_name(target --[[@as LuaEntity]])
     else
         return "LuaUnitGroup"
     end
