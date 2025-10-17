@@ -94,7 +94,7 @@ end
 ---@param waypoint_target LuaEntity|LuaCommandable?
 ---@return boolean
 local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
-    local bool = false
+    local passes_inactivity_checks = false
     waypoint_target = waypoint_target or current_trainsaver_target(player)
     if not waypoint_target then return true end
     local current_target_name = get_chatty_name(waypoint_target)
@@ -102,7 +102,7 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
     storage.cutscene_ending = storage.cutscene_ending or {}
     if storage.cutscene_ending[player.index] then
         chatty_print(chatty_name .. "denied. trainsaver is ending")
-        bool = false
+        passes_inactivity_checks = false
     elseif target_is_locomotive(waypoint_target) then
         local locomotive = waypoint_target
         local state = locomotive.train.state
@@ -111,13 +111,13 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
         local exceeds_signal = wait_signal_states[state] and exceeded_signal_minimum(player)
         if exceeds_driving or exceeds_station or exceeds_signal then
             chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for state [" .. verbose_states[state] .. "]")
-            bool = true
+            passes_inactivity_checks = true
         elseif always_accept_new_target_states[state] then
             chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has state [" .. verbose_states[state] .. "]")
-            bool = true
+            passes_inactivity_checks = true
         else
             chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for state [" .. verbose_states[state] .. "]")
-            bool = false
+            passes_inactivity_checks = false
         end
     elseif target_is_spider(waypoint_target) then
         local next_destination = waypoint_target.autopilot_destinations[1]
@@ -127,28 +127,28 @@ local function waypoint_target_passes_inactivity_checks(player, waypoint_target)
         if spider_is_walking and next_destination then
             if exceeded_spider_walking_minimum(player) then
                 chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for walking spidertron")
-                bool = true
+                passes_inactivity_checks = true
             else
                 chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for walking spidertron")
-                bool = false
+                passes_inactivity_checks = false
             end
         elseif spider_is_still then
             if exceeded_spider_idle_minimum(player) then
                 chatty_print(chatty_name .. "accepted. current target [" .. current_target_name .. "] has exceeded the minimum for idle spidertron")
-                bool = true
+                passes_inactivity_checks = true
             else
                 chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] has not exceeded the minimum for idle spidertron")
-                bool = false
+                passes_inactivity_checks = false
             end
         else
             chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is settling down")
-            bool = false -- when would this happen??
+            passes_inactivity_checks = false -- when would this happen??
         end
     elseif target_is_rocket_silo(waypoint_target) then
         chatty_print(chatty_name .. "denied. current target [" .. current_target_name .. "] is launching a rocket")
-        bool = false
+        passes_inactivity_checks = false
     end
-    return bool
+    return passes_inactivity_checks
 end
 
 return {
