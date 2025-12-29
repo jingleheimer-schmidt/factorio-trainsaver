@@ -24,7 +24,6 @@ local trainsaver_is_active = status_util.trainsaver_is_active
 ---@return player_data
 local function update_player_data(player, waypoints)
     local player_index = player.index
-    storage.player_data = storage.player_data or {}
     ---@type table<integer, player_data>
     storage.player_data = storage.player_data or {}
     storage.player_data[player_index] = storage.player_data[player_index] or {}
