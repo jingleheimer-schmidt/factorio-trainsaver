@@ -94,6 +94,10 @@ local function end_trainsaver(command, ending_transition)
     local transfer_alt_mode = player.game_view_settings.show_entity_info
     local player_position = player.position
 
+    ---@type table<uint, boolean>
+    storage.cutscene_ending = storage.cutscene_ending or {}
+    storage.cutscene_ending[player_index] = true
+
     player.set_controller(
         {
             type = defines.controllers.cutscene,
@@ -105,9 +109,6 @@ local function end_trainsaver(command, ending_transition)
     toggle_gui(player, false)
     player.game_view_settings.show_entity_info = transfer_alt_mode
     -- update globals for a cutscene ending
-    ---@type table<uint, boolean>
-    storage.cutscene_ending = storage.cutscene_ending or {}
-    storage.cutscene_ending[player_index] = true
     ---@type table<uint, number|uint>
     storage.wait_signal_until_tick = storage.wait_signal_until_tick or {}
     storage.wait_signal_until_tick[player_index] = nil
