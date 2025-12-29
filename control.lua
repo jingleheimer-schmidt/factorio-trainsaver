@@ -661,7 +661,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
 
         -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
         created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
-        created_waypoints[2].zoom = 0.25
+        created_waypoints[2].zoom = 0.125
 
         update_player_data(player, created_waypoints)
         local player_data = storage.player_data[player_index]
