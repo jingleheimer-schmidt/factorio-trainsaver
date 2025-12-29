@@ -47,7 +47,7 @@ Date: 28OCT2023
     - all mod gui elements are now hidden while trainsaver is active
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.26
-Date: 21SSEP2023
+Date: 21SEP2023
   Changes:
     - added target history tracking
     - added hotkeys (default right/left arrow) to navigate target history
@@ -68,7 +68,7 @@ Date: 02SEP2023
 Version: 0.0.24
 Date: 05JUN2023
   Changes:
-    - fixed that trainsaver could get stuck waiting for the target to start moving when targetting an idle train on startup
+    - fixed that trainsaver could get stuck waiting for the target to start moving when targeting an idle train on startup
     - driving_until_tick, wait_signal_until_tick, and wait_station_until_tick are now set on trainsaver startup as appropriate depending on train state
     - added verbose mode update messages when new target request is denied by an active rocket launch
     - added tick data to the wait_signal_until_tick and wait_station_until_tick verbose mode update messages
@@ -82,12 +82,12 @@ Date: 30MAY2023
     - simplified current trainsaver target state and condition handling
     - added additional clarity to target names in verbose mode
     - updated zoom mod setting description to reflect the new default value from version 0.0.21
-    - updated liscense copyright year
+    - updated license copyright year
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.22
 Date: 27MAY2023
   Changes:
-    - resolved error when loaded with factorio version 1.1.81 or older
+    - resolved error when loaded with Factorio version 1.1.81 or older
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.21
 Date: 26MAY2023
@@ -118,8 +118,8 @@ Version: 0.0.19
 Date: 22OCT2022
   Changes:
     - renamed "Signal timeout" setting to "Signal minimum"
-    - added "Station minimum" setting for changing the minimum time the camera will wait before targetting a new train once the current train stops at a station
-    - added "Driving minimum" setting for changing the minimum time the camera will wait before targetting a new train while the current train is driving
+    - added "Station minimum" setting for changing the minimum time the camera will wait before targeting a new train once the current train stops at a station
+    - added "Driving minimum" setting for changing the minimum time the camera will wait before targeting a new train while the current train is driving
     - fixed that the "Wait at signal" setting could be a negative number
     - fixed that the "Inactivity timeout" setting tooltip indicated an incorrect default value
     - changed default value of "Escape with menu" setting from enabled to disabled
@@ -127,7 +127,7 @@ Date: 22OCT2022
 Version: 0.0.18
 Date: 07JUL2022
   Changes:
-    - updated mod setting locale to remove duplicate info icon (factorio now adds this icon automatically)
+    - updated mod setting locale to remove duplicate info icon (Factorio now adds this icon automatically)
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.17
 Date: 21MAR2022
@@ -138,7 +138,7 @@ Date: 21MAR2022
 Version: 0.0.16
 Date: 01MAR2022
   Changes:
-    - allow movement, toggle-map, and shoot-enemy game key controls to escape transaver
+    - allow movement, toggle-map, and shoot-enemy game key controls to escape trainsaver
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.15
 Date: 10FEB2022
@@ -175,7 +175,7 @@ Date: 2021-05-09
     - added remote interface for other mods to get the currently followed target for a given player
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.11
-Date: 2121-03-06
+Date: 2021-03-06
   Changes:
     - added support for Space Exploration's Satellite Navigation view
     - added support for the Brave New World mod
@@ -191,7 +191,7 @@ Date: 2021-02-09
     - added setting to toggle if trainsaver will autostart when player has a gui open
     - added setting to toggle if trainsaver will autostart when player has the map open
     - afk autostart is now more precise
-    - fixed that factorio would turn alt-mode off every time trainsaver focused on a new target
+    - fixed that Factorio would turn alt-mode off every time trainsaver focused on a new target
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.9
 Date: 2021-02-06
