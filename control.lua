@@ -338,10 +338,7 @@ local function locomotive_gone(event)
         local command = {
             name = "trainsaver",
             player_index = player_index,
-            -- entity_gone_restart = "yes",
-            -- train_to_ignore = event.entity.train
         }
-        -- start_trainsaver(command)
         start_trainsaver(command, event.entity.train, true)
         ::next_player::
     end
@@ -354,33 +351,15 @@ local function entity_destroyed(event)
     if not storage.entity_destroyed_registration_numbers then return end
     for player_index, current_target_registration_number in pairs(storage.entity_destroyed_registration_numbers) do
         if not (current_target_registration_number == registration_number) then goto next_player end
-        if event.useful_id then
-            local simulated_event = {
-                entity = {
-                    unit_number = event.useful_id,
-                    train = {
-                        id = -999999
-                    },
-                },
-            }
-            locomotive_gone(simulated_event)
-        else
-            -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
-            local player = game.get_player(player_index)
-            if not player then goto next_player end
-            if not trainsaver_is_active(player) then goto next_player end
-            --[[
-            local rocket_destroyed_location_index = game.tick - 1
-            player.teleport(storage.rocket_positions[player_index][rocket_destroyed_location_index])
-            storage.rocket_positions[player_index] = nil
-            --]]
-            local command = {
-                name = "trainsaver",
-                player_index = player_index,
-                -- entity_gone_restart = "yes",
-            }
-            start_trainsaver(command, nil, true)
-        end
+        -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
+        local player = game.get_player(player_index)
+        if not player then goto next_player end
+        if not trainsaver_is_active(player) then goto next_player end
+        local command = {
+            name = "trainsaver",
+            player_index = player_index,
+        }
+        start_trainsaver(command, nil, true)
         ::next_player::
     end
 end
