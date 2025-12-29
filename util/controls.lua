@@ -239,7 +239,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     end
 
     -- if there are no trains on_the_path then make a table of trains waiting at stations
-    chatty_print(chatty_name .. "no trains are on_the_path")
+    chatty_print(chatty_name .. "no active trains or spidertrons")
     local trains_at_stations = {} --[=[@type LuaTrain[]]=]
     for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.wait_station then
