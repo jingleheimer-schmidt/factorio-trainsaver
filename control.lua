@@ -55,6 +55,9 @@ local focus_new_target = controls_util.focus_new_target
 local focus_next_target = controls_util.focus_next_target
 local focus_previous_target = controls_util.focus_previous_target
 local reset_history = controls_util.reset_player_history
+local ignore_stations = controls_util.ignore_stations
+local unignore_stations = controls_util.unignore_stations
+local list_ignored_stations = controls_util.list_ignored_stations
 
 local cutscene_util = require("util.cutscene")
 local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
@@ -128,6 +131,12 @@ local function train_changed_state(event)
     local new_state = event.train.state
     if not ((wait_station_states[old_state] or (wait_signal_states[old_state])) and active_states[new_state]) then return end
     local new_target_name = get_chatty_name(new_target)
+    local ignored_station_names = storage.ignored_station_names or {}
+    local destination_station_name = new_target.path_end_stop and new_target.path_end_stop.backer_name
+    if destination_station_name and ignored_station_names[destination_station_name] then
+        chatty_print("[" .. game.tick .. "] potential target [" .. new_target_name .. "] headed to station [" .. destination_station_name .. "] ([color=red]ignored[/color])")
+        return
+    end
     chatty_print("[" .. game.tick .. "] potential target [" .. new_target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
@@ -677,6 +686,9 @@ local function add_commands()
     commands.add_command("end-trainsaver", "- ends the screensaver and immediately returns control to the player", end_trainsaver)
     commands.add_command("verbose-trainsaver", "- toggles trainsaver console debug messages", toggle_chatty)
     commands.add_command("reset-trainsaver-history", "- clears the history log", reset_history)
+    commands.add_command("ts-ignore_stations", { "ts-command-help.ts-ignore-stations" }, ignore_stations)
+    commands.add_command("ts-unignore_stations", { "ts-command-help.ts-unignore-stations" }, unignore_stations)
+    commands.add_command("ts-list_ignored_stations", { "ts-command-help.ts-list-ignored-stations" }, list_ignored_stations)
 end
 
 script.on_init(add_commands)

@@ -164,7 +164,11 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     if not train_to_ignore then train_to_ignore = { id = -999999 } end
     for _, train in pairs(all_trains) do
         if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
-            table.insert(eligible_trains_with_movers, train)
+            local ignored_station_names = storage.ignored_station_names or {}
+            local destination_station_name = train.path_end_stop and train.path_end_stop.backer_name
+            if not (destination_station_name and ignored_station_names[destination_station_name]) then
+                table.insert(eligible_trains_with_movers, train)
+            end
         end
     end
     chatty_print(chatty_name .. "created table of trains [" .. #eligible_trains_with_movers .. " total]")
@@ -394,6 +398,123 @@ local function reset_player_history(event)
     storage.player_history_index[player_index] = nil
 end
 
+-- ignore trains headed to stations of the specified name when finding new targets
+---@param event CustomCommandData
+local function ignore_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    local parameter = event.parameter or ""
+    local station_ids = {}
+    for id in string.gmatch(parameter, "%[train%-stop=(%d+)%]") do
+        table.insert(station_ids, tonumber(id))
+    end
+    ---@type table<string, boolean>
+    storage.ignored_station_names = storage.ignored_station_names or {}
+    if next(station_ids) then
+        local stations = game.train_manager.get_train_stops({})
+        local station_names = {}
+        for _, station in pairs(stations) do
+            for _, id in pairs(station_ids) do
+                if station.unit_number == id then
+                    local station_name = station.backer_name or ""
+                    station_names[station_name] = true
+                end
+            end
+        end
+        for station_name, _ in pairs(station_names) do
+            if storage.ignored_station_names[station_name] then
+                player.print({ "ts-messages.station-already-ignored", station_name })
+            else
+                storage.ignored_station_names[station_name] = true
+                local chatty_name = get_chatty_name(player)
+                game.print({ "ts-messages.station-ignored", chatty_name, station_name })
+            end
+        end
+    else
+        local stations = game.train_manager.get_train_stops({})
+        local station_1 = stations[math.random(#stations)]
+        local station_2 = stations[math.random(#stations)]
+        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        player.print({ "ts-messages.failed-to-parse-station", parameter })
+        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+    end
+end
+
+--- remove ignored station names from the ignore list
+---@param event CustomCommandData
+local function unignore_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if not storage.ignored_station_names then return end
+    local parameter = event.parameter or ""
+    local station_ids = {}
+    for id in string.gmatch(parameter, "%[train%-stop=(%d+)%]") do
+        table.insert(station_ids, tonumber(id))
+    end
+    if next(station_ids) then
+        local stations = game.train_manager.get_train_stops({})
+        local station_names = {}
+        for _, station in pairs(stations) do
+            for _, id in pairs(station_ids) do
+                if station.unit_number == id then
+                    local station_name = station.backer_name or ""
+                    station_names[station_name] = true
+                end
+            end
+        end
+        for station_name, _ in pairs(station_names) do
+            if not storage.ignored_station_names[station_name] then
+                player.print({ "ts-messages.station-not-ignored", station_name })
+            else
+                storage.ignored_station_names[station_name] = nil
+                local chatty_name = get_chatty_name(player)
+                game.print({ "ts-messages.station-unignored", chatty_name, station_name })
+            end
+        end
+    else
+        local stations = game.train_manager.get_train_stops({})
+        local station_1 = stations[math.random(#stations)]
+        local station_2 = stations[math.random(#stations)]
+        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        player.print({ "ts-messages.failed-to-parse-station", parameter })
+        player.print({ "ts-messages.ts-unignore-stations-help", station_1_id, station_2_id })
+    end
+end
+
+--- prints a list of ignored stations to the player
+---@param event CustomCommandData
+local function list_ignored_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if not storage.ignored_station_names then
+        player.print({ "ts-messages.no-ignored-stations" })
+        local stations = game.train_manager.get_train_stops({})
+        local station_1 = stations[math.random(#stations)]
+        local station_2 = stations[math.random(#stations)]
+        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+        return
+    end
+    local ignored_stations_list = {}
+    for station_name, _ in pairs(storage.ignored_station_names) do
+        table.insert(ignored_stations_list, station_name)
+    end
+    if table_size(ignored_stations_list) == 0 then
+        player.print({ "ts-messages.no-ignored-stations" })
+        local stations = game.train_manager.get_train_stops({})
+        local station_1 = stations[math.random(#stations)]
+        local station_2 = stations[math.random(#stations)]
+        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+    else
+        player.print({ "ts-messages.ignored-stations-list", table.concat(ignored_stations_list, "\n- ") })
+    end
+end
+
 return {
     start_trainsaver = start_trainsaver,
     end_trainsaver = end_trainsaver,
@@ -403,4 +524,7 @@ return {
     focus_next_target = focus_next_target,
     focus_previous_target = focus_previous_target,
     reset_player_history = reset_player_history,
+    ignore_stations = ignore_stations,
+    unignore_stations = unignore_stations,
+    list_ignored_stations = list_ignored_stations,
 }
