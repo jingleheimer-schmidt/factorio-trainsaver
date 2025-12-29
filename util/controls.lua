@@ -437,7 +437,7 @@ local function ignore_stations(event)
         local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
         local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.failed-to-parse-station", parameter })
-        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
     end
 end
 
@@ -479,7 +479,7 @@ local function unignore_stations(event)
         local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
         local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.failed-to-parse-station", parameter })
-        player.print({ "ts-messages.ts-unignore-stations-help", station_1_id, station_2_id })
+        player.print({ "ts-messages.ts-unignore_stations-help", station_1_id, station_2_id })
     end
 end
 
@@ -495,7 +495,7 @@ local function list_ignored_stations(event)
         local station_2 = stations[math.random(#stations)]
         station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
         station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
-        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
         return
     end
     local ignored_stations_list = {}
@@ -509,7 +509,7 @@ local function list_ignored_stations(event)
         local station_2 = stations[math.random(#stations)]
         station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
         station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
-        player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
     else
         player.print({ "ts-messages.ignored-stations-list", table.concat(ignored_stations_list, "\n- ") })
     end
