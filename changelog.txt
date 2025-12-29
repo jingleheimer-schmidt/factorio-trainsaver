@@ -5,10 +5,10 @@ Date: ????
     - trainsaver can now target trains and spidertrons on any planet, regardless of what planet the player is on
   Changes:
     - silenced verbose mode messages
-    - restricted trainsaver from starting when player is in a cargo pod procession swquence
+    - restricted trainsaver from starting when player is in a cargo pod procession sequence
     - allowed trainsaver to be started from remote view and space platform hubs
     - added spidertron fallback if no active trains are available during startup
-    - incraesed the rocket launch target zoom out
+    - increased the rocket launch target zoom out
     - removed notable events message when target is rocket launch
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
