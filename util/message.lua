@@ -13,7 +13,7 @@ end
 ---@param message string
 local function chatty_print(message)
     if storage.chatty then
-        game.print(message)
+        game.print(message, { sound = defines.print_sound.never })
     end
 end
 
