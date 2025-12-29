@@ -37,6 +37,7 @@ local function update_player_data(player, waypoints)
     player_data.controller_type = player_data.controller_type or player.controller_type
     player_data.character = player_data.character or player.character
     player_data.waypoint_count = player_data.waypoint_count or #waypoints
+    player_data.hub = player_data.hub or player.hub
     storage.player_data[player_index] = player_data
     return player_data
 end
@@ -50,6 +51,7 @@ end
 ---@field controller_type defines.controllers
 ---@field character LuaEntity?
 ---@field waypoint_count integer
+---@field hub LuaEntity?
 
 ---@param player LuaPlayer
 ---@param player_data player_data
@@ -73,6 +75,12 @@ local function reset_player_data(player, player_data)
             surface = player_data.surface,
         }
         player.zoom = player_data.zoom
+    end
+    if player_data.hub and player_data.hub.valid then
+        local platform = player_data.hub.surface.platform
+        if platform and platform.valid then
+            player.enter_space_platform(platform)
+        end
     end
     storage.player_data[player.index] = nil
 end
