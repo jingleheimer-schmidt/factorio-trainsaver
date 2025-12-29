@@ -29,7 +29,7 @@ local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 local reset_player_data = globals_util.reset_player_data
 
 -- end the screensaver
----@param command EventData.on_console_command
+---@param command EventData.on_console_command | CustomCommandData
 ---@param ending_transition boolean?
 local function end_trainsaver(command, ending_transition)
     local player_index = command.player_index
@@ -129,7 +129,7 @@ local function end_trainsaver(command, ending_transition)
 end
 
 -- start the screensaver :D
----@param command EventData.on_console_command
+---@param command EventData.on_console_command | CustomCommandData
 ---@param train_to_ignore LuaTrain?
 ---@param entity_gone_restart boolean?
 local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
@@ -267,7 +267,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 end
 
 ---start or end trainsaver depending on player controller type
----@param event EventData.CustomInputEvent | EventData.on_console_command
+---@param event EventData.CustomInputEvent | EventData.on_console_command | CustomCommandData
 local function start_or_end_trainsaver(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -282,7 +282,7 @@ local function start_or_end_trainsaver(event)
 end
 
 ---end trainsaver when the /end-trainsaver command is used
----@param event EventData.on_console_command
+---@param event CustomCommandData
 local function end_trainsaver_on_command(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -293,7 +293,7 @@ local function end_trainsaver_on_command(event)
 end
 
 ---focus trainsaver on a new target
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_new_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -313,7 +313,7 @@ local function focus_new_target(event)
 end
 
 ---focus trainsaver on the next target from watch history
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_next_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -354,7 +354,7 @@ local function focus_next_target(event)
 end
 
 -- focus trainsaver on the previous target from watch history
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_previous_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -384,7 +384,7 @@ local function focus_previous_target(event)
 end
 
 -- reset the watch history for a player
----@param event EventData.on_console_command
+---@param event CustomCommandData
 local function reset_player_history(event)
     local player_index = event.player_index
     if not player_index then return end
