@@ -148,6 +148,12 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     }
     if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
+    if player.cargo_pod then
+        chatty_print(chatty_name .. "player is in cargo pod, cannot start trainsaver")
+        end_trainsaver(command)
+        return
+    end
+
     -- create a table of all trains
     local train_filter = { force = player.force }
     local all_trains = game.train_manager.get_trains(train_filter)
