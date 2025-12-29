@@ -168,10 +168,31 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     end
     chatty_print(chatty_name .. "created table of trains [" .. #eligable_trains_with_movers .. " total]")
 
-    -- if there's no eligable trains, exit trainsaver
+    -- if there are no eligable trains, find a spidertron or exit trainsaver
     if not eligable_trains_with_movers[1] then
-        chatty_print(chatty_name .. "no eligable trains found")
-        end_trainsaver(command)
+        chatty_print(chatty_name .. "no eligable trains found, searching for spidertrons...")
+        local spidertron = nil
+        for _, surface in pairs(game.surfaces) do
+            local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
+            for _, spider in pairs(spidertrons) do
+                if spider and spider.valid then
+                    spidertron = spider
+                end
+                if spidertron and spidertron.autopilot_destination then break end
+            end
+            if spidertron and spidertron.autopilot_destination then break end
+        end
+        if spidertron and spidertron.valid then
+            chatty_print(chatty_name .. "found spidertron, creating cutscene")
+            local waypoints = create_waypoint(spidertron, player.index)
+            if waypoints[1].zoom then
+                waypoints[1].zoom = waypoints[1].zoom * 1.75
+            end
+            play_cutscene(waypoints, player.index, true)
+        else
+            chatty_print(chatty_name .. "no spidertron found, exiting trainsaver")
+            end_trainsaver(command)
+        end
         return
     end
 
@@ -191,6 +212,29 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
             function(a, b) return (a.path.total_distance - a.path.travelled_distance) > (b.path.total_distance - b.path.travelled_distance) end)
         create_cutscene_next_tick(player_index, active_trains_sorted_by_remaining_path_length[1])
         chatty_print(chatty_name .. "requested cutscene for " .. player.name .. ", following train with longest remaining path")
+        return
+    end
+
+    -- if there are no active trains, search for active spidertrons
+    chatty_print(chatty_name .. "no active trains found, searching for active spidertrons...")
+    local spidertron = nil
+    for _, surface in pairs(game.surfaces) do
+        local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
+        for _, spider in pairs(spidertrons) do
+            if spider and spider.valid and spider.autopilot_destination then
+                spidertron = spider
+                break
+            end
+        end
+        if spidertron and spidertron.autopilot_destination then break end
+    end
+    if spidertron and spidertron.valid then
+        chatty_print(chatty_name .. "found spidertron, creating cutscene")
+        local waypoints = create_waypoint(spidertron, player.index)
+        if waypoints[1].zoom then
+            waypoints[1].zoom = waypoints[1].zoom * 1.75
+        end
+        play_cutscene(waypoints, player.index, true)
         return
     end
 
