@@ -195,7 +195,7 @@ local function spidertron_changed_state(event)
     local remaining_path_distance = total_spider_path_remaining(spider)
     if destinations[1] and (remaining_path_distance < 100) then return end -- filter for spidertrons with at least 100 tiles of path remaining
     if destinations[1] then
-        chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
+        chatty_print("[" .. event.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
     end
     for _, player in pairs(game.connected_players) do
         local mod_settings = player.mod_settings
@@ -209,7 +209,7 @@ local function spidertron_changed_state(event)
             local spider_id = script.register_on_object_destroyed(spider --[[@as LuaEntity]])
             if current_target_id == spider_id then
                 storage.spider_idle_until_tick = storage.spider_idle_until_tick or {}
-                storage.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
+                storage.spider_idle_until_tick[player.index] = event.tick + (mod_settings["ts-station-minimum"].value * 60)
                 chatty_print(chatty_name .. "current target [" .. chatty_target_name .. "] reached its final destination. set spider_idle_until_tick to [" .. storage.spider_idle_until_tick[player.index] .. "]")
             end
             goto next_player
