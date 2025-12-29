@@ -9,9 +9,14 @@ local target_is_locomotive = target_util.target_is_locomotive
 
 local globals_util = require("util.globals")
 local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
+local reset_player_data = globals_util.reset_player_data
+local update_player_data = globals_util.update_player_data
 
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
+
+local waypoint = require("util.waypoint")
+local get_intended_cutscene_surface = waypoint.get_intended_cutscene_surface
 
 -- add data to global so a cutscene is created for a given player the following tick
 ---@param player_index uint
@@ -26,6 +31,27 @@ local function create_cutscene_next_tick(player_index, train, same_train)
     ---@type table<uint, CreateCutsceneNextTickData>
     storage.create_cutscene_next_tick = storage.create_cutscene_next_tick or {}
     storage.create_cutscene_next_tick[player_index] = { train, player_index, same_train }
+end
+
+---@param waypoints CutsceneWaypoint[]
+---@param player LuaPlayer
+local function set_cutscene_controller(waypoints, player)
+    local transfer_alt_mode = player.game_view_settings.show_entity_info
+    local player_index = player.index
+    update_player_data(player, waypoints)
+    local player_data = storage.player_data[player_index]
+    local player_position = player.position
+    local player_zoom = player.zoom
+    player.set_controller { type = defines.controllers.spectator }
+    player.teleport(player_position, get_intended_cutscene_surface(waypoints), true)
+    storage.player_data[player_index] = player_data
+    player.set_controller {
+        type = defines.controllers.cutscene,
+        waypoints = waypoints,
+        start_zoom = player_zoom, -- temporary until zoom issue is fixed
+        -- start_position = player.position,
+    }
+    player.game_view_settings.show_entity_info = transfer_alt_mode
 end
 
 -- play cutscene from given waypoints
@@ -43,29 +69,7 @@ local function play_cutscene(created_waypoints, player_index, register_history)
         end
     end
 
-    -- abort if the waypoint is on a different surface than the player. I know we've already checked this like a billion times before getting to this point, but just to make sure we're gonna check one more time just in case
-    if player.surface_index ~= created_waypoints[1].target.surface.index then
-        chatty_print(chatty_name .. "abort: waypoint is on different surface than player")
-        return
-    end
-
-    -- save alt-mode so we can preserve it after cutscene controller resets it
-    local transfer_alt_mode = player.game_view_settings.show_entity_info
-
-    -- set the player controller to cutscene camera
-    player.set_controller(
-        {
-            type = defines.controllers.cutscene,
-            waypoints = created_waypoints,
-            start_position = player.position,
-            start_zoom = created_waypoints[1].zoom, -- temporary until zoom issue is fixed
-            -- final_transition_time = tt
-        }
-    )
-    -- chatty_print(chatty_name.."cutscene controller updated with "..#created_waypoints.." waypoints")
-
-    -- reset alt-mode to what it was before cutscene controller reset it
-    player.game_view_settings.show_entity_info = transfer_alt_mode
+    set_cutscene_controller(created_waypoints, player)
     toggle_gui(player, false)
     update_globals_new_cutscene(player, created_waypoints)
 
@@ -77,7 +81,7 @@ local function play_cutscene(created_waypoints, player_index, register_history)
         storage.player_history_index = storage.player_history_index or {}
         storage.player_history_index[player_index] = history_length
         chatty_print(chatty_name .. "added [ " .. get_chatty_name(created_waypoints[1].target) .. " ] to watch history [ " .. history_length .. " of " .. history_length .. " ]")
-        if history_length > 10000 then
+        if history_length > 999 then
             table.remove(storage.watch_history[player_index], 1)
         end
     end

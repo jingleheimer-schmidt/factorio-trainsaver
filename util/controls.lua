@@ -24,6 +24,10 @@ local create_waypoint = waypoint_util.create_waypoint
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
 
+local globals_util = require("util.globals")
+local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
+local reset_player_data = globals_util.reset_player_data
+
 -- end the screensaver
 ---@param command EventData.on_console_command
 ---@param ending_transition boolean?
@@ -50,8 +54,9 @@ local function end_trainsaver(command, ending_transition)
         player.exit_cutscene()
         return
     end
+    local character = player.cutscene_character or player.character or (storage.player_data[player_index] and storage.player_data[player_index].character)
     -- if player doesn't have a character or cutscene_character to return to, then just exit immediately
-    if not (player.cutscene_character or player.character) then
+    if not (character and character.valid) then
         chatty_print(chatty_name .. "has no character or cutscene_character. immediate exit requested")
         player.exit_cutscene()
         return
@@ -59,7 +64,7 @@ local function end_trainsaver(command, ending_transition)
     -- create a new cutscene from current position back to cutscene character position so the exit is nice and smooth
     chatty_print(chatty_name .. "exit trainsaver (transition) requested")
     local mod_settings = player.mod_settings
-    local waypoint_target = player.cutscene_character or player.character --[[@as LuaEntity because it was already checked earlier]]
+    local waypoint_target = character
     local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
@@ -81,26 +86,29 @@ local function end_trainsaver(command, ending_transition)
     }
     local character_name = player.character and player.character.name or "cutscene character"
     chatty_print(chatty_name .. "created ending transition waypoints to " .. character_name)
-    if player.surface_index ~= created_waypoints[1].target.surface_index then
+    if player.physical_surface_index ~= created_waypoints[1].target.surface_index then
         chatty_print(chatty_name .. "ending transition target on different surface than player. immediate exit requested")
         player.exit_cutscene()
         return
     end
     local transfer_alt_mode = player.game_view_settings.show_entity_info
+    local player_position = player.position
+
+    ---@type table<uint, boolean>
+    storage.cutscene_ending = storage.cutscene_ending or {}
+    storage.cutscene_ending[player_index] = true
+
     player.set_controller(
         {
             type = defines.controllers.cutscene,
             waypoints = created_waypoints,
-            start_position = player.position,
-            start_zoom = zoom, -- temporary until zoom issue is fixed
+            start_position = player_position,
+            start_zoom = player.zoom, -- temporary until zoom issue is fixed
         }
     )
     toggle_gui(player, false)
     player.game_view_settings.show_entity_info = transfer_alt_mode
     -- update globals for a cutscene ending
-    ---@type table<uint, boolean>
-    storage.cutscene_ending = storage.cutscene_ending or {}
-    storage.cutscene_ending[player_index] = true
     ---@type table<uint, number|uint>
     storage.wait_signal_until_tick = storage.wait_signal_until_tick or {}
     storage.wait_signal_until_tick[player_index] = nil
@@ -137,33 +145,61 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     local allowed_controller_types = {
         [defines.controllers.character] = true,
         [defines.controllers.god] = true,
+        [defines.controllers.remote] = true,
     }
     if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
+    if player.cargo_pod then
+        chatty_print(chatty_name .. "player is in cargo pod, cannot start trainsaver")
+        end_trainsaver(command)
+        return
+    end
+
     -- create a table of all trains
-    local train_filter = { surface = player.surface }
+    local train_filter = { force = player.force }
     local all_trains = game.train_manager.get_trains(train_filter)
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
-    local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]
+    local eligible_trains_with_movers = {} --[=[@type LuaTrain[]]=]
     if not train_to_ignore then train_to_ignore = { id = -999999 } end
     for _, train in pairs(all_trains) do
         if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
-            table.insert(eligable_trains_with_movers, train)
+            table.insert(eligible_trains_with_movers, train)
         end
     end
-    chatty_print(chatty_name .. "created table of trains [" .. #eligable_trains_with_movers .. " total]")
+    chatty_print(chatty_name .. "created table of trains [" .. #eligible_trains_with_movers .. " total]")
 
-    -- if there's no eligable trains, exit trainsaver
-    if not eligable_trains_with_movers[1] then
-        chatty_print(chatty_name .. "no eligable trains found")
-        end_trainsaver(command)
+    -- if there are no eligible trains, find a spidertron or exit trainsaver
+    if not eligible_trains_with_movers[1] then
+        chatty_print(chatty_name .. "no eligible trains found, searching for spidertrons...")
+        local spidertron = nil
+        for _, surface in pairs(game.surfaces) do
+            local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
+            for _, spider in pairs(spidertrons) do
+                if spider and spider.valid then
+                    spidertron = spider
+                end
+                if spidertron and spidertron.autopilot_destination then break end
+            end
+            if spidertron and spidertron.autopilot_destination then break end
+        end
+        if spidertron and spidertron.valid then
+            chatty_print(chatty_name .. "found spidertron, creating cutscene")
+            local waypoints = create_waypoint(spidertron, player.index)
+            if waypoints[1].zoom then
+                waypoints[1].zoom = waypoints[1].zoom * 1.75
+            end
+            play_cutscene(waypoints, player.index, true)
+        else
+            chatty_print(chatty_name .. "no spidertron found, exiting trainsaver")
+            end_trainsaver(command)
+        end
         return
     end
 
     -- if there are any trains, make a table of all the active (on_the_path) ones
     local active_trains = {} --[=[@type LuaTrain[]]=]
-    for _, train in pairs(eligable_trains_with_movers) do
+    for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.on_the_path then
             table.insert(active_trains, train)
         end
@@ -180,10 +216,33 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
         return
     end
 
+    -- if there are no active trains, search for active spidertrons
+    chatty_print(chatty_name .. "no active trains found, searching for active spidertrons...")
+    local spidertron = nil
+    for _, surface in pairs(game.surfaces) do
+        local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
+        for _, spider in pairs(spidertrons) do
+            if spider and spider.valid and spider.autopilot_destination then
+                spidertron = spider
+                break
+            end
+        end
+        if spidertron and spidertron.autopilot_destination then break end
+    end
+    if spidertron and spidertron.valid then
+        chatty_print(chatty_name .. "found spidertron, creating cutscene")
+        local waypoints = create_waypoint(spidertron, player.index)
+        if waypoints[1].zoom then
+            waypoints[1].zoom = waypoints[1].zoom * 1.75
+        end
+        play_cutscene(waypoints, player.index, true)
+        return
+    end
+
     -- if there are no trains on_the_path then make a table of trains waiting at stations
-    chatty_print(chatty_name .. "no trains are on_the_path")
+    chatty_print(chatty_name .. "no active trains or spidertrons")
     local trains_at_stations = {} --[=[@type LuaTrain[]]=]
-    for _, train in pairs(eligable_trains_with_movers) do
+    for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.wait_station then
             table.insert(trains_at_stations, train)
         end
@@ -201,8 +260,8 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 
     -- if there are no trains on_the_path or waiting at stations, then pick a random train from the eligible ones to request a cutscene with
     chatty_print(chatty_name .. "no trains on_the_path or waiting at stations")
-    local random_train_index = math.random(table_size(eligable_trains_with_movers))
-    local waypoint_target = eligable_trains_with_movers[random_train_index]
+    local random_train_index = math.random(table_size(eligible_trains_with_movers))
+    local waypoint_target = eligible_trains_with_movers[random_train_index]
     create_cutscene_next_tick(player_index, waypoint_target)
     chatty_print(chatty_name .. "chose a random train")
 end
@@ -212,7 +271,7 @@ end
 local function start_or_end_trainsaver(event)
     local player = game.get_player(event.player_index)
     if not player then return end
-    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god)) then
+    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god) or (player.controller_type == defines.controllers.remote)) then
         local command = { name = "trainsaver", player_index = event.player_index }
         start_trainsaver(command)
     elseif player.controller_type == defines.controllers.cutscene then

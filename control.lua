@@ -44,6 +44,7 @@ local waypoint_target_passes_inactivity_checks = status_util.waypoint_target_pas
 
 local waypoint_util = require("util.waypoint")
 local create_waypoint = waypoint_util.create_waypoint
+local get_intended_cutscene_surface = waypoint_util.get_intended_cutscene_surface
 
 local controls_util = require("util.controls")
 local end_trainsaver = controls_util.end_trainsaver
@@ -64,6 +65,8 @@ local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 local cutscene_ended_nil_globals = globals_util.cutscene_ended_nil_globals
 local update_wait_at_signal = globals_util.update_wait_at_signal
 local update_wait_at_station = globals_util.update_wait_at_station
+local reset_player_data = globals_util.reset_player_data
+local update_player_data = globals_util.update_player_data
 
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
@@ -123,15 +126,15 @@ local function train_changed_state(event)
     local new_target = event.train
     local old_state = event.old_state
     local new_state = event.train.state
-    if not (wait_station_states[old_state] and active_states[new_state]) then return end
+    if not ((wait_station_states[old_state] or (wait_signal_states[old_state])) and active_states[new_state]) then return end
     local new_target_name = get_chatty_name(new_target)
     chatty_print("[" .. game.tick .. "] potential target [" .. new_target_name .. "] changed state from [" .. verbose_states[old_state] .. "] to [" .. verbose_states[new_state] .. "]")
     for _, player in pairs(game.connected_players) do
         if not trainsaver_is_active(player) then goto next_player end
-        if not (player.surface_index == new_target.carriages[1].surface_index) then
-            chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. new_target.carriages[1].surface.name .. "]")
-            goto next_player
-        end
+        -- if not (player.surface_index == new_target.carriages[1].surface_index) then
+        --     chatty_print(chatty_player_name(player) .. "denied. cannot change from current surface [" .. player.surface.name .. "] to target surface [" .. new_target.carriages[1].surface.name .. "]")
+        --     goto next_player
+        -- end
         local current_target = current_trainsaver_target(player)
         if not (current_target and target_is_entity(current_target)) then goto next_player end
         local chatty_name = get_chatty_name(player)
@@ -192,7 +195,7 @@ local function spidertron_changed_state(event)
     local remaining_path_distance = total_spider_path_remaining(spider)
     if destinations[1] and (remaining_path_distance < 100) then return end -- filter for spidertrons with at least 100 tiles of path remaining
     if destinations[1] then
-        chatty_print("[" .. game.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
+        chatty_print("[" .. event.tick .. "] potential target [" .. chatty_target_name .. "] going to destination " .. serpent.line(destinations[1]) .. "")
     end
     for _, player in pairs(game.connected_players) do
         local mod_settings = player.mod_settings
@@ -206,7 +209,7 @@ local function spidertron_changed_state(event)
             local spider_id = script.register_on_object_destroyed(spider --[[@as LuaEntity]])
             if current_target_id == spider_id then
                 storage.spider_idle_until_tick = storage.spider_idle_until_tick or {}
-                storage.spider_idle_until_tick[player.index] = game.tick + mod_settings["ts-station-minimum"].value * 60
+                storage.spider_idle_until_tick[player.index] = event.tick + (mod_settings["ts-station-minimum"].value * 60)
                 chatty_print(chatty_name .. "current target [" .. chatty_target_name .. "] reached its final destination. set spider_idle_until_tick to [" .. storage.spider_idle_until_tick[player.index] .. "]")
             end
             goto next_player
@@ -214,10 +217,10 @@ local function spidertron_changed_state(event)
         local current_target = current_trainsaver_target(player)
         if not current_target then goto next_player end
         local current_target_name = get_chatty_name(current_target)
-        if not (spider.surface_index == player.surface_index) then
-            chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
-            goto next_player
-        end
+        -- if not (spider.surface_index == player.surface_index) then
+        --     chatty_print(chatty_name .. "denied. cannot change from [" .. spider.surface.name .. "] to [" .. player.surface.name .. "]")
+        --     goto next_player
+        -- end
         if target_is_locomotive(current_target) then
             if waypoint_target_passes_inactivity_checks(player, current_target) then
                 local waypoints = create_waypoint(spider, player.index)
@@ -294,7 +297,7 @@ end
 
 -- script.on_event(defines.events.on_unit_group_finished_gathering, on_unit_group_finished_gathering)
 
--- when a train changes state, see if any players are eligable to transfer focus to it
+-- when a train changes state, see if any players are eligible to transfer focus to it
 ---@param event EventData.on_train_changed_state
 local function on_train_changed_state(event)
     train_changed_state(event)
@@ -335,10 +338,7 @@ local function locomotive_gone(event)
         local command = {
             name = "trainsaver",
             player_index = player_index,
-            -- entity_gone_restart = "yes",
-            -- train_to_ignore = event.entity.train
         }
-        -- start_trainsaver(command)
         start_trainsaver(command, event.entity.train, true)
         ::next_player::
     end
@@ -351,35 +351,15 @@ local function entity_destroyed(event)
     if not storage.entity_destroyed_registration_numbers then return end
     for player_index, current_target_registration_number in pairs(storage.entity_destroyed_registration_numbers) do
         if not (current_target_registration_number == registration_number) then goto next_player end
-        if event.useful_id then
-            local simulated_event = {
-                entity = {
-                    unit_number = event.useful_id,
-                    train = {
-                        id = -999999
-                    },
-                },
-            }
-            locomotive_gone(simulated_event)
-        else
-            -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
-            local player = game.get_player(player_index)
-            if not player then goto next_player end
-            if not trainsaver_is_active(player) then goto next_player end
-            --[[
-            local rocket_destroyed_location_index = game.tick - 1
-            player.teleport(storage.rocket_positions[player_index][rocket_destroyed_location_index])
-            storage.rocket_positions[player_index] = nil
-            --]]
-            player.unlock_achievement("trainsaver-a-spectacular-view")
-            print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
-            local command = {
-                name = "trainsaver",
-                player_index = player_index,
-                -- entity_gone_restart = "yes",
-            }
-            start_trainsaver(command, nil, true)
-        end
+        -- if we just watched a rocket launch, restart trainsaver to find a new train to follow
+        local player = game.get_player(player_index)
+        if not player then goto next_player end
+        if not trainsaver_is_active(player) then goto next_player end
+        local command = {
+            name = "trainsaver",
+            player_index = player_index,
+        }
+        start_trainsaver(command, nil, true)
         ::next_player::
     end
 end
@@ -441,12 +421,12 @@ local function cutscene_next_tick_function()
         end
 
         if mover then
-            -- Abort if the potential waypoint is on a different surface than the player
-            if player.surface_index ~= mover.surface_index then
-                chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
-                storage.create_cutscene_next_tick[player_index] = nil
-                goto next_player
-            end
+            -- -- Abort if the potential waypoint is on a different surface than the player
+            -- if player.surface_index ~= mover.surface_index then
+            --     chatty_print(chatty_name .. "new target request denied by surface mismatch, player is on " .. player.surface.name .. ", target is on " .. mover.surface.name)
+            --     storage.create_cutscene_next_tick[player_index] = nil
+            --     goto next_player
+            -- end
 
             local created_waypoints = create_waypoint(mover, player_index)
 
@@ -535,7 +515,7 @@ end
 local function on_nth_tick()
     for _, player in pairs(game.connected_players) do
         local controller_type = player.controller_type
-        if not ((controller_type == defines.controllers.character) or (controller_type == defines.controllers.god)) then goto next_player end
+        if not ((controller_type == defines.controllers.character) or (controller_type == defines.controllers.god) or (controller_type == defines.controllers.remote)) then goto next_player end
         local mod_settings = player.mod_settings
         local auto_start = mod_settings["ts-afk-auto-start"].value
         local auto_start_while_viewing_map = mod_settings["ts-autostart-while-viewing-map"].value
@@ -639,10 +619,10 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
                 goto next_player
             end
         end
-        -- abort if the potential waypoint is on a different surface than the player
-        if player.surface_index ~= silo.surface_index then
-            goto next_player
-        end
+        -- -- abort if the potential waypoint is on a different surface than the player
+        -- if player.surface_index ~= silo.surface_index then
+        --     goto next_player
+        -- end
         -- create the waypoints
         local created_waypoints = create_waypoint(silo, player_index)
         local silo_rocket_waypoint_2 = util.table.deepcopy(created_waypoints[1])
@@ -656,9 +636,15 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         created_waypoints[1].time_to_wait = 1
         created_waypoints[1].zoom = 0.6
 
-        -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disapears from view and is destoryed.)
+        -- set waypoint 2 to proper settings (goal: zoom out from silo until rocket disappears from view and is destroyed.)
         created_waypoints[2].transition_time = 1161 - created_waypoints[1].transition_time + 10
-        created_waypoints[2].zoom = 0.25
+        created_waypoints[2].zoom = 0.125
+
+        update_player_data(player, created_waypoints)
+        local player_data = storage.player_data[player_index]
+        player.set_controller { type = defines.controllers.spectator }
+        player.teleport(player.position, get_intended_cutscene_surface(created_waypoints), true)
+        storage.player_data[player_index] = player_data
 
         local transfer_alt_mode = player.game_view_settings.show_entity_info
         player.set_controller(
@@ -680,6 +666,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         storage.current_target[player_index] = created_waypoints[1].target
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
         storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(rocket)
+        player.unlock_achievement("trainsaver-a-spectacular-view")
+        -- print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
         ::next_player::
     end
 end)
