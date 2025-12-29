@@ -374,8 +374,6 @@ local function entity_destroyed(event)
             player.teleport(storage.rocket_positions[player_index][rocket_destroyed_location_index])
             storage.rocket_positions[player_index] = nil
             --]]
-            player.unlock_achievement("trainsaver-a-spectacular-view")
-            print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
             local command = {
                 name = "trainsaver",
                 player_index = player_index,
@@ -689,6 +687,8 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         storage.current_target[player_index] = created_waypoints[1].target
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
         storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(rocket)
+        player.unlock_achievement("trainsaver-a-spectacular-view")
+        -- print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
         ::next_player::
     end
 end)
