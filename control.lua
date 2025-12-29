@@ -297,7 +297,7 @@ end
 
 -- script.on_event(defines.events.on_unit_group_finished_gathering, on_unit_group_finished_gathering)
 
--- when a train changes state, see if any players are eligable to transfer focus to it
+-- when a train changes state, see if any players are eligible to transfer focus to it
 ---@param event EventData.on_train_changed_state
 local function on_train_changed_state(event)
     train_changed_state(event)

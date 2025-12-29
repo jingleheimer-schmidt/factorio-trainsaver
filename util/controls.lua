@@ -159,18 +159,18 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     local all_trains = game.train_manager.get_trains(train_filter)
 
     -- create a table of all trains that have any "movers" and are not in manual mode and are not the train that just died or was mined
-    local eligable_trains_with_movers = {} --[=[@type LuaTrain[]]=]
+    local eligible_trains_with_movers = {} --[=[@type LuaTrain[]]=]
     if not train_to_ignore then train_to_ignore = { id = -999999 } end
     for _, train in pairs(all_trains) do
         if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
-            table.insert(eligable_trains_with_movers, train)
+            table.insert(eligible_trains_with_movers, train)
         end
     end
-    chatty_print(chatty_name .. "created table of trains [" .. #eligable_trains_with_movers .. " total]")
+    chatty_print(chatty_name .. "created table of trains [" .. #eligible_trains_with_movers .. " total]")
 
-    -- if there are no eligable trains, find a spidertron or exit trainsaver
-    if not eligable_trains_with_movers[1] then
-        chatty_print(chatty_name .. "no eligable trains found, searching for spidertrons...")
+    -- if there are no eligible trains, find a spidertron or exit trainsaver
+    if not eligible_trains_with_movers[1] then
+        chatty_print(chatty_name .. "no eligible trains found, searching for spidertrons...")
         local spidertron = nil
         for _, surface in pairs(game.surfaces) do
             local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
@@ -198,7 +198,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 
     -- if there are any trains, make a table of all the active (on_the_path) ones
     local active_trains = {} --[=[@type LuaTrain[]]=]
-    for _, train in pairs(eligable_trains_with_movers) do
+    for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.on_the_path then
             table.insert(active_trains, train)
         end
@@ -241,7 +241,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     -- if there are no trains on_the_path then make a table of trains waiting at stations
     chatty_print(chatty_name .. "no trains are on_the_path")
     local trains_at_stations = {} --[=[@type LuaTrain[]]=]
-    for _, train in pairs(eligable_trains_with_movers) do
+    for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.wait_station then
             table.insert(trains_at_stations, train)
         end
@@ -259,8 +259,8 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 
     -- if there are no trains on_the_path or waiting at stations, then pick a random train from the eligible ones to request a cutscene with
     chatty_print(chatty_name .. "no trains on_the_path or waiting at stations")
-    local random_train_index = math.random(table_size(eligable_trains_with_movers))
-    local waypoint_target = eligable_trains_with_movers[random_train_index]
+    local random_train_index = math.random(table_size(eligible_trains_with_movers))
+    local waypoint_target = eligible_trains_with_movers[random_train_index]
     create_cutscene_next_tick(player_index, waypoint_target)
     chatty_print(chatty_name .. "chose a random train")
 end
