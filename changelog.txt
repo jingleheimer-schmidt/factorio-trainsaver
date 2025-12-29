@@ -10,6 +10,7 @@ Date: ????
     - added spidertron fallback if no active trains are available during startup
     - increased the rocket launch target zoom out
     - removed notable events message when target is rocket launch
+    - reduced watch history length to 999
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
 Date: 14NOV2024
