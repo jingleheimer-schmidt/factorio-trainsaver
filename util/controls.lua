@@ -398,6 +398,18 @@ local function reset_player_history(event)
     storage.player_history_index[player_index] = nil
 end
 
+-- returns the id numbers of two train stations
+---@return integer
+---@return integer
+local function get_example_station_ids()
+    local stations = game.train_manager.get_train_stops({})
+    local station_1 = stations[math.random(math.max(1, #stations))]
+    local station_2 = stations[math.random(math.max(1, #stations))]
+    local station_1_id = station_1 and station_1.valid and station_1.unit_number or 0
+    local station_2_id = station_2 and station_2.valid and station_2.unit_number or 0
+    return station_1_id, station_2_id
+end
+
 -- ignore trains headed to stations of the specified name when finding new targets
 ---@param event CustomCommandData
 local function ignore_stations(event)
@@ -431,11 +443,7 @@ local function ignore_stations(event)
             end
         end
     else
-        local stations = game.train_manager.get_train_stops({})
-        local station_1 = stations[math.random(math.max(1, #stations))]
-        local station_2 = stations[math.random(math.max(1, #stations))]
-        local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        local station_1_id, station_2_id = get_example_station_ids()
         player.print({ "ts-messages.failed-to-parse-station", parameter })
         player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
     end
@@ -473,11 +481,7 @@ local function unignore_stations(event)
             end
         end
     else
-        local stations = game.train_manager.get_train_stops({})
-        local station_1 = stations[math.random(math.max(1, #stations))]
-        local station_2 = stations[math.random(math.max(1, #stations))]
-        local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        local station_1_id, station_2_id = get_example_station_ids()
         player.print({ "ts-messages.failed-to-parse-station", parameter })
         player.print({ "ts-messages.ts-unignore_stations-help", station_1_id, station_2_id })
     end
@@ -489,12 +493,8 @@ local function list_ignored_stations(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     if not storage.ignored_station_names then
+        local station_1_id, station_2_id = get_example_station_ids()
         player.print({ "ts-messages.no-ignored-stations" })
-        local stations = game.train_manager.get_train_stops({})
-        local station_1 = stations[math.random(#stations)]
-        local station_2 = stations[math.random(#stations)]
-        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
         return
     end
@@ -503,12 +503,8 @@ local function list_ignored_stations(event)
         table.insert(ignored_stations_list, station_name)
     end
     if table_size(ignored_stations_list) == 0 then
+        local station_1_id, station_2_id = get_example_station_ids()
         player.print({ "ts-messages.no-ignored-stations" })
-        local stations = game.train_manager.get_train_stops({})
-        local station_1 = stations[math.random(#stations)]
-        local station_2 = stations[math.random(#stations)]
-        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
     else
         player.print({ "ts-messages.ignored-stations-list", table.concat(ignored_stations_list, "\n- ") })
