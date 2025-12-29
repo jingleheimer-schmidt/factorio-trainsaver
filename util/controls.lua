@@ -434,8 +434,8 @@ local function ignore_stations(event)
         local stations = game.train_manager.get_train_stops({})
         local station_1 = stations[math.random(math.max(1, #stations))]
         local station_2 = stations[math.random(math.max(1, #stations))]
-        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.failed-to-parse-station", parameter })
         player.print({ "ts-messages.ts-ignore-stations-help", station_1_id, station_2_id })
     end
@@ -476,8 +476,8 @@ local function unignore_stations(event)
         local stations = game.train_manager.get_train_stops({})
         local station_1 = stations[math.random(math.max(1, #stations))]
         local station_2 = stations[math.random(math.max(1, #stations))]
-        station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
-        station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
+        local station_1_id = station_1 and station_1.valid and station_1.unit_number or "0"
+        local station_2_id = station_2 and station_2.valid and station_2.unit_number or "0"
         player.print({ "ts-messages.failed-to-parse-station", parameter })
         player.print({ "ts-messages.ts-unignore-stations-help", station_1_id, station_2_id })
     end
