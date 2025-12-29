@@ -147,7 +147,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
         [defines.controllers.god] = true,
         [defines.controllers.remote] = true,
     }
-    if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
+    if not (((name == "trainsaver") or (name == "ts-start")) and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
     if player.cargo_pod then
         chatty_print(chatty_name .. "player is in cargo pod, cannot start trainsaver")
