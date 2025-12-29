@@ -37,6 +37,12 @@ local function update_player_data(player, waypoints)
     player_data.character = player_data.character or player.character
     player_data.waypoint_count = player_data.waypoint_count or #waypoints
     player_data.hub = player_data.hub or player.hub
+    if player_data.controller_type == defines.controllers.cutscene then
+        if player.cutscene_character and player.cutscene_character.valid then
+            player_data.character = player.cutscene_character
+            player_data.controller_type = defines.controllers.character
+        end
+    end
     storage.player_data[player_index] = player_data
     return player_data
 end
