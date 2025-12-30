@@ -64,7 +64,7 @@ trainsaver is a Factorio mod that creates a dynamic screensaver which follows tr
 
 ### Control Stage (control.lua)
 
-- Use `storage` (not `global`) for persistent data across saves
+- Use `storage` for persistent data across saves (replaces `global` in Factorio 2.0+)
 - Always validate entities/players exist before using them (`if not player then return end`)
 - Use `script.on_event()` for event registration
 - Use `script.on_nth_tick()` for periodic checks
@@ -87,7 +87,7 @@ trainsaver is a Factorio mod that creates a dynamic screensaver which follows tr
 
 ### Event Handling Patterns
 
-- Use `goto` statements with labeled blocks (`::next_player::`) for clean loop control
+- Use labeled blocks with `goto` statements (`::next_player::`) to skip to next iteration in complex loops (pattern used throughout this codebase)
 - Check controller type before operating on player: `player.controller_type`
 - Validate entity validity: `if not entity.valid then return end`
 - Use `script.register_on_object_destroyed()` for tracking entity lifecycle
@@ -163,6 +163,7 @@ play_cutscene(waypoints, player_index, record_history)
 ### Iterating connected players safely
 ```lua
 for _, player in pairs(game.connected_players) do
+    if not trainsaver_is_active(player) then goto next_player end
     -- logic here
     ::next_player::
 end
