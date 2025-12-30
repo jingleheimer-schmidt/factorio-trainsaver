@@ -1,5 +1,5 @@
 
-local toggleTrainsaverKey = {
+local toggle_trainsaver_key = {
     type = "custom-input",
     name = "toggle-trainsaver",
     key_sequence = "COMMAND + T",
@@ -9,7 +9,7 @@ local toggleTrainsaverKey = {
     order = "[1][A]",
 }
 
-local startTrainsaverKey = {
+local start_trainsaver_key = {
     type = "custom-input",
     name = "start-trainsaver",
     key_sequence = "",
@@ -19,7 +19,7 @@ local startTrainsaverKey = {
     order = "[2][A]",
 }
 
-local endTrainsaverKey = {
+local end_trainsaver_key = {
     type = "custom-input",
     name = "end-trainsaver",
     key_sequence = "",
@@ -29,7 +29,7 @@ local endTrainsaverKey = {
     order = "[1][B]",
 }
 
-local openInventoryTrainsaverKey = {
+local open_inventory_trainsaver_key = {
     type = "custom-input",
     name = "open-inventory-trainsaver",
     key_sequence = "",
@@ -38,7 +38,7 @@ local openInventoryTrainsaverKey = {
     action = "lua",
 }
 
-local openTechnologyGuiTrainsaverKey = {
+local open_technology_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-research-trainsaver",
     key_sequence = "",
@@ -47,7 +47,7 @@ local openTechnologyGuiTrainsaverKey = {
     action = "lua",
 }
 
-local openProductionStatsGuiTrainsaverKey = {
+local open_production_stats_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-production-stats-trainsaver",
     key_sequence = "",
@@ -56,7 +56,7 @@ local openProductionStatsGuiTrainsaverKey = {
     action = "lua",
 }
 
-local openLogisticNetworkGuiTrainsaverKey = {
+local open_logistic_network_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-logistic-netowrk-trainsaver",
     key_sequence = "",
@@ -65,7 +65,7 @@ local openLogisticNetworkGuiTrainsaverKey = {
     action = "lua",
 }
 
-local toggleMenuTrainsaverKey = {
+local toggle_menu_trainsaver_key = {
     type = "custom-input",
     name = "toggle-menu-trainsaver",
     key_sequence = "",
@@ -74,7 +74,7 @@ local toggleMenuTrainsaverKey = {
     action = "lua",
 }
 
-local openTrainGuiTrainsaverKey = {
+local open_train_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-train-gui-trainsaver",
     key_sequence = "",
@@ -83,7 +83,7 @@ local openTrainGuiTrainsaverKey = {
     action = "lua",
 }
 
-local toggleDrivingTrainsaverKey = {
+local toggle_driving_trainsaver_key = {
     type = "custom-input",
     name = "toggle-driving-trainsaver",
     key_sequence = "",
@@ -92,7 +92,7 @@ local toggleDrivingTrainsaverKey = {
     action = "lua",
 }
 
-local moveUpTrainsaverKey = {
+local move_up_trainsaver_key = {
     type = "custom-input",
     name = "move-up-trainsaver",
     key_sequence = "",
@@ -101,7 +101,7 @@ local moveUpTrainsaverKey = {
     action = "lua",
 }
 
-local moveDownTrainsaverKey = {
+local move_down_trainsaver_key = {
     type = "custom-input",
     name = "move-down-trainsaver",
     key_sequence = "",
@@ -110,7 +110,7 @@ local moveDownTrainsaverKey = {
     action = "lua",
 }
 
-local moveRightTrainsaverKey = {
+local move_right_trainsaver_key = {
     type = "custom-input",
     name = "move-right-trainsaver",
     key_sequence = "",
@@ -119,7 +119,7 @@ local moveRightTrainsaverKey = {
     action = "lua",
 }
 
-local moveLeftTrainsaverKey = {
+local move_left_trainsaver_key = {
     type = "custom-input",
     name = "move-left-trainsaver",
     key_sequence = "",
@@ -128,7 +128,7 @@ local moveLeftTrainsaverKey = {
     action = "lua",
 }
 
-local toggleMapTrainsaverKey = {
+local toggle_map_trainsaver_key = {
     type = "custom-input",
     name = "toggle-map-trainsaver",
     key_sequence = "",
@@ -137,7 +137,7 @@ local toggleMapTrainsaverKey = {
     action = "lua",
 }
 
-local shootEnemyTrainsaverKey = {
+local shoot_enemy_trainsaver_key = {
     type = "custom-input",
     name = "shoot-enemy-trainsaver",
     key_sequence = "",
@@ -146,7 +146,7 @@ local shootEnemyTrainsaverKey = {
     action = "lua",
 }
 
-local nextTargetTrainsaverKey = {
+local next_target_trainsaver_key = {
     type = "custom-input",
     name = "next-target-trainsaver",
     key_sequence = "RIGHT",
@@ -156,7 +156,7 @@ local nextTargetTrainsaverKey = {
     order = "[3][A]",
 }
 
-local previousTargetTrainsaverKey = {
+local previous_target_trainsaver_key = {
     type = "custom-input",
     name = "previous-target-trainsaver",
     key_sequence = "LEFT",
@@ -166,7 +166,7 @@ local previousTargetTrainsaverKey = {
     order = "[3][B]",
 }
 
-local selfReflectionAchievement = {
+local self_reflection_achievement = {
     type = "achievement",
     name = "trainsaver-self-reflection",
     order = "t[secret]-a[1][self-reflection]",
@@ -175,7 +175,7 @@ local selfReflectionAchievement = {
     hidden = false,
 }
 
-local findAFriendAchievement = {
+local find_a_friend_achievement = {
     type = "achievement",
     name = "trainsaver-find-a-friend",
     order = "t[secret]-a[2][find-a-friend]",
@@ -184,7 +184,7 @@ local findAFriendAchievement = {
     hidden = false,
 }
 
-local continuousTenMinutesAchievement = {
+local continuous_ten_minutes_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-10-minutes",
     order = "t[secret]-b[1][continuous-10-minutes]",
@@ -193,7 +193,7 @@ local continuousTenMinutesAchievement = {
     hidden = false,
 }
 
-local continuousThirtyMinutesAchievement = {
+local continuous_thirty_minutes_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-30-minutes",
     order = "t[secret]-b[2][continuous-30-minutes]",
@@ -202,7 +202,7 @@ local continuousThirtyMinutesAchievement = {
     hidden = false,
 }
 
-local continuousOneHourAchievement = {
+local continuous_one_hour_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-60-minutes",
     order = "t[secret]-b[3][continuous-60-minutes]",
@@ -211,7 +211,7 @@ local continuousOneHourAchievement = {
     hidden = false,
 }
 
-local totalOneHoursAchievement = {
+local total_one_hours_achievement = {
     type = "achievement",
     name = "trainsaver-1-hours-total",
     order = "t[secret]-c[1][1-hours-total]",
@@ -220,7 +220,7 @@ local totalOneHoursAchievement = {
     hidden = false,
 }
 
-local totalTwoHoursAchievement = {
+local total_two_hours_achievement = {
     type = "achievement",
     name = "trainsaver-2-hours-total",
     order = "t[secret]-c[2][2-hours-total]",
@@ -229,7 +229,7 @@ local totalTwoHoursAchievement = {
     hidden = false,
 }
 
-local totalFiveHoursAchievement = {
+local total_five_hours_achievement = {
     type = "achievement",
     name = "trainsaver-5-hours-total",
     order = "t[secret]-c[3][5-hours-total]",
@@ -238,7 +238,7 @@ local totalFiveHoursAchievement = {
     hidden = false,
 }
 
-local rocketLaunchedAchievement = {
+local rocket_launched_achievement = {
     type = "achievement",
     name = "trainsaver-a-spectacular-view",
     order = "t[secret]-d[1][a-spectacular-view]",
@@ -247,7 +247,7 @@ local rocketLaunchedAchievement = {
     hidden = true,
 }
 
-local characterDamagedAchievement = {
+local character_damaged_achievement = {
     type = "achievement",
     name = "trainsaver-character-damaged",
     order = "t[secret]-d[2][character-damaged]",
@@ -256,7 +256,7 @@ local characterDamagedAchievement = {
     hidden = true,
 }
 
-local damagedByFollowedTrainAchievement = {
+local damaged_by_followed_train_achievement = {
     type = "achievement",
     name = "trainsaver-damaged-by-followed-train",
     order = "t[secret]-d[3][damaged-by-followed-train]",
@@ -265,7 +265,7 @@ local damagedByFollowedTrainAchievement = {
     hidden = true,
 }
 
-local theLongHaulAchievement = {
+local the_long_haul_achievement = {
     type = "achievement",
     name = "trainsaver-long-haul",
     order = "t[secret]-a[3][long-haul]",
@@ -275,34 +275,34 @@ local theLongHaulAchievement = {
 }
 
 data:extend({
-    toggleTrainsaverKey,
-    startTrainsaverKey,
-    endTrainsaverKey,
-    openInventoryTrainsaverKey,
-    openTechnologyGuiTrainsaverKey,
-    openProductionStatsGuiTrainsaverKey,
-    openLogisticNetworkGuiTrainsaverKey,
-    toggleMenuTrainsaverKey,
-    openTrainGuiTrainsaverKey,
-    toggleDrivingTrainsaverKey,
-    moveUpTrainsaverKey,
-    moveDownTrainsaverKey,
-    moveRightTrainsaverKey,
-    moveLeftTrainsaverKey,
-    toggleMapTrainsaverKey,
-    shootEnemyTrainsaverKey,
-    nextTargetTrainsaverKey,
-    previousTargetTrainsaverKey,
-    -- selfReflectionAchievement,
-    findAFriendAchievement,
-    continuousTenMinutesAchievement,
-    continuousThirtyMinutesAchievement,
-    continuousOneHourAchievement,
-    totalOneHoursAchievement,
-    totalTwoHoursAchievement,
-    totalFiveHoursAchievement,
-    rocketLaunchedAchievement,
-    characterDamagedAchievement,
-    damagedByFollowedTrainAchievement,
-    theLongHaulAchievement,
+    toggle_trainsaver_key,
+    start_trainsaver_key,
+    end_trainsaver_key,
+    open_inventory_trainsaver_key,
+    open_technology_gui_trainsaver_key,
+    open_production_stats_gui_trainsaver_key,
+    open_logistic_network_gui_trainsaver_key,
+    toggle_menu_trainsaver_key,
+    open_train_gui_trainsaver_key,
+    toggle_driving_trainsaver_key,
+    move_up_trainsaver_key,
+    move_down_trainsaver_key,
+    move_right_trainsaver_key,
+    move_left_trainsaver_key,
+    toggle_map_trainsaver_key,
+    shoot_enemy_trainsaver_key,
+    next_target_trainsaver_key,
+    previous_target_trainsaver_key,
+    -- self_reflection_achievement,
+    find_a_friend_achievement,
+    continuous_ten_minutes_achievement,
+    continuous_thirty_minutes_achievement,
+    continuous_one_hour_achievement,
+    total_one_hours_achievement,
+    total_two_hours_achievement,
+    total_five_hours_achievement,
+    rocket_launched_achievement,
+    character_damaged_achievement,
+    damaged_by_followed_train_achievement,
+    the_long_haul_achievement,
 })
