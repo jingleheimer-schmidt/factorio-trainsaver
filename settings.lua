@@ -1,6 +1,6 @@
 
 ---@type data.ModDoubleSettingPrototype
-local zoomSetting = {
+local zoom = {
     type = "double-setting",
     name = "ts-zoom",
     setting_type = "runtime-per-user",
@@ -11,7 +11,7 @@ local zoomSetting = {
 }
 
 ---@type data.ModDoubleSettingPrototype
-local transitionSpeedSetting = {
+local transition_speed = {
     type = "double-setting",
     name = "ts-transition-speed",
     setting_type = "runtime-per-user",
@@ -21,19 +21,19 @@ local transitionSpeedSetting = {
 }
 
 ---@type data.ModDoubleSettingPrototype
-local transitionTimeSetting = {
+local transition_time = {
     type = "double-setting",
     name = "ts-transition-time",
     setting_type = "runtime-per-user",
     minimum_value = 0,
-    --   maximum_value = 1800,
+    -- maximum_value = 1800,
     default_value = 0, -- km/h, will be converted to time (ticks)
     order = "ts-a-3",
     hidden = true,
 }
 
 ---@type data.ModIntSettingPrototype
-local waitAtSignalSetting = {
+local wait_at_signal = {
     type = "int-setting",
     name = "ts-wait-at-signal",
     setting_type = "runtime-per-user",
@@ -43,7 +43,7 @@ local waitAtSignalSetting = {
 }
 
 ---@type data.ModIntSettingPrototype
-local stationMinimumlSetting = {
+local station_minimum = {
     type = "int-setting",
     name = "ts-station-minimum",
     setting_type = "runtime-per-user",
@@ -53,7 +53,7 @@ local stationMinimumlSetting = {
 }
 
 ---@type data.ModIntSettingPrototype
-local drivingMinimumlSetting = {
+local driving_minimum = {
     type = "int-setting",
     name = "ts-driving-minimum",
     setting_type = "runtime-per-user",
@@ -63,18 +63,18 @@ local drivingMinimumlSetting = {
 }
 
 ---@type data.ModDoubleSettingPrototype
-local timeWaitSetting = {
+local time_wait = {
     type = "double-setting",
     name = "ts-time-wait",
     setting_type = "runtime-per-user",
-    minimum_value = 1, -- need to have at least 1 minute of "inactivity", because it's not actually inactivity, it's how long the cutscene lasts before returning to player.
+    minimum_value = 1, -- minimum cutscene duration
     default_value = 60, -- minutes, will be converted to ticks
     order = "ts-c",
     hidden = true,
 }
 
 ---@type data.ModBoolSettingPrototype
-local variableZoomSetting = {
+local variable_zoom = {
     type = "bool-setting",
     name = "ts-variable-zoom",
     setting_type = "runtime-per-user",
@@ -85,7 +85,7 @@ local variableZoomSetting = {
 }
 
 ---@type data.ModDoubleSettingPrototype
-local afkAutoStartSetting = {
+local afk_auto_start = {
     type = "double-setting",
     name = "ts-afk-auto-start",
     setting_type = "runtime-per-user",
@@ -95,7 +95,7 @@ local afkAutoStartSetting = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local autoStartWhileGuiIsOpenSetting = {
+local auto_start_while_gui_is_open = {
     type = "bool-setting",
     name = "ts-autostart-while-gui-is-open",
     setting_type = "runtime-per-user",
@@ -104,7 +104,7 @@ local autoStartWhileGuiIsOpenSetting = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local autoStartWhileViewingMapSetting = {
+local auto_start_while_viewing_map = {
     type = "bool-setting",
     name = "ts-autostart-while-viewing-map",
     setting_type = "runtime-per-user",
@@ -113,7 +113,7 @@ local autoStartWhileViewingMapSetting = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local menuEndsTrainsaverSetting = {
+local menu_ends_trainsaver = {
     type = "bool-setting",
     name = "ts-menu-hotkey",
     setting_type = "runtime-per-user",
@@ -123,7 +123,7 @@ local menuEndsTrainsaverSetting = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local linkedGameControlEndsTrainsaverSetting = {
+local linked_game_control_ends_trainsaver = {
     type = "bool-setting",
     name = "ts-linked-game-control-hotkey",
     setting_type = "runtime-per-user",
@@ -132,7 +132,7 @@ local linkedGameControlEndsTrainsaverSetting = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local notableEventAlerts = {
+local notable_event_alerts = {
     type = "bool-setting",
     name = "ts-notable-events",
     setting_type = "runtime-per-user",
@@ -141,7 +141,7 @@ local notableEventAlerts = {
 }
 
 ---@type data.ModBoolSettingPrototype
-local hiddenSecretsSetting = {
+local hidden_secrets = {
     type = "bool-setting",
     name = "ts-secrets",
     setting_type = "runtime-per-user",
@@ -150,19 +150,19 @@ local hiddenSecretsSetting = {
 }
 
 data:extend({
-    transitionSpeedSetting,
-    transitionTimeSetting,
-    timeWaitSetting,
-    zoomSetting,
-    variableZoomSetting,
-    waitAtSignalSetting,
-    stationMinimumlSetting,
-    drivingMinimumlSetting,
-    afkAutoStartSetting,
-    menuEndsTrainsaverSetting,
-    autoStartWhileViewingMapSetting,
-    autoStartWhileGuiIsOpenSetting,
-    linkedGameControlEndsTrainsaverSetting,
-    notableEventAlerts,
-    hiddenSecretsSetting,
+    transition_speed,
+    transition_time,
+    time_wait,
+    zoom,
+    variable_zoom,
+    wait_at_signal,
+    station_minimum,
+    driving_minimum,
+    afk_auto_start,
+    menu_ends_trainsaver,
+    auto_start_while_viewing_map,
+    auto_start_while_gui_is_open,
+    linked_game_control_ends_trainsaver,
+    notable_event_alerts,
+    hidden_secrets,
 })
