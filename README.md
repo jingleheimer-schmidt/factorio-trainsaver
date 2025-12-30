@@ -17,14 +17,31 @@ Please report any issues or suggestions on the [Discussion](https://mods.factori
 
 ------------------------------------------
 # trainsaver demo video
+(4 minutes, v0.0.3, December 2020)
 [![](https://github.com/jingleheimer-schmidt/imgs/raw/primary/factorio%20trainsaver%20mod%20demo%20overview%20video.png)](http://www.youtube.com/watch?v=AbDN4SM4cg8 "trainsaver demo video")
 
 ------------------------------------------
 # trainsaver extended preview video
+(30 minutes, v0.0.3, December 2020)
 [![](https://github.com/jingleheimer-schmidt/imgs/raw/primary/factorio%20trainsaver%20mod%2030%20min%20preview%20video%20thumbnail.png)](http://www.youtube.com/watch?v=ru0OYqdHTfI "trainsaver 30 minute preview")
 
+------------------------------------------
+# Commands
+trainsaver provides the following chat commands:
+
+- `/trainsaver` --> toggles trainsaver on or off
+- `/ts-start` --> starts trainsaver
+- `/ts-end` --> ends trainsaver
+- `/ts-verbose` --> toggles verbose mode debug messages on or off
+- `/ts-reset_history` --> clears the target history for the player
+- `/ts-next_target` --> tells trainsaver to go forward in history. finds a new target if current target is the newest in history
+- `/ts-previous_target` --> tells trainsaver to go backward in history. won't do anything if the current target is the oldest in history
+- `/ts-ignore_stations <train-stop>` --> adds the specified train stations to the ignored stations list
+- `/ts-unignore_stations <train-stop>` --> removes the specified train stations from the ignored stations list
+- `/ts-list_ignored_stations` --> lists all currently ignored train stations
+
 ---------------------
-##### Interface
+# Interface
 trainsaver provides an interface for other mods to interact with. The interface is named `trainsaver` and includes the following functions:
 
 - `trainsaver_status(player_index)` --> returns the status of trainsaver for a given player, either "active" or "inactive"
@@ -41,13 +58,13 @@ Example interface usage:
 - https://lua-api.factorio.com/latest/classes/LuaRemote.html#call
 - `remote.call("trainsaver", "toggle_trainsaver", player_index)`
 ---------------------
-##### Translation
+# Translation
 Help translate trainsaver to more languages: https://crowdin.com/project/factorio-mods-localization
 Currently available locale:
 🇺🇸 English (en), 🇷🇺 Russian (ru), 🇺🇦 Ukrainian (uk)
 
 ------------------------------------------
-##### Compatibility:
+# Compatibility
 There are currently no known mod compatibility issues. To report a compatibility issue, please make a post on the discussion page.
 
 If you have suggestions or bug fixes that you would like to contribute directly, feel free to open a pull request on [GitHub](https://github.com/jingleheimer-schmidt/factorio-trainsaver).
