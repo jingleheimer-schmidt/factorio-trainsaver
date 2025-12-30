@@ -29,7 +29,7 @@ local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
 local reset_player_data = globals_util.reset_player_data
 
 -- end the screensaver
----@param command EventData.on_console_command
+---@param command EventData.on_console_command | CustomCommandData
 ---@param ending_transition boolean?
 local function end_trainsaver(command, ending_transition)
     local player_index = command.player_index
@@ -129,7 +129,7 @@ local function end_trainsaver(command, ending_transition)
 end
 
 -- start the screensaver :D
----@param command EventData.on_console_command
+---@param command EventData.on_console_command | CustomCommandData
 ---@param train_to_ignore LuaTrain?
 ---@param entity_gone_restart boolean?
 local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
@@ -147,7 +147,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
         [defines.controllers.god] = true,
         [defines.controllers.remote] = true,
     }
-    if not ((name == "trainsaver") and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
+    if not (((name == "trainsaver") or (name == "ts-start")) and (allowed_controller_types[controller_type] or entity_gone_restart)) then return end
 
     if player.cargo_pod then
         chatty_print(chatty_name .. "player is in cargo pod, cannot start trainsaver")
@@ -164,7 +164,11 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     if not train_to_ignore then train_to_ignore = { id = -999999 } end
     for _, train in pairs(all_trains) do
         if ((train.locomotives.front_movers[1] or train.locomotives.back_movers[1]) and (not ((train.state == defines.train_state.manual_control) or (train.state == defines.train_state.manual_control_stop) or (train.id == train_to_ignore.id)))) then
-            table.insert(eligible_trains_with_movers, train)
+            local ignored_station_names = storage.ignored_station_names or {}
+            local destination_station_name = train.path_end_stop and train.path_end_stop.backer_name
+            if not (destination_station_name and ignored_station_names[destination_station_name]) then
+                table.insert(eligible_trains_with_movers, train)
+            end
         end
     end
     chatty_print(chatty_name .. "created table of trains [" .. #eligible_trains_with_movers .. " total]")
@@ -267,7 +271,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 end
 
 ---start or end trainsaver depending on player controller type
----@param event EventData.CustomInputEvent | EventData.on_console_command
+---@param event EventData.CustomInputEvent | EventData.on_console_command | CustomCommandData
 local function start_or_end_trainsaver(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -282,7 +286,7 @@ local function start_or_end_trainsaver(event)
 end
 
 ---end trainsaver when the /end-trainsaver command is used
----@param event EventData.on_console_command
+---@param event CustomCommandData
 local function end_trainsaver_on_command(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -293,7 +297,7 @@ local function end_trainsaver_on_command(event)
 end
 
 ---focus trainsaver on a new target
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_new_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -313,7 +317,7 @@ local function focus_new_target(event)
 end
 
 ---focus trainsaver on the next target from watch history
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_next_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -354,7 +358,7 @@ local function focus_next_target(event)
 end
 
 -- focus trainsaver on the previous target from watch history
----@param event EventData.CustomInputEvent
+---@param event EventData.CustomInputEvent | CustomCommandData
 local function focus_previous_target(event)
     local player = game.get_player(event.player_index)
     if not player then return end
@@ -384,7 +388,7 @@ local function focus_previous_target(event)
 end
 
 -- reset the watch history for a player
----@param event EventData.on_console_command
+---@param event CustomCommandData
 local function reset_player_history(event)
     local player_index = event.player_index
     if not player_index then return end
@@ -392,6 +396,119 @@ local function reset_player_history(event)
     storage.watch_history[player_index] = nil
     storage.player_history_index = storage.player_history_index or {}
     storage.player_history_index[player_index] = nil
+end
+
+-- returns the id numbers of two train stations
+---@return integer
+---@return integer
+local function get_example_station_ids()
+    local stations = game.train_manager.get_train_stops({})
+    local station_1 = stations[math.random(math.max(1, #stations))]
+    local station_2 = stations[math.random(math.max(1, #stations))]
+    local station_1_id = station_1 and station_1.valid and station_1.unit_number or 0
+    local station_2_id = station_2 and station_2.valid and station_2.unit_number or 0
+    return station_1_id, station_2_id
+end
+
+-- ignore trains headed to stations of the specified name when finding new targets
+---@param event CustomCommandData
+local function ignore_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    local parameter = event.parameter or ""
+    local station_ids = {}
+    for id in string.gmatch(parameter, "%[train%-stop=(%d+)%]") do
+        table.insert(station_ids, tonumber(id))
+    end
+    ---@type table<string, boolean>
+    storage.ignored_station_names = storage.ignored_station_names or {}
+    if next(station_ids) then
+        local stations = game.train_manager.get_train_stops({})
+        local station_names = {}
+        for _, station in pairs(stations) do
+            for _, id in pairs(station_ids) do
+                if station.unit_number == id then
+                    local station_name = station.backer_name or ""
+                    station_names[station_name] = true
+                end
+            end
+        end
+        for station_name, _ in pairs(station_names) do
+            if storage.ignored_station_names[station_name] then
+                player.print({ "ts-messages.station-already-ignored", station_name })
+            else
+                storage.ignored_station_names[station_name] = true
+                local chatty_name = get_chatty_name(player)
+                game.print({ "ts-messages.station-ignored", chatty_name, station_name })
+            end
+        end
+    else
+        local station_1_id, station_2_id = get_example_station_ids()
+        player.print({ "ts-messages.failed-to-parse-station", parameter })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
+    end
+end
+
+--- remove ignored station names from the ignore list
+---@param event CustomCommandData
+local function unignore_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if not storage.ignored_station_names then return end
+    local parameter = event.parameter or ""
+    local station_ids = {}
+    for id in string.gmatch(parameter, "%[train%-stop=(%d+)%]") do
+        table.insert(station_ids, tonumber(id))
+    end
+    if next(station_ids) then
+        local stations = game.train_manager.get_train_stops({})
+        local station_names = {}
+        for _, station in pairs(stations) do
+            for _, id in pairs(station_ids) do
+                if station.unit_number == id then
+                    local station_name = station.backer_name or ""
+                    station_names[station_name] = true
+                end
+            end
+        end
+        for station_name, _ in pairs(station_names) do
+            if not storage.ignored_station_names[station_name] then
+                player.print({ "ts-messages.station-not-ignored", station_name })
+            else
+                storage.ignored_station_names[station_name] = nil
+                local chatty_name = get_chatty_name(player)
+                game.print({ "ts-messages.station-unignored", chatty_name, station_name })
+            end
+        end
+    else
+        local station_1_id, station_2_id = get_example_station_ids()
+        player.print({ "ts-messages.failed-to-parse-station", parameter })
+        player.print({ "ts-messages.ts-unignore_stations-help", station_1_id, station_2_id })
+    end
+end
+
+--- prints a list of ignored stations to the player
+---@param event CustomCommandData
+local function list_ignored_stations(event)
+    local player = game.get_player(event.player_index)
+    if not player then return end
+    if not storage.ignored_station_names then
+        local station_1_id, station_2_id = get_example_station_ids()
+        player.print({ "ts-messages.no-ignored-stations" })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
+        return
+    end
+    local ignored_stations_list = {}
+    for station_name, _ in pairs(storage.ignored_station_names) do
+        table.insert(ignored_stations_list, station_name)
+    end
+    if table_size(ignored_stations_list) == 0 then
+        local station_1_id, station_2_id = get_example_station_ids()
+        player.print({ "ts-messages.no-ignored-stations" })
+        player.print({ "ts-messages.ts-ignore_stations-help", station_1_id, station_2_id })
+    else
+        player.print({ "ts-messages.ignored-stations-list", table.concat(ignored_stations_list, "\n- ") })
+    end
 end
 
 return {
@@ -403,4 +520,7 @@ return {
     focus_next_target = focus_next_target,
     focus_previous_target = focus_previous_target,
     reset_player_history = reset_player_history,
+    ignore_stations = ignore_stations,
+    unignore_stations = unignore_stations,
+    list_ignored_stations = list_ignored_stations,
 }

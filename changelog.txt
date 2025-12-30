@@ -3,6 +3,7 @@ Version: 0.1.0
 Date: ????
   Features:
     - trainsaver can now target trains and spidertrons on any planet, regardless of what planet the player is on
+    - trainsaver can now ignore trains going to specific stations (see /ts-ignore_stations, /ts-unignore_stations, and /ts-list_ignored_stations commands)
   Changes:
     - silenced verbose mode messages
     - restricted trainsaver from starting when player is in a cargo pod procession sequence
@@ -11,6 +12,14 @@ Date: ????
     - increased the rocket launch target zoom out
     - removed notable events message when target is rocket launch
     - reduced watch history length to 999
+    - renamed /end-trainsaver command to /ts-end
+    - added /ts-start command to start trainsaver
+    - renamed /verbose-trainsaver command to /ts-verbose
+    - renamed /reset-trainsaver-history command to /ts-reset_history
+    - added /ts-next_target and /ts-previous_target commands to navigate target history
+    - added /ts-ignore_stations, /ts-unignore_stations, and /ts-list_ignored_stations commands to manage ignored stations
+  Locale:
+    - updated locale strings for chat command help messages
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
 Date: 14NOV2024
