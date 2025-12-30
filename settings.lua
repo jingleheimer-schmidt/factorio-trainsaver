@@ -1,12 +1,23 @@
 
 ---@type data.ModDoubleSettingPrototype
+local zoomSetting = {
+    type = "double-setting",
+    name = "ts-zoom",
+    setting_type = "runtime-per-user",
+    minimum_value = .1,
+    default_value = .375,
+    maximum_value = 5,
+    order = "ts-a-1"
+}
+
+---@type data.ModDoubleSettingPrototype
 local transitionSpeedSetting = {
     type = "double-setting",
     name = "ts-transition-speed",
     setting_type = "runtime-per-user",
     minimum_value = 0,
     default_value = 0, -- km/h, will be converted to time (ticks)
-    order = "ts-a-a"
+    order = "ts-a-2"
 }
 
 ---@type data.ModDoubleSettingPrototype
@@ -17,7 +28,7 @@ local transitionTimeSetting = {
     minimum_value = 0,
     --   maximum_value = 1800,
     default_value = 0, -- km/h, will be converted to time (ticks)
-    order = "ts-a-b",
+    order = "ts-a-3",
     hidden = true,
 }
 
@@ -60,17 +71,6 @@ local timeWaitSetting = {
     default_value = 60, -- minutes, will be converted to ticks
     order = "ts-c",
     hidden = true,
-}
-
----@type data.ModDoubleSettingPrototype
-local zoomSetting = {
-    type = "double-setting",
-    name = "ts-zoom",
-    setting_type = "runtime-per-user",
-    minimum_value = .1,
-    default_value = .375,
-    maximum_value = 5,
-    order = "ts-d"
 }
 
 ---@type data.ModBoolSettingPrototype
