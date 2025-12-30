@@ -18,8 +18,10 @@ Date: ????
     - renamed /reset-trainsaver-history command to /ts-reset_history
     - added /ts-next_target and /ts-previous_target commands to navigate target history
     - added /ts-ignore_stations, /ts-unignore_stations, and /ts-list_ignored_stations commands to manage ignored stations
+    - reorganized mod setting order
   Locale:
     - updated locale strings for chat command help messages
+    - updated mod setting descriptions
 ---------------------------------------------------------------------------------------------------
 Version: 0.0.31
 Date: 14NOV2024
