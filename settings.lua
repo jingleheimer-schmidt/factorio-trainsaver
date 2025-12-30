@@ -63,16 +63,6 @@ local timeWaitSetting = {
 }
 
 ---@type data.ModDoubleSettingPrototype
-local afkAutoStartSetting = {
-    type = "double-setting",
-    name = "ts-afk-auto-start",
-    setting_type = "runtime-per-user",
-    minimum_value = 0,
-    default_value = 5, -- minutes, will be converted to ticks
-    order = "ts-d"
-}
-
----@type data.ModDoubleSettingPrototype
 local zoomSetting = {
     type = "double-setting",
     name = "ts-zoom",
@@ -80,7 +70,7 @@ local zoomSetting = {
     minimum_value = .1,
     default_value = .375,
     maximum_value = 5,
-    order = "ts-e"
+    order = "ts-d"
 }
 
 ---@type data.ModBoolSettingPrototype
@@ -89,9 +79,19 @@ local variableZoomSetting = {
     name = "ts-variable-zoom",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "ts-f",
+    order = "ts-e",
     hidden = true,
     forced_value = false, -- temporary until zoom issue is fixed
+}
+
+---@type data.ModDoubleSettingPrototype
+local afkAutoStartSetting = {
+    type = "double-setting",
+    name = "ts-afk-auto-start",
+    setting_type = "runtime-per-user",
+    minimum_value = 0,
+    default_value = 5, -- minutes, will be converted to ticks
+    order = "ts-f"
 }
 
 ---@type data.ModBoolSettingPrototype
