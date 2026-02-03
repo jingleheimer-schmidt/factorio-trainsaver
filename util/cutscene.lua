@@ -42,7 +42,7 @@ local function set_cutscene_controller(waypoints, player)
     local player_data = storage.player_data[player_index]
     local player_position = player.position
     local player_zoom = player.zoom
-    player.set_controller { type = defines.controllers.spectator }
+    player.set_controller { type = defines.controllers.spectator } -- triggers cutscene_ended 
     player.teleport(player_position, get_intended_cutscene_surface(waypoints), true)
     storage.player_data[player_index] = player_data
     player.set_controller {
