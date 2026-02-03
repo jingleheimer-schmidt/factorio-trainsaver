@@ -39,8 +39,10 @@ local function update_player_data(player, waypoints)
     player_data.hub = player_data.hub or player.hub
     if player_data.controller_type == defines.controllers.cutscene then
         if player.cutscene_character and player.cutscene_character.valid then
-            player_data.character = player.cutscene_character
-            player_data.controller_type = defines.controllers.character
+            if not (player_data.character and player_data.character.valid) then
+                player_data.character = player.cutscene_character
+                player_data.controller_type = defines.controllers.character
+            end
         end
     end
     storage.player_data[player_index] = player_data
@@ -64,6 +66,7 @@ local function reset_player_data(player, player_data)
     player.teleport(player_data.physical_position, player_data.physical_surface, true)
     local character = player_data.character
     if character and character.valid then
+        player.teleport(character.position, character.surface, true)
         player.set_controller {
             type = defines.controllers.character,
             character = character,
