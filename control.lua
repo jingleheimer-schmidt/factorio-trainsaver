@@ -320,15 +320,16 @@ local function character_damaged(event)
     local damaged_entity = event.entity
     for _, player in pairs(game.connected_players) do
         if (trainsaver_is_active(player) and player.cutscene_character == damaged_entity) then
-            player.unlock_achievement("trainsaver-character-damaged")
             if event.cause and event.cause.train and event.cause.train.id and storage.followed_loco[player.index] and storage.followed_loco[player.index].train_id and (event.cause.train.id == storage.followed_loco[player.index].train_id) then
-                player.unlock_achievement("trainsaver-damaged-by-followed-train")
                 print_notable_event { "ts-notable-events.hit-by-followed-train", player.name }
+                player.unlock_achievement("trainsaver-character-damaged")
+                player.unlock_achievement("trainsaver-damaged-by-followed-train")
             elseif event.cause and event.cause.name then
                 print_notable_event { "ts-notable-events.hurt-by-cause", player.name, event.cause.name }
             else
                 print_notable_event { "ts-notable-events.hurt-while-watching", player.name }
             end
+            player.unlock_achievement("trainsaver-character-damaged")
             local command = { player_index = player.index }
             end_trainsaver(command)
         end
@@ -514,6 +515,17 @@ local function check_achievements()
     end
 end
 
+-- print notable events when a player unlocks a trainsaver achievement
+script.on_event(defines.events.on_achievement_gained, function(event)
+    local achievement_name = event.achievement.name
+    local player = game.get_player(event.player_index)
+    if player and player.valid then
+        if string.find(achievement_name, "^trainsaver%-") then
+            print_notable_event { "ts-notable-events.achievement-gained", player.name, achievement_name }
+        end
+    end
+end)
+
 -- create any requested cutscenes and update achievement progress
 local function on_tick()
     cutscene_next_tick_function()
@@ -676,7 +688,6 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
         storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(rocket)
         player.unlock_achievement("trainsaver-a-spectacular-view")
-        -- print_notable_event { "ts-notable-events.a-spectacular-view", player.name }
         ::next_player::
     end
 end)

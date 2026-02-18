@@ -5,6 +5,7 @@ Date: ????
     - changed Signal minimum mod setting from int to double to allow for more precise values
     - changed Station minimum mod setting from int to double to allow for more precise values
     - changed Driving minimum mod setting from int to double to allow for more precise values
+    - added notable event messages when trainsaver achievements are unlocked
   Locale:
     - added localised strings for the notable event messages
 ---------------------------------------------------------------------------------------------------
