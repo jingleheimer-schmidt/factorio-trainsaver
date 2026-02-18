@@ -486,7 +486,6 @@ local function check_achievements()
         storage.current_continuous_duration = storage.current_continuous_duration or {}
         storage.current_continuous_duration[player_index] = storage.current_continuous_duration[player_index] or 0
         local continuous_duration = storage.current_continuous_duration[player_index]
-        continuous_duration = continuous_duration + 1
         if continuous_duration == (60 * 60 * 10) then
             player.unlock_achievement("trainsaver-continuous-10-minutes")
         end
@@ -496,11 +495,11 @@ local function check_achievements()
         if continuous_duration == (60 * 60 * 60) then
             player.unlock_achievement("trainsaver-continuous-60-minutes")
         end
+        storage.current_continuous_duration[player_index] = continuous_duration + 1
         -- update total duration timer global data
         storage.total_duration = storage.total_duration or {}
         storage.total_duration[player_index] = storage.total_duration[player_index] or 0
         local total_duration = storage.total_duration[player_index]
-        total_duration = total_duration + 1
         if total_duration == (60 * 60 * 60 * 1) then
             player.unlock_achievement("trainsaver-1-hours-total")
         end
@@ -510,6 +509,7 @@ local function check_achievements()
         if total_duration == (60 * 60 * 60 * 5) then
             player.unlock_achievement("trainsaver-5-hours-total")
         end
+        storage.total_duration[player_index] = total_duration + 1
         ::next_player::
     end
 end
