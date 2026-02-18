@@ -32,9 +32,9 @@ local transition_time = {
     hidden = true,
 }
 
----@type data.ModIntSettingPrototype
+---@type data.ModDoubleSettingPrototype
 local wait_at_signal = {
-    type = "int-setting",
+    type = "double-setting",
     name = "ts-wait-at-signal",
     setting_type = "runtime-per-user",
     default_value = 30, -- seconds, will be converted to ticks
@@ -42,9 +42,9 @@ local wait_at_signal = {
     order = "ts-b-1"
 }
 
----@type data.ModIntSettingPrototype
+---@type data.ModDoubleSettingPrototype
 local station_minimum = {
-    type = "int-setting",
+    type = "double-setting",
     name = "ts-station-minimum",
     setting_type = "runtime-per-user",
     default_value = 5, -- seconds, will be converted to ticks
@@ -52,9 +52,9 @@ local station_minimum = {
     order = "ts-b-2"
 }
 
----@type data.ModIntSettingPrototype
+---@type data.ModDoubleSettingPrototype
 local driving_minimum = {
-    type = "int-setting",
+    type = "double-setting",
     name = "ts-driving-minimum",
     setting_type = "runtime-per-user",
     default_value = 10, -- minutes, will be converted to ticks

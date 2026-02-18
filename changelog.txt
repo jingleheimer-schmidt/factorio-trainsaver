@@ -2,6 +2,9 @@
 Version: 0.1.2
 Date: ????
   Changes:
+    - changed Signal minimum mod setting from int to double to allow for more precise values
+    - changed Station minimum mod setting from int to double to allow for more precise values
+    - changed Driving minimum mod setting from int to double to allow for more precise values
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2026-02-02
