@@ -102,7 +102,7 @@ local function play_cutscene(created_waypoints, player_index, register_history)
                 --]]
                 if passenger.index ~= player.index then
                     player.unlock_achievement("trainsaver-find-a-friend")
-                    print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw " .. passenger.name .. " riding a train")
+                    print_notable_event { "ts-notable-events.find-a-friend", player.name, passenger.name }
                 end
             end
         end

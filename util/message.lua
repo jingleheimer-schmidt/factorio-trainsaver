@@ -72,11 +72,11 @@ local function get_chatty_name(target)
 end
 
 -- print a message to all players who have notable events enabled
----@param message string
+---@param message LocalisedString
 local function print_notable_event(message)
     for _, player in pairs(game.connected_players) do
         if player.mod_settings["ts-notable-events"].value == true then
-            player.print(message)
+            player.print { "", { "ts-general.mod-id" }, message }
         end
     end
 end

@@ -323,11 +323,11 @@ local function character_damaged(event)
             player.unlock_achievement("trainsaver-character-damaged")
             if event.cause and event.cause.train and event.cause.train.id and storage.followed_loco[player.index] and storage.followed_loco[player.index].train_id and (event.cause.train.id == storage.followed_loco[player.index].train_id) then
                 player.unlock_achievement("trainsaver-damaged-by-followed-train")
-                print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " was hit by the train they were watching")
+                print_notable_event { "ts-notable-events.hit-by-followed-train", player.name }
             elseif event.cause and event.cause.name then
-                print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " was hurt by " .. event.cause.name .. " while watching the trains")
+                print_notable_event { "ts-notable-events.hurt-by-cause", player.name, event.cause.name }
             else
-                print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " was hurt while watching the trains")
+                print_notable_event { "ts-notable-events.hurt-while-watching", player.name }
             end
             local command = { player_index = player.index }
             end_trainsaver(command)
@@ -676,7 +676,7 @@ script.on_event(defines.events.on_rocket_launch_ordered, function(event)
         storage.entity_destroyed_registration_numbers = storage.entity_destroyed_registration_numbers or {}
         storage.entity_destroyed_registration_numbers[player_index] = script.register_on_object_destroyed(rocket)
         player.unlock_achievement("trainsaver-a-spectacular-view")
-        -- print_notable_event("[color=orange]trainsaver:[/color] " .. player.name .. " saw something spectacular")
+        -- print_notable_event { "ts-notable-events.a-spectacular-view", player.name }
         ::next_player::
     end
 end)
