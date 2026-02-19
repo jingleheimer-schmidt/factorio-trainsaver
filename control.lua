@@ -328,7 +328,7 @@ local function character_damaged(event)
                 player.unlock_achievement("trainsaver-character-damaged")
                 player.unlock_achievement("trainsaver-damaged-by-followed-train")
             elseif event.cause and event.cause.name then
-                print_notable_event { "ts-notable-events.hurt-by-cause", player.name, event.cause.name }
+                print_notable_event { "ts-notable-events.hurt-by-cause", player.name, event.cause.localised_name or event.cause.name }
             else
                 print_notable_event { "ts-notable-events.hurt-while-watching", player.name }
             end
