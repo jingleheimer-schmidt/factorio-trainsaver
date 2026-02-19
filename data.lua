@@ -179,7 +179,7 @@ local find_a_friend_achievement = {
     type = "achievement",
     name = "trainsaver-find-a-friend",
     order = "t[secret]-a[2][find-a-friend]",
-    icon = "__base__/graphics/achievement/lazy-bastard.png",
+    icon = "__trainsaver__/graphics/achievement/find-a-friend.png",
     icon_size = 128,
     hidden = false,
 }
