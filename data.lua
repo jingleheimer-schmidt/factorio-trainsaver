@@ -274,6 +274,15 @@ local the_long_haul_achievement = {
     hidden = false,
 }
 
+local toggled_command_achievement = {
+    type = "achievement",
+    name = "trainsaver-toggled-command",
+    order = "t[secret]-a[4][toggled-command]",
+    icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    icon_size = 128,
+    hidden = false,
+}
+
 data:extend({
     toggle_trainsaver_key,
     start_trainsaver_key,
@@ -305,4 +314,5 @@ data:extend({
     character_damaged_achievement,
     damaged_by_followed_train_achievement,
     the_long_haul_achievement,
+    toggled_command_achievement,
 })
