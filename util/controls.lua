@@ -5,6 +5,7 @@ local trainsaver_is_active = status_util.trainsaver_is_active
 local message_util = require("util.message")
 local chatty_print = message_util.chatty_print
 local get_chatty_name = message_util.get_chatty_name
+local print_notable_event = message_util.print_notable_event
 
 local math_util = require("util.math")
 local calculate_distance = math_util.calculate_distance
