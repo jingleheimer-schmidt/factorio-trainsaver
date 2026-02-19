@@ -319,7 +319,10 @@ end
 local function character_damaged(event)
     local damaged_entity = event.entity
     for _, player in pairs(game.connected_players) do
-        if (trainsaver_is_active(player) and player.cutscene_character == damaged_entity) then
+        storage.player_data = storage.player_data or {}
+        local player_data = storage.player_data[player.index]
+        local character = player_data and player_data.character
+        if (trainsaver_is_active(player) and (damaged_entity == character)) then
             if event.cause and event.cause.train and event.cause.train.id and storage.followed_loco[player.index] and storage.followed_loco[player.index].train_id and (event.cause.train.id == storage.followed_loco[player.index].train_id) then
                 print_notable_event { "ts-notable-events.hit-by-followed-train", player.name }
                 player.unlock_achievement("trainsaver-character-damaged")

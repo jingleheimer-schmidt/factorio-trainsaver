@@ -12,6 +12,8 @@ Date: ????
     - added notable event messages when trainsaver achievements are unlocked
   Locale:
     - added localised strings for the notable event messages
+  Bugfixes:
+    - fixed trainsaver not exiting under certain conditions when player character was damaged
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2026-02-02
