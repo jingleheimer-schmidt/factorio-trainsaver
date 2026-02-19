@@ -3,6 +3,7 @@ Version: 0.1.2
 Date: ????
   Features:
     - add achievement for starting trainsaver via command
+      - add achievement for starting trainsaver via hotkey
   Changes:
     - changed Signal minimum mod setting from int to double to allow for more precise values
     - changed Station minimum mod setting from int to double to allow for more precise values

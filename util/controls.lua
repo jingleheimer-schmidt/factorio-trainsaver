@@ -288,6 +288,9 @@ local function start_or_end_trainsaver(event)
         if event.name == "trainsaver" then
             player.unlock_achievement("trainsaver-toggled-command")
         end
+        if event.input_name == "toggle-trainsaver" or event.input_name == "start-trainsaver" then
+            player.unlock_achievement("trainsaver-toggled-hotkey")
+        end
         local command = { name = "trainsaver", player_index = event.player_index }
         start_trainsaver(command)
     elseif end_trainsaver_controller_types[controller_type] then
