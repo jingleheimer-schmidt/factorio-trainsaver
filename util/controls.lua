@@ -275,11 +275,19 @@ end
 local function start_or_end_trainsaver(event)
     local player = game.get_player(event.player_index)
     if not player then return end
-    if ((player.controller_type == defines.controllers.character) or (player.controller_type == defines.controllers.god) or (player.controller_type == defines.controllers.remote)) then
+    local start_trainsaver_controller_types = {
+        [defines.controllers.character] = true,
+        [defines.controllers.god] = true,
+        [defines.controllers.remote] = true,
+    }
+    local end_trainsaver_controller_types = {
+        [defines.controllers.cutscene] = true,
+    }
+    local controller_type = player.controller_type
+    if start_trainsaver_controller_types[controller_type] then
         local command = { name = "trainsaver", player_index = event.player_index }
         start_trainsaver(command)
-    elseif player.controller_type == defines.controllers.cutscene then
-        -- local command = {player_index = event.player_index, ending_transition = true}
+    elseif end_trainsaver_controller_types[controller_type] then
         local command = { player_index = event.player_index }
         end_trainsaver(command, true)
     end
@@ -291,7 +299,6 @@ local function end_trainsaver_on_command(event)
     local player = game.get_player(event.player_index)
     if not player then return end
     if not trainsaver_is_active(player) then return end
-    -- local command = {player_index = event.player_index, ending_transition = true}
     local command = { player_index = event.player_index }
     end_trainsaver(command, true)
 end
