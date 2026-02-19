@@ -546,6 +546,7 @@ local function on_nth_tick()
         if ((player.render_mode ~= defines.render_mode.game) and (auto_start_while_viewing_map == false)) then goto next_player end
         if (opened_gui_type and (opened_gui_type ~= defines.gui_type.none) and (auto_start_while_gui_is_open == false)) then goto next_player end
         if player.afk_time < (auto_start * 60 * 60) then goto next_player end
+        player.unlock_achievement("trainsaver-afk-auto-start")
         local command = { name = "trainsaver", player_index = player.index }
         start_trainsaver(command)
         ::next_player::

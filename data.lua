@@ -292,6 +292,15 @@ local toggled_hotkey_achievement = {
     hidden = false,
 }
 
+local afk_auto_start_achievement = {
+    type = "achievement",
+    name = "trainsaver-afk-auto-start",
+    order = "t[secret]-a[6][afk-auto-start]",
+    icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    icon_size = 128,
+    hidden = false,
+}
+
 data:extend({
     toggle_trainsaver_key,
     start_trainsaver_key,
@@ -325,4 +334,5 @@ data:extend({
     the_long_haul_achievement,
     toggled_command_achievement,
     toggled_hotkey_achievement,
+    afk_auto_start_achievement,
 })
