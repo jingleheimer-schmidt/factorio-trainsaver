@@ -6,6 +6,7 @@ local print_notable_event = message_util.print_notable_event
 
 local target_util = require("util.target")
 local target_is_locomotive = target_util.target_is_locomotive
+local target_is_spidertron = target_util.target_is_spider
 
 local globals_util = require("util.globals")
 local update_globals_new_cutscene = globals_util.update_globals_new_cutscene
@@ -116,6 +117,9 @@ local function play_cutscene(created_waypoints, player_index, register_history)
                 player.unlock_achievement("trainsaver-long-haul")
             end
         end
+    end
+    if waypoint_target and target_is_spidertron(waypoint_target) then
+        player.unlock_achievement("trainsaver-spidertron-viewed")
     end
 end
 

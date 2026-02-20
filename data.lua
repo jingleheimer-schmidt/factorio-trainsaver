@@ -301,6 +301,15 @@ local afk_auto_start_achievement = {
     hidden = false,
 }
 
+local spidertron_viewed_achievement = {
+    type = "achievement",
+    name = "trainsaver-spidertron-viewed",
+    order = "t[secret]-a[7][spidertron-viewed]",
+    icon = "__base__/graphics/achievement/spidertron.png",
+    icon_size = 128,
+    hidden = false,
+}
+
 data:extend({
     toggle_trainsaver_key,
     start_trainsaver_key,
@@ -335,4 +344,5 @@ data:extend({
     toggled_command_achievement,
     toggled_hotkey_achievement,
     afk_auto_start_achievement,
+    spidertron_viewed_achievement,
 })
