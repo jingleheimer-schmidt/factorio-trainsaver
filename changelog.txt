@@ -2,11 +2,9 @@
 Version: 0.1.2
 Date: ????
   Features:
-    - added achievement for starting trainsaver via command
-    - added achievement for starting trainsaver via hotkey
-    - added achievement for starting trainsaver via afk auto-start
+    - added achievements for starting trainsaver via command, hotkey, and afk auto-start
     - added achievement for viewing a spidertron with trainsaver
-    - added achievements for viewing 25, 50, and 100 unique trains with trainsaver
+    - added achievements for viewing 25, 50, and 100 unique trains
 
   Changes:
     - changed Signal minimum mod setting from int to double to allow for more precise values
