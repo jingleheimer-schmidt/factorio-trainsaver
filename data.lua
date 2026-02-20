@@ -310,6 +310,33 @@ local spidertron_viewed_achievement = {
     hidden = false,
 }
 
+local view_25_trains_achievement = {
+    type = "achievement",
+    name = "trainsaver-view-25-trains",
+    order = "t[secret]-a[8][view-25-trains]",
+    icon = "__base__/graphics/achievement/getting-on-track.png",
+    icon_size = 128,
+    hidden = false,
+}
+
+local view_50_trains_achievement = {
+    type = "achievement",
+    name = "trainsaver-view-50-trains",
+    order = "t[secret]-a[8][view-50-trains]",
+    icon = "__base__/graphics/achievement/getting-on-track.png",
+    icon_size = 128,
+    hidden = false,
+}
+
+local view_100_trains_achievement = {
+    type = "achievement",
+    name = "trainsaver-view-100-trains",
+    order = "t[secret]-a[8][view-100-trains]",
+    icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
+    icon_size = 128,
+    hidden = false,
+}
+
 data:extend({
     toggle_trainsaver_key,
     start_trainsaver_key,
@@ -345,4 +372,7 @@ data:extend({
     toggled_hotkey_achievement,
     afk_auto_start_achievement,
     spidertron_viewed_achievement,
+    view_25_trains_achievement,
+    view_50_trains_achievement,
+    view_100_trains_achievement,
 })

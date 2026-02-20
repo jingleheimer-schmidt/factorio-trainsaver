@@ -117,6 +117,19 @@ local function play_cutscene(created_waypoints, player_index, register_history)
                 player.unlock_achievement("trainsaver-long-haul")
             end
         end
+        if train then
+            storage.unique_trains_viewed = storage.unique_trains_viewed or {}
+            storage.unique_trains_viewed[player_index] = storage.unique_trains_viewed[player_index] or {}
+            storage.unique_trains_viewed[player_index][train.id] = true
+            local unique_trains_viewed_count = table_size(storage.unique_trains_viewed[player_index])
+            if unique_trains_viewed_count == 25 then
+                player.unlock_achievement("trainsaver-view-25-trains")
+            elseif unique_trains_viewed_count == 50 then
+                player.unlock_achievement("trainsaver-view-50-trains")
+            elseif unique_trains_viewed_count == 100 then
+                player.unlock_achievement("trainsaver-view-100-trains")
+            end
+        end
     end
     if waypoint_target and target_is_spidertron(waypoint_target) then
         player.unlock_achievement("trainsaver-spidertron-viewed")
