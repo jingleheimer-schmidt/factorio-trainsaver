@@ -1,4 +1,5 @@
 
+---@type data.CustomInputPrototype
 local toggle_trainsaver_key = {
     type = "custom-input",
     name = "toggle-trainsaver",
@@ -9,6 +10,7 @@ local toggle_trainsaver_key = {
     order = "[1][A]",
 }
 
+---@type data.CustomInputPrototype
 local start_trainsaver_key = {
     type = "custom-input",
     name = "start-trainsaver",
@@ -19,6 +21,7 @@ local start_trainsaver_key = {
     order = "[2][A]",
 }
 
+---@type data.CustomInputPrototype
 local end_trainsaver_key = {
     type = "custom-input",
     name = "end-trainsaver",
@@ -29,6 +32,7 @@ local end_trainsaver_key = {
     order = "[1][B]",
 }
 
+---@type data.CustomInputPrototype
 local open_inventory_trainsaver_key = {
     type = "custom-input",
     name = "open-inventory-trainsaver",
@@ -38,6 +42,7 @@ local open_inventory_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local open_technology_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-research-trainsaver",
@@ -47,6 +52,7 @@ local open_technology_gui_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local open_production_stats_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-production-stats-trainsaver",
@@ -56,6 +62,7 @@ local open_production_stats_gui_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local open_logistic_network_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-logistic-netowrk-trainsaver",
@@ -65,6 +72,7 @@ local open_logistic_network_gui_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local toggle_menu_trainsaver_key = {
     type = "custom-input",
     name = "toggle-menu-trainsaver",
@@ -74,6 +82,7 @@ local toggle_menu_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local open_train_gui_trainsaver_key = {
     type = "custom-input",
     name = "open-train-gui-trainsaver",
@@ -83,6 +92,7 @@ local open_train_gui_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local toggle_driving_trainsaver_key = {
     type = "custom-input",
     name = "toggle-driving-trainsaver",
@@ -92,6 +102,7 @@ local toggle_driving_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local move_up_trainsaver_key = {
     type = "custom-input",
     name = "move-up-trainsaver",
@@ -101,6 +112,7 @@ local move_up_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local move_down_trainsaver_key = {
     type = "custom-input",
     name = "move-down-trainsaver",
@@ -110,6 +122,7 @@ local move_down_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local move_right_trainsaver_key = {
     type = "custom-input",
     name = "move-right-trainsaver",
@@ -119,6 +132,7 @@ local move_right_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local move_left_trainsaver_key = {
     type = "custom-input",
     name = "move-left-trainsaver",
@@ -128,6 +142,7 @@ local move_left_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local toggle_map_trainsaver_key = {
     type = "custom-input",
     name = "toggle-map-trainsaver",
@@ -137,6 +152,7 @@ local toggle_map_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local shoot_enemy_trainsaver_key = {
     type = "custom-input",
     name = "shoot-enemy-trainsaver",
@@ -146,6 +162,7 @@ local shoot_enemy_trainsaver_key = {
     action = "lua",
 }
 
+---@type data.CustomInputPrototype
 local next_target_trainsaver_key = {
     type = "custom-input",
     name = "next-target-trainsaver",
@@ -156,6 +173,7 @@ local next_target_trainsaver_key = {
     order = "[3][A]",
 }
 
+---@type data.CustomInputPrototype
 local previous_target_trainsaver_key = {
     type = "custom-input",
     name = "previous-target-trainsaver",
@@ -166,6 +184,7 @@ local previous_target_trainsaver_key = {
     order = "[3][B]",
 }
 
+---@type data.AchievementPrototype
 local self_reflection_achievement = {
     type = "achievement",
     name = "trainsaver-self-reflection",
@@ -175,6 +194,7 @@ local self_reflection_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local find_a_friend_achievement = {
     type = "achievement",
     name = "trainsaver-find-a-friend",
@@ -184,6 +204,7 @@ local find_a_friend_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local continuous_ten_minutes_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-10-minutes",
@@ -193,6 +214,7 @@ local continuous_ten_minutes_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local continuous_thirty_minutes_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-30-minutes",
@@ -202,6 +224,7 @@ local continuous_thirty_minutes_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local continuous_one_hour_achievement = {
     type = "achievement",
     name = "trainsaver-continuous-60-minutes",
@@ -211,6 +234,7 @@ local continuous_one_hour_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local total_one_hours_achievement = {
     type = "achievement",
     name = "trainsaver-1-hours-total",
@@ -220,6 +244,7 @@ local total_one_hours_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local total_two_hours_achievement = {
     type = "achievement",
     name = "trainsaver-2-hours-total",
@@ -229,6 +254,7 @@ local total_two_hours_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local total_five_hours_achievement = {
     type = "achievement",
     name = "trainsaver-5-hours-total",
@@ -238,6 +264,7 @@ local total_five_hours_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local rocket_launched_achievement = {
     type = "achievement",
     name = "trainsaver-a-spectacular-view",
@@ -247,6 +274,7 @@ local rocket_launched_achievement = {
     hidden = true,
 }
 
+---@type data.AchievementPrototype
 local character_damaged_achievement = {
     type = "achievement",
     name = "trainsaver-character-damaged",
@@ -256,6 +284,7 @@ local character_damaged_achievement = {
     hidden = true,
 }
 
+---@type data.AchievementPrototype
 local damaged_by_followed_train_achievement = {
     type = "achievement",
     name = "trainsaver-damaged-by-followed-train",
@@ -265,6 +294,7 @@ local damaged_by_followed_train_achievement = {
     hidden = true,
 }
 
+---@type data.AchievementPrototype
 local the_long_haul_achievement = {
     type = "achievement",
     name = "trainsaver-long-haul",
@@ -274,6 +304,7 @@ local the_long_haul_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local toggled_command_achievement = {
     type = "achievement",
     name = "trainsaver-toggled-command",
@@ -283,6 +314,7 @@ local toggled_command_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local toggled_hotkey_achievement = {
     type = "achievement",
     name = "trainsaver-toggled-hotkey",
@@ -292,6 +324,7 @@ local toggled_hotkey_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local afk_auto_start_achievement = {
     type = "achievement",
     name = "trainsaver-afk-auto-start",
@@ -301,6 +334,7 @@ local afk_auto_start_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local spidertron_viewed_achievement = {
     type = "achievement",
     name = "trainsaver-spidertron-viewed",
@@ -310,6 +344,7 @@ local spidertron_viewed_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local view_25_trains_achievement = {
     type = "achievement",
     name = "trainsaver-view-25-trains",
@@ -319,6 +354,7 @@ local view_25_trains_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local view_50_trains_achievement = {
     type = "achievement",
     name = "trainsaver-view-50-trains",
@@ -328,6 +364,7 @@ local view_50_trains_achievement = {
     hidden = false,
 }
 
+---@type data.AchievementPrototype
 local view_100_trains_achievement = {
     type = "achievement",
     name = "trainsaver-view-100-trains",
