@@ -1,4 +1,3 @@
-
 ---@type data.CustomInputPrototype
 local toggle_trainsaver_key = {
     type = "custom-input",
@@ -184,195 +183,122 @@ local previous_target_trainsaver_key = {
     order = "[3][B]",
 }
 
----@type data.AchievementPrototype
-local self_reflection_achievement = {
-    type = "achievement",
-    name = "trainsaver-self-reflection",
-    order = "t[secret]-a[1][self-reflection]",
-    icon = "__base__/graphics/achievement/lazy-bastard.png",
-    icon_size = 128,
-    hidden = false,
+local achievements = {
+    {
+        name = "trainsaver-self-reflection",
+        order = "t[secret]-a[1][self-reflection]",
+        icon = "__base__/graphics/achievement/lazy-bastard.png",
+        hidden = true,
+    },
+    {
+        name = "trainsaver-find-a-friend",
+        order = "t[secret]-a[2][find-a-friend]",
+        icon = "__trainsaver__/graphics/achievement/find-a-friend.png",
+    },
+    {
+        name = "trainsaver-continuous-10-minutes",
+        order = "t[secret]-b[1][continuous-10-minutes]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-continuous-30-minutes",
+        order = "t[secret]-b[2][continuous-30-minutes]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-continuous-60-minutes",
+        order = "t[secret]-b[3][continuous-60-minutes]",
+        icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
+    },
+    {
+        name = "trainsaver-1-hours-total",
+        order = "t[secret]-c[1][1-hours-total]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-2-hours-total",
+        order = "t[secret]-c[2][2-hours-total]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-5-hours-total",
+        order = "t[secret]-c[3][5-hours-total]",
+        icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
+    },
+    {
+        name = "trainsaver-a-spectacular-view",
+        order = "t[secret]-d[1][a-spectacular-view]",
+        icon = "__base__/graphics/achievement/smoke-me-a-kipper-i-will-be-back-for-breakfast.png",
+        hidden = true,
+    },
+    {
+        name = "trainsaver-character-damaged",
+        order = "t[secret]-d[2][character-damaged]",
+        icon = "__base__/graphics/achievement/watch-your-step.png",
+        hidden = true,
+    },
+    {
+        name = "trainsaver-damaged-by-followed-train",
+        order = "t[secret]-d[3][damaged-by-followed-train]",
+        icon = "__base__/graphics/achievement/watch-your-step.png",
+        hidden = true,
+    },
+    {
+        name = "trainsaver-long-haul",
+        order = "t[secret]-a[3][long-haul]",
+        icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    },
+    {
+        name = "trainsaver-toggled-command",
+        order = "t[secret]-a[4][toggled-command]",
+        icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    },
+    {
+        name = "trainsaver-toggled-hotkey",
+        order = "t[secret]-a[5][toggled-hotkey]",
+        icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    },
+    {
+        name = "trainsaver-afk-auto-start",
+        order = "t[secret]-a[6][afk-auto-start]",
+        icon = "__base__/graphics/achievement/trans-factorio-express.png",
+    },
+    {
+        name = "trainsaver-spidertron-viewed",
+        order = "t[secret]-a[7][spidertron-viewed]",
+        icon = "__base__/graphics/achievement/spidertron.png",
+    },
+    {
+        name = "trainsaver-view-25-trains",
+        order = "t[secret]-a[8][view-25-trains]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-view-50-trains",
+        order = "t[secret]-a[8][view-50-trains]",
+        icon = "__base__/graphics/achievement/getting-on-track.png",
+    },
+    {
+        name = "trainsaver-view-100-trains",
+        order = "t[secret]-a[8][view-100-trains]",
+        icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
+    }
 }
 
----@type data.AchievementPrototype
-local find_a_friend_achievement = {
-    type = "achievement",
-    name = "trainsaver-find-a-friend",
-    order = "t[secret]-a[2][find-a-friend]",
-    icon = "__trainsaver__/graphics/achievement/find-a-friend.png",
-    icon_size = 128,
-    hidden = false,
-}
+for _, achievement in pairs(achievements) do
+    data:extend({
+        {
+            type = "achievement",
+            name = achievement.name,
+            order = achievement.order,
+            icon = achievement.icon,
+            icon_size = 128,
+            hidden = achievement.hidden or false,
+        }
+    })
+end
 
----@type data.AchievementPrototype
-local continuous_ten_minutes_achievement = {
-    type = "achievement",
-    name = "trainsaver-continuous-10-minutes",
-    order = "t[secret]-b[1][continuous-10-minutes]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local continuous_thirty_minutes_achievement = {
-    type = "achievement",
-    name = "trainsaver-continuous-30-minutes",
-    order = "t[secret]-b[2][continuous-30-minutes]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local continuous_one_hour_achievement = {
-    type = "achievement",
-    name = "trainsaver-continuous-60-minutes",
-    order = "t[secret]-b[3][continuous-60-minutes]",
-    icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local total_one_hours_achievement = {
-    type = "achievement",
-    name = "trainsaver-1-hours-total",
-    order = "t[secret]-c[1][1-hours-total]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local total_two_hours_achievement = {
-    type = "achievement",
-    name = "trainsaver-2-hours-total",
-    order = "t[secret]-c[2][2-hours-total]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local total_five_hours_achievement = {
-    type = "achievement",
-    name = "trainsaver-5-hours-total",
-    order = "t[secret]-c[3][5-hours-total]",
-    icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local rocket_launched_achievement = {
-    type = "achievement",
-    name = "trainsaver-a-spectacular-view",
-    order = "t[secret]-d[1][a-spectacular-view]",
-    icon = "__base__/graphics/achievement/smoke-me-a-kipper-i-will-be-back-for-breakfast.png",
-    icon_size = 128,
-    hidden = true,
-}
-
----@type data.AchievementPrototype
-local character_damaged_achievement = {
-    type = "achievement",
-    name = "trainsaver-character-damaged",
-    order = "t[secret]-d[2][character-damaged]",
-    icon = "__base__/graphics/achievement/watch-your-step.png",
-    icon_size = 128,
-    hidden = true,
-}
-
----@type data.AchievementPrototype
-local damaged_by_followed_train_achievement = {
-    type = "achievement",
-    name = "trainsaver-damaged-by-followed-train",
-    order = "t[secret]-d[3][damaged-by-followed-train]",
-    icon = "__base__/graphics/achievement/watch-your-step.png",
-    icon_size = 128,
-    hidden = true,
-}
-
----@type data.AchievementPrototype
-local the_long_haul_achievement = {
-    type = "achievement",
-    name = "trainsaver-long-haul",
-    order = "t[secret]-a[3][long-haul]",
-    icon = "__base__/graphics/achievement/trans-factorio-express.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local toggled_command_achievement = {
-    type = "achievement",
-    name = "trainsaver-toggled-command",
-    order = "t[secret]-a[4][toggled-command]",
-    icon = "__base__/graphics/achievement/trans-factorio-express.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local toggled_hotkey_achievement = {
-    type = "achievement",
-    name = "trainsaver-toggled-hotkey",
-    order = "t[secret]-a[5][toggled-hotkey]",
-    icon = "__base__/graphics/achievement/trans-factorio-express.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local afk_auto_start_achievement = {
-    type = "achievement",
-    name = "trainsaver-afk-auto-start",
-    order = "t[secret]-a[6][afk-auto-start]",
-    icon = "__base__/graphics/achievement/trans-factorio-express.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local spidertron_viewed_achievement = {
-    type = "achievement",
-    name = "trainsaver-spidertron-viewed",
-    order = "t[secret]-a[7][spidertron-viewed]",
-    icon = "__base__/graphics/achievement/spidertron.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local view_25_trains_achievement = {
-    type = "achievement",
-    name = "trainsaver-view-25-trains",
-    order = "t[secret]-a[8][view-25-trains]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local view_50_trains_achievement = {
-    type = "achievement",
-    name = "trainsaver-view-50-trains",
-    order = "t[secret]-a[8][view-50-trains]",
-    icon = "__base__/graphics/achievement/getting-on-track.png",
-    icon_size = 128,
-    hidden = false,
-}
-
----@type data.AchievementPrototype
-local view_100_trains_achievement = {
-    type = "achievement",
-    name = "trainsaver-view-100-trains",
-    order = "t[secret]-a[8][view-100-trains]",
-    icon = "__base__/graphics/achievement/getting-on-track-like-a-pro.png",
-    icon_size = 128,
-    hidden = false,
-}
+data:extend(achievements)
 
 data:extend({
     toggle_trainsaver_key,
@@ -394,22 +320,22 @@ data:extend({
     next_target_trainsaver_key,
     previous_target_trainsaver_key,
     -- self_reflection_achievement,
-    find_a_friend_achievement,
-    continuous_ten_minutes_achievement,
-    continuous_thirty_minutes_achievement,
-    continuous_one_hour_achievement,
-    total_one_hours_achievement,
-    total_two_hours_achievement,
-    total_five_hours_achievement,
-    rocket_launched_achievement,
-    character_damaged_achievement,
-    damaged_by_followed_train_achievement,
-    the_long_haul_achievement,
-    toggled_command_achievement,
-    toggled_hotkey_achievement,
-    afk_auto_start_achievement,
-    spidertron_viewed_achievement,
-    view_25_trains_achievement,
-    view_50_trains_achievement,
-    view_100_trains_achievement,
+    -- find_a_friend_achievement,
+    -- continuous_ten_minutes_achievement,
+    -- continuous_thirty_minutes_achievement,
+    -- continuous_one_hour_achievement,
+    -- total_one_hours_achievement,
+    -- total_two_hours_achievement,
+    -- total_five_hours_achievement,
+    -- rocket_launched_achievement,
+    -- character_damaged_achievement,
+    -- damaged_by_followed_train_achievement,
+    -- the_long_haul_achievement,
+    -- toggled_command_achievement,
+    -- toggled_hotkey_achievement,
+    -- afk_auto_start_achievement,
+    -- spidertron_viewed_achievement,
+    -- view_25_trains_achievement,
+    -- view_50_trains_achievement,
+    -- view_100_trains_achievement,
 })
