@@ -6,7 +6,7 @@
 	"description": "A dynamic screensaver that follows trains as they drive around.",
 	"author": "asher_sky",
 	"dependencies": [
-		"base >= 2.0.0"
+		"base >= 2.1.0"
 	],
-	"factorio_version": "2.0"
+	"factorio_version": "2.1"
 }
