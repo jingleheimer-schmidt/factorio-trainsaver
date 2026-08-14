@@ -15,6 +15,7 @@ Date: ????
     - added localised strings for the notable event messages
   Bugfixes:
     - fixed trainsaver not exiting under certain conditions when player character was damaged
+    - fixed a surface-mismatch crash when a cross-surface Trainsaver cutscene reached its final waypoint
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2026-02-02

@@ -97,23 +97,13 @@ local function cutscene_finished(event)
     chatty_print(chatty_player_name(player) .. "cutscene finished")
 end
 
--- nil the globals when we get to the final waypoint of the cutscene bringing player back to their character. Still need to deal with how to nil globals when cutscene finishes on its own (inactivity timeout) but hopefully they add a on_cutscene_ended() event so I can just use that for both...
+-- waypoint events fire while the cutscene is still playing; terminal restoration is handled by the finished and cancelled events
 ---@param event EventData.on_cutscene_waypoint_reached
 local function cutscene_waypoint_reached(event)
     if storage.chatty then
         local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
         local chatty_name = get_chatty_name(player)
         game.print(chatty_name .. "arrived at waypoint [index " .. event.waypoint_index .. "]")
-    end
-    local player_index = event.player_index
-    storage.cutscene_ending = storage.cutscene_ending or {}
-    local cutscene_ending = storage.cutscene_ending[player_index]
-    storage.number_of_waypoints = storage.number_of_waypoints or {}
-    local number_of_waypoints = storage.number_of_waypoints[player_index]
-    if cutscene_ending then
-        cutscene_ended_nil_globals(player_index)
-    elseif number_of_waypoints and (number_of_waypoints == event.waypoint_index) then
-        cutscene_ended_nil_globals(player_index)
     end
 end
 
