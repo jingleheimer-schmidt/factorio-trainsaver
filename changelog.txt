@@ -2,20 +2,22 @@
 Version: 0.1.2
 Date: ????
   Features:
-    - added achievements for starting trainsaver via command, hotkey, and afk auto-start
-    - added achievement for viewing a spidertron with trainsaver
-    - added achievements for viewing 25, 50, and 100 unique trains
-
+    - Added achievements for using the start command, hotkey, and AFK auto-start
+    - Added achievements for viewing a spidertron and 25, 50, or 100 unique trains
+    - Added notable event messages when trainsaver achievements are unlocked
   Changes:
-    - changed Signal minimum mod setting from int to double to allow for more precise values
-    - changed Station minimum mod setting from int to double to allow for more precise values
-    - changed Driving minimum mod setting from int to double to allow for more precise values
-    - added notable event messages when trainsaver achievements are unlocked
-  Locale:
-    - added localised strings for the notable event messages
+    - Signal, station, and driving minimum settings now accept fractional values
+    - Reorganized achievements and removed legacy Self Reflection achievementcode
   Bugfixes:
-    - fixed trainsaver not exiting under certain conditions when player character was damaged
-    - fixed a surface-mismatch crash when a cross-surface Trainsaver cutscene reached its final waypoint
+    - Deferred player restoration until cutscenes finish or are cancelled, preventing premature restoration and cross-surface errors
+    - Fixed continuous and total viewing-time achievement counters
+    - Fixed exiting when the saved player character is damaged and guarded against missing followed-train data
+    - Cleared followed-train data when switching to a non-train target
+    - Made spidertron startup fallback respect the scope creep setting
+    - Fixed speed-based return timing for spidertrons and trains without a path endpoint
+  Locale:
+    - Localized notable event and verbose-toggle messages, including damage cause names
+    - Clarified English achievement, setting, command, and message text
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2026-02-02
