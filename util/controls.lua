@@ -7,10 +7,6 @@ local chatty_print = message_util.chatty_print
 local get_chatty_name = message_util.get_chatty_name
 local print_notable_event = message_util.print_notable_event
 
-local math_util = require("util.math")
-local calculate_distance = math_util.calculate_distance
-local convert_speed_into_time = math_util.convert_speed_into_time
-
 local cutscene_util = require("util.cutscene")
 local create_cutscene_next_tick = cutscene_util.create_cutscene_next_tick
 local play_cutscene = cutscene_util.play_cutscene
@@ -21,6 +17,7 @@ local target_is_locomotive = target_util.target_is_locomotive
 
 local waypoint_util = require("util.waypoint")
 local create_waypoint = waypoint_util.create_waypoint
+local calculate_transition_time = waypoint_util.calculate_transition_time
 
 local gui_util = require("util.gui")
 local toggle_gui = gui_util.toggle_gui
@@ -66,14 +63,16 @@ local function end_trainsaver(command, ending_transition)
     chatty_print(chatty_name .. "exit trainsaver (transition) requested")
     local mod_settings = player.mod_settings
     local waypoint_target = character
-    local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]]
+    local transition_time = calculate_transition_time(
+        player,
+        player.position,
+        player.surface_index,
+        waypoint_target.position,
+        waypoint_target.surface_index
+    )
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
     local wait_time = 30
-    if transition_time > 0 then
-        local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-        transition_time = convert_speed_into_time(transition_time, distance_in_meters)
-    end
     if variable_zoom then
         zoom = (math.random(((zoom - (zoom * .20)) * 1000), (((zoom + (zoom * .20))) * 1000))) / 1000
     end

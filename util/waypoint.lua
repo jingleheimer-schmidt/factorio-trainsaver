@@ -31,6 +31,27 @@ local function get_intended_cutscene_surface(waypoints)
     return surface_name
 end
 
+-- calculate a camera transition in ticks using the player's mod settings
+---@param player LuaPlayer
+---@param start_position MapPosition
+---@param start_surface_index uint
+---@param end_position MapPosition
+---@param end_surface_index uint
+---@return number
+local function calculate_transition_time(player, start_position, start_surface_index, end_position, end_surface_index)
+    if start_surface_index ~= end_surface_index then return 0 end
+
+    local mod_settings = player.mod_settings
+    local transition_speed = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph ]]
+    if transition_speed > 0 then
+        local distance_in_meters = calculate_distance(start_position, end_position)
+        return convert_speed_into_time(transition_speed, distance_in_meters)
+    end
+
+    local transition_time = mod_settings["ts-transition-time"].value --[[@as number]] --[[ seconds ]]
+    return transition_time * 60 -- convert seconds to ticks
+end
+
 -- create a waypoint for given waypoint_target using player mod settings
 ---@param waypoint_target LuaEntity|LuaCommandable
 ---@param player_index uint
@@ -39,19 +60,17 @@ local function create_waypoint(waypoint_target, player_index)
     local player = game.get_player(player_index) --[[@as LuaPlayer]]
     local mod_settings = player.mod_settings
     local chatty_name = get_chatty_name(player)
-    local transition_time = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
-    local transition_time_2 = mod_settings["ts-transition-speed"].value --[[@as number]] --[[ kmph --]]
     local variable_zoom = mod_settings["ts-variable-zoom"].value --[[@as boolean]]
     local zoom = mod_settings["ts-zoom"].value --[[@as number]]
     local time_to_wait = mod_settings["ts-time-wait"].value * 60 * 60 --[[@as number]] --[[ convert minutes to ticks --]]
 
-    -- we now prefer transition speed over transition time, but that means we need to do some calculations to convert speed (kmph) into time (ticks). However, if speed = 0, then default back to just using transition time
-    if (transition_time > 0) and (player.surface_index == waypoint_target.surface_index) then
-        local distance_in_meters = calculate_distance(player.position, waypoint_target.position)
-        transition_time = convert_speed_into_time(transition_time, distance_in_meters)
-    else
-        transition_time = 0
-    end
+    local transition_time = calculate_transition_time(
+        player,
+        player.position,
+        player.surface_index,
+        waypoint_target.position,
+        waypoint_target.surface_index
+    )
 
     -- if variable zoom is enabled, then we will randomly zoom in or out by 20%
     if variable_zoom == true then
@@ -73,12 +92,17 @@ local function create_waypoint(waypoint_target, player_index)
     local waypoint_2_end_entity = player.cutscene_character or player.character or {}
     local waypoint_2_end_entity_name = waypoint_2_end_entity.name
     if player.cutscene_character then waypoint_2_end_entity_name = "cutscene character" end
-    if (transition_time_2 > 0) and (waypoint_2_start_entity.surface_index == waypoint_2_end_entity.surface_index) then
-        local waypoint_2_start_position = waypoint_2_start_entity.position or waypoint_target.position
-        local waypoint_2_end_position = waypoint_2_end_entity.position or player.position
-        local waypoint_2_distance_in_meters = calculate_distance(waypoint_2_start_position, waypoint_2_end_position)
-        transition_time_2 = convert_speed_into_time(transition_time_2, waypoint_2_distance_in_meters)
-    end
+    local waypoint_2_start_position = waypoint_2_start_entity.position or waypoint_target.position
+    local waypoint_2_start_surface_index = waypoint_2_start_entity.surface_index or waypoint_target.surface_index
+    local waypoint_2_end_position = waypoint_2_end_entity.position or player.position
+    local waypoint_2_end_surface_index = waypoint_2_end_entity.surface_index or player.surface_index
+    local transition_time_2 = calculate_transition_time(
+        player,
+        waypoint_2_start_position,
+        waypoint_2_start_surface_index,
+        waypoint_2_end_position,
+        waypoint_2_end_surface_index
+    )
 
     -- finally let's assemble our waypints table!
     local created_waypoints = {
@@ -110,5 +134,6 @@ end
 
 return {
     create_waypoint = create_waypoint,
-    get_intended_cutscene_surface = get_intended_cutscene_surface
+    get_intended_cutscene_surface = get_intended_cutscene_surface,
+    calculate_transition_time = calculate_transition_time,
 }
