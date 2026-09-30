@@ -2,10 +2,10 @@
 local function toggle_chatty()
     if not storage.chatty then
         storage.chatty = true
-        game.print("verbose trainsaver enabled")
+        game.print({ "", { "ts-general.mod-id" }, { "ts-general.verbose-enabled" } })
     else
         storage.chatty = false
-        game.print("verbose trainsaver disabled")
+        game.print({ "", { "ts-general.mod-id" }, { "ts-general.verbose-disabled" } })
     end
 end
 
