@@ -97,13 +97,6 @@ local function play_cutscene(created_waypoints, player_index, register_history)
         local passengers = train and train.passengers
         if passengers then
             for _, passenger in pairs(passengers) do
-                --[[
-                if passenger.index == player.index then
-                    player.unlock_achievement("trainsaver-self-reflection")
-                    print_notable_event("[color=orange]trainsaver:[/color] " ..
-                    player.name .. " saw themself riding a train")
-                end
-                --]]
                 if passenger.index ~= player.index then
                     print_notable_event { "ts-notable-events.find-a-friend", player.name, passenger.name }
                     player.unlock_achievement("trainsaver-find-a-friend")
