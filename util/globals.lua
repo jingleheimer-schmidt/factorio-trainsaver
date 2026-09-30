@@ -177,19 +177,21 @@ local function update_globals_new_cutscene(player, created_waypoints)
     -- update number of waypoints global
     storage.number_of_waypoints = storage.number_of_waypoints or {} ---@type table<uint, integer>
     storage.number_of_waypoints[player_index] = #created_waypoints
+    ---@class FollowedLocomotiveData
+    ---@field unit_number uint
+    ---@field train_id uint
+    ---@field loco LuaEntity
+    -- clear the followed locomotive before recording the new target
+    storage.followed_loco = storage.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
+    storage.followed_loco[player_index] = nil
     -- update the followed_loco global
     if target_is_locomotive(waypoint_target) then
         local locomotive = waypoint_target --[[@as LuaEntity]]
-        ---@class FollowedLocomotiveData
-        ---@field unit_number uint
-        ---@field train_id uint
-        ---@field loco LuaEntity
         local followed_locomotive_data = {
             unit_number = locomotive.unit_number,
             train_id = locomotive.train.id,
             loco = locomotive,
         }
-        storage.followed_loco = storage.followed_loco or {} ---@type table<uint, FollowedLocomotiveData>
         storage.followed_loco[player_index] = followed_locomotive_data
         -- update driving minimum global
         local state = locomotive.train.state

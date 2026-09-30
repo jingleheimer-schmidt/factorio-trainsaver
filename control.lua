@@ -313,7 +313,8 @@ local function character_damaged(event)
         local player_data = storage.player_data[player.index]
         local character = player_data and player_data.character
         if (trainsaver_is_active(player) and (damaged_entity == character)) then
-            if event.cause and event.cause.train and event.cause.train.id and storage.followed_loco[player.index] and storage.followed_loco[player.index].train_id and (event.cause.train.id == storage.followed_loco[player.index].train_id) then
+            local followed_loco = storage.followed_loco and storage.followed_loco[player.index]
+            if event.cause and event.cause.train and event.cause.train.id and followed_loco and followed_loco.train_id and (event.cause.train.id == followed_loco.train_id) then
                 print_notable_event { "ts-notable-events.hit-by-followed-train", player.name }
                 player.unlock_achievement("trainsaver-character-damaged")
                 player.unlock_achievement("trainsaver-damaged-by-followed-train")
