@@ -141,6 +141,7 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
     if not player then return end
     local chatty_name = get_chatty_name(player)
     local name = command.name
+    local scope_creep_enabled = player.mod_settings["ts-secrets"].value
     chatty_print(chatty_name .. "starting trainsaver")
     local controller_type = player.controller_type
     local allowed_controller_types = {
@@ -176,6 +177,11 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
 
     -- if there are no eligible trains, find a spidertron or exit trainsaver
     if not eligible_trains_with_movers[1] then
+        if not scope_creep_enabled then
+            chatty_print(chatty_name .. "no eligible trains found and scope creep is disabled, exiting trainsaver")
+            end_trainsaver(command)
+            return
+        end
         chatty_print(chatty_name .. "no eligible trains found, searching for spidertrons...")
         local spidertron = nil
         for _, surface in pairs(game.surfaces) do
@@ -221,31 +227,33 @@ local function start_trainsaver(command, train_to_ignore, entity_gone_restart)
         return
     end
 
-    -- if there are no active trains, search for active spidertrons
-    chatty_print(chatty_name .. "no active trains found, searching for active spidertrons...")
-    local spidertron = nil
-    for _, surface in pairs(game.surfaces) do
-        local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
-        for _, spider in pairs(spidertrons) do
-            if spider and spider.valid and spider.autopilot_destination then
-                spidertron = spider
-                break
+    -- if there are no active trains and scope creep is enabled, search for active spidertrons
+    if scope_creep_enabled then
+        chatty_print(chatty_name .. "no active trains found, searching for active spidertrons...")
+        local spidertron = nil
+        for _, surface in pairs(game.surfaces) do
+            local spidertrons = surface.find_entities_filtered { type = "spider-vehicle", force = player.force }
+            for _, spider in pairs(spidertrons) do
+                if spider and spider.valid and spider.autopilot_destination then
+                    spidertron = spider
+                    break
+                end
             end
+            if spidertron and spidertron.autopilot_destination then break end
         end
-        if spidertron and spidertron.autopilot_destination then break end
-    end
-    if spidertron and spidertron.valid then
-        chatty_print(chatty_name .. "found spidertron, creating cutscene")
-        local waypoints = create_waypoint(spidertron, player.index)
-        if waypoints[1].zoom then
-            waypoints[1].zoom = waypoints[1].zoom * 1.75
+        if spidertron and spidertron.valid then
+            chatty_print(chatty_name .. "found spidertron, creating cutscene")
+            local waypoints = create_waypoint(spidertron, player.index)
+            if waypoints[1].zoom then
+                waypoints[1].zoom = waypoints[1].zoom * 1.75
+            end
+            play_cutscene(waypoints, player.index, true)
+            return
         end
-        play_cutscene(waypoints, player.index, true)
-        return
     end
 
     -- if there are no trains on_the_path then make a table of trains waiting at stations
-    chatty_print(chatty_name .. "no active trains or spidertrons")
+    chatty_print(chatty_name .. "no active trains or eligible scope-creep targets")
     local trains_at_stations = {} --[=[@type LuaTrain[]]=]
     for _, train in pairs(eligible_trains_with_movers) do
         if train.state == defines.train_state.wait_station then
