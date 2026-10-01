@@ -93,10 +93,8 @@ local function end_trainsaver(command, ending_transition)
     end
     local transfer_alt_mode = player.game_view_settings.show_entity_info
     local player_position = player.position
-
-    ---@type table<uint, boolean>
-    storage.cutscene_ending = storage.cutscene_ending or {}
-    storage.cutscene_ending[player_index] = true
+    local player_data = storage.player_data and storage.player_data[player_index]
+    local continuous_duration = storage.current_continuous_duration and storage.current_continuous_duration[player_index]
 
     player.set_controller(
         {
@@ -106,6 +104,14 @@ local function end_trainsaver(command, ending_transition)
             start_zoom = player.zoom, -- temporary until zoom issue is fixed
         }
     )
+    if player.controller_type == defines.controllers.cutscene then
+        storage.player_data[player_index] = player_data
+        storage.current_continuous_duration[player_index] = continuous_duration
+        storage.trainsaver_status[player_index] = "active"
+        ---@type table<uint, boolean>
+        storage.cutscene_ending = storage.cutscene_ending or {}
+        storage.cutscene_ending[player_index] = true
+    end
     toggle_gui(player, false)
     player.game_view_settings.show_entity_info = transfer_alt_mode
     -- update globals for a cutscene ending
